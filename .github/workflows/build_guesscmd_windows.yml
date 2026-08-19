@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/build_guesscmd_windows.yml'
       - 'patch_chunks/**'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
