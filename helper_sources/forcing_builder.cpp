@@ -31,13 +31,16 @@ int main(int argc,char**argv){
   if(argc!=6){std::cerr<<"usage: gounsa_forcing_builder source.nc weights.csv cells.csv output.nc model_end_year\n";return 2;}
   std::string src=argv[1],wp=argv[2],cp=argv[3],out=argv[4]; int endy=std::stoi(argv[5]);
   if(endy!=2031) throw std::runtime_error("v0.34 requires model_end_year=2031");
+  // weights
   std::ifstream wf(wp); if(!wf)throw std::runtime_error("cannot open weights");
   std::string line; std::getline(wf,line); auto wh=split(line); std::map<std::string,int> wc;for(int i=0;i<(int)wh.size();++i)wc[wh[i]]=i;
   std::unordered_map<int,W> WM;
   while(std::getline(wf,line)){if(line.empty())continue;auto x=split(line);int cid=std::stoi(x[wc["cell_id"]]);W w{std::stoi(x[wc["n00"]]),std::stoi(x[wc["n10"]]),std::stoi(x[wc["n01"]]),std::stoi(x[wc["n11"]]),std::stod(x[wc["w00"]]),std::stod(x[wc["w10"]]),std::stod(x[wc["w01"]]),std::stod(x[wc["w11"]])};WM[cid]=w;}
+  // cells
   std::ifstream cf(cp);if(!cf)throw std::runtime_error("cannot open cells.csv");std::getline(cf,line);auto ch=split(line);std::map<std::string,int> cc;for(int i=0;i<(int)ch.size();++i)cc[ch[i]]=i;
   std::vector<Cell> cells;while(std::getline(cf,line)){if(line.empty())continue;auto x=split(line);cells.push_back({std::stoi(x[cc["landid"]]),std::stoi(x[cc["cell_id"]]),std::stod(x[cc["lon"]]),std::stod(x[cc["lat"]])});}
   if(cells.empty())throw std::runtime_error("no cells");
+  // read source variables [time,lat,lon]
   int nc;ncok(nc_open(src.c_str(),NC_NOWRITE,&nc),"open source");int didt,dlat,dlon;size_t nt,nlat,nlon;
   ncok(nc_inq_dimid(nc,"time",&didt),"time dim");ncok(nc_inq_dimlen(nc,didt,&nt),"time len");
   ncok(nc_inq_dimid(nc,"lat",&dlat),"lat dim");ncok(nc_inq_dimlen(nc,dlat,&nlat),"lat len");
@@ -47,9 +50,11 @@ int main(int argc,char**argv){
   for(int v=0;v<7;++v){int id;ncok(nc_inq_varid(nc,vn[v].c_str(),&id),"var");ncok(nc_get_var_float(nc,id,raw[v].data()),"read var");}nc_close(nc);
   std::unordered_map<std::string,size_t> spos; size_t si=0;for(int y=2021;y<=2030;++y)for(int m=1;m<=12;++m)for(int d=1;d<=mdays(y,m);++d)spos[key(y,m,d)]=si++;
   if(si!=nt)throw std::runtime_error("source date mapping mismatch");
+  // model no-leap dates 1991..2031, time coordinate retains Gregorian gaps like prior pipeline
   std::vector<Date> dates;std::vector<double> tv;std::vector<int> source_year_for_time;auto o0=ordinal(1991,1,1);
   for(int y=1991;y<=endy;++y)for(int m=1;m<=12;++m)for(int d=1;d<=mdays(y,m);++d){if(m==2&&d==29)continue;dates.push_back({y,m,d});tv.push_back(double(ordinal(y,m,d)-o0));int sy;if(y<=2020)sy=2021+((y-1991)%10);else if(y==2021)sy=2021;else sy=y-1;source_year_for_time.push_back(sy);}
   const size_t T=dates.size(),N=cells.size();
+  // define classic netcdf
   int no;ncok(nc_create(out.c_str(),NC_CLOBBER|NC_64BIT_OFFSET,&no),"create out");int dland,dtime;ncok(nc_def_dim(no,"landid",N,&dland),"def land");ncok(nc_def_dim(no,"time",T,&dtime),"def time");
   int id_land,id_time,id_lon,id_lat,id_source_year;ncok(nc_def_var(no,"landid",NC_INT,1,&dland,&id_land),"def landid");ncok(nc_def_var(no,"time",NC_DOUBLE,1,&dtime,&id_time),"def time");ncok(nc_def_var(no,"lon",NC_DOUBLE,1,&dland,&id_lon),"def lon");ncok(nc_def_var(no,"lat",NC_DOUBLE,1,&dland,&id_lat),"def lat");ncok(nc_def_var(no,"source_year",NC_INT,1,&dtime,&id_source_year),"def source_year");
   std::string tun="days since 1991-01-01 00:00:00",cal="proleptic_gregorian",conv="CF-1.6";nc_put_att_text(no,id_time,"units",tun.size(),tun.c_str());nc_put_att_text(no,id_time,"calendar",cal.size(),cal.c_str());nc_put_att_text(no,NC_GLOBAL,"Conventions",conv.size(),conv.c_str());std::string role="GOUNSA_2022_STATE_10YR_EXPERIMENT_USING_SOURCE_2021_2030_SEQUENCE";nc_put_att_text(no,NC_GLOBAL,"temporal_role",role.size(),role.c_str());std::string map="LPJ calendar 2022..2031 maps to source climate years 2021..2030; 2031 is not observed 2031 forcing";nc_put_att_text(no,NC_GLOBAL,"experiment_mapping",map.size(),map.c_str());
