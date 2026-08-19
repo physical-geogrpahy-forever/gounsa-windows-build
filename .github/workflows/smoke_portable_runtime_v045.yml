@@ -80,7 +80,7 @@ jobs:
       - name: Run embedded Python on Windows
         shell: pwsh
         run: |
-          & package\runtime\python\python.exe -c "import sys,http.server,subprocess,concurrent.futures,pathlib,json,csv,hashlib,shutil,threading; print(sys.version); print('PASS packaged embedded Python on Windows')"
+          & package\runtime\python\python.exe -c "import sys,http.server,http.client,subprocess,concurrent.futures,pathlib,json,csv,hashlib,shutil,threading; print(sys.version); print('PASS packaged embedded Python on Windows')"
           if ($LASTEXITCODE -ne 0) { throw 'embedded Python failed' }
 
       - name: Run both native helper selftests with app-local CRT
@@ -121,7 +121,8 @@ jobs:
             for($i=0;$i -lt 40;$i++) {
               Start-Sleep -Milliseconds 200
               if ($p.HasExited) { break }
-              try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/; if($r.Content -eq 'GOUNSA_PORTABLE_HTTP_PASS'){$ok=$true;break} } catch {}
+              & $py -c "import http.client; c=http.client.HTTPConnection('127.0.0.1',18765,timeout=1); c.request('GET','/'); r=c.getresponse(); b=r.read(); assert r.status==200 and b==b'GOUNSA_PORTABLE_HTTP_PASS'; print('CLIENT_PASS')" 2>$null
+              if ($LASTEXITCODE -eq 0) { $ok=$true; break }
             }
             if(!$ok){
               Write-Host "process exited: $($p.HasExited) code=$($p.ExitCode)"
