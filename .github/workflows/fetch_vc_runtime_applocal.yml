@@ -27,16 +27,22 @@ jobs:
           if (!$vs) { throw 'Visual Studio C++ tools installation not found' }
           $redistRoot = Join-Path $vs 'VC\Redist\MSVC'
           if (!(Test-Path $redistRoot)) { throw "MSVC Redist root missing: $redistRoot" }
-          $sets = Get-ChildItem $redistRoot -Directory | Sort-Object { [version]$_.Name } -Descending
-          $chosen = $null
-          foreach ($s in $sets) {
-            $crt = Join-Path $s.FullName 'x64\Microsoft.VC143.CRT'
-            $need = @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')
-            if (($need | ForEach-Object { Test-Path (Join-Path $crt $_) }) -notcontains $false) { $chosen = $crt; break }
+          $need = @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')
+          $candidates = @()
+          foreach ($m in Get-ChildItem $redistRoot -Recurse -File -Filter 'msvcp140.dll') {
+            $crt = $m.Directory.FullName
+            if ($crt -notmatch '\\x64\\Microsoft\.VC14[0-9]\.CRT$') { continue }
+            if (($need | ForEach-Object { Test-Path (Join-Path $crt $_) }) -contains $false) { continue }
+            $verText = $m.VersionInfo.FileVersion -replace '[^0-9\.]',''
+            try { $ver = [version]$verText } catch { $ver = [version]'0.0.0.0' }
+            $candidates += [pscustomobject]@{ Dir=$crt; Version=$ver; FileVersion=$m.VersionInfo.FileVersion }
           }
-          if (!$chosen) { throw 'No single x64 Microsoft.VC143.CRT set contains all required DLLs' }
+          $chosenRow = $candidates | Sort-Object Version -Descending | Select-Object -First 1
+          if (!$chosenRow) { throw 'No single x64 Microsoft.VC14x.CRT set contains all required DLLs' }
+          $chosen = $chosenRow.Dir
           "CRT_DIR=$chosen" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Chosen CRT set: $chosen"
+          Write-Host "MSVCP140 file version: $($chosenRow.FileVersion)"
 
       - name: Verify Microsoft signatures and collect exact DLLs
         shell: pwsh
@@ -58,7 +64,6 @@ jobs:
               signer=$sig.SignerCertificate.Subject; signature_status=$sig.Status; source_path=$src
             }
           }
-          $versions = @($rows | ForEach-Object { $_.file_version } | Select-Object -Unique)
           [ordered]@{
             status='PASS'; architecture='x64'; deployment='app-local';
             source='Microsoft Visual Studio runner MSVC Redist directory'; crt_directory=$env:CRT_DIR;
