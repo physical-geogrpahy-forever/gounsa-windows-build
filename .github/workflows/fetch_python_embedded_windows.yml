@@ -1,0 +1,66 @@
+name: Fetch official Python 3.14.7 Windows embeddable runtime
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CI_PYTHON_RUNTIME_v043.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-python-runtime:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download official Python embeddable x64
+        shell: pwsh
+        run: |
+          $url = 'https://www.python.org/ftp/python/3.14.7/python-3.14.7-embed-amd64.zip'
+          curl.exe -L --fail --retry 3 --retry-delay 3 -o python-3.14.7-embed-amd64.zip $url
+          if ($LASTEXITCODE -ne 0) { throw 'Python download failed' }
+          $sha = (Get-FileHash python-3.14.7-embed-amd64.zip -Algorithm SHA256).Hash.ToLower()
+          $expected = 'd297e5ff019966817ad8502465176139f2d3d840fa4ed84b13bed399a6ab1f15'
+          if ($sha -ne $expected) { throw "Python SHA mismatch: $sha" }
+          Write-Host "Python official SHA verified: $sha"
+
+      - name: Extract and selftest embedded runtime
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force runtime\python | Out-Null
+          Expand-Archive python-3.14.7-embed-amd64.zip -DestinationPath runtime\python
+          if (!(Test-Path runtime\python\python.exe)) { throw 'python.exe missing' }
+          & runtime\python\python.exe -c "import sys,http.server,subprocess,concurrent.futures,pathlib,json,csv,hashlib,shutil,threading; print(sys.version); print('PASS embedded stdlib selftest')"
+          if ($LASTEXITCODE -ne 0) { throw 'Embedded Python selftest failed' }
+
+      - name: Write provenance
+        shell: pwsh
+        run: |
+          $sha = (Get-FileHash python-3.14.7-embed-amd64.zip -Algorithm SHA256).Hash.ToLower()
+          @{
+            version='3.14.7'; architecture='amd64'; package='Windows embeddable package (64-bit)';
+            source_url='https://www.python.org/ftp/python/3.14.7/python-3.14.7-embed-amd64.zip';
+            sha256=$sha; expected_sha256='d297e5ff019966817ad8502465176139f2d3d840fa4ed84b13bed399a6ab1f15';
+            source='Python Software Foundation / python.org'; modified=$false
+          } | ConvertTo-Json | Out-File PYTHON_RUNTIME_PROVENANCE_v0_43.json -Encoding utf8
+
+      - name: Assemble artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifact | Out-Null
+          Copy-Item python-3.14.7-embed-amd64.zip artifact\
+          Copy-Item runtime artifact\ -Recurse
+          Copy-Item PYTHON_RUNTIME_PROVENANCE_v0_43.json artifact\
+
+      - name: Upload runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-python-3.14.7-embed-amd64-v043
+          path: artifact
+          if-no-files-found: error
+          retention-days: 14
