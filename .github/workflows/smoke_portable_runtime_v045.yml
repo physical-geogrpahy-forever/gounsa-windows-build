@@ -102,6 +102,11 @@ jobs:
       - name: Start local HTTP service using packaged Python
         shell: pwsh
         run: |
+          $pkg=(Resolve-Path package).Path
+          $py=Join-Path $pkg 'runtime\python\python.exe'
+          $script=Join-Path $pkg 'http_smoke.py'
+          $stdout=Join-Path $pkg 'http_smoke.stdout.txt'
+          $stderr=Join-Path $pkg 'http_smoke.stderr.txt'
           @'
           from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
           class H(BaseHTTPRequestHandler):
@@ -109,15 +114,21 @@ jobs:
               def do_GET(self):
                   b=b'GOUNSA_PORTABLE_HTTP_PASS'; self.send_response(200); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
           ThreadingHTTPServer(('127.0.0.1',18765),H).serve_forever()
-          '@ | Out-File package\http_smoke.py -Encoding utf8
-          $p=Start-Process -FilePath package\runtime\python\python.exe -ArgumentList 'http_smoke.py' -WorkingDirectory package -PassThru -WindowStyle Hidden
+          '@ | Set-Content $script -Encoding utf8
+          $p=Start-Process -FilePath $py -ArgumentList @($script) -WorkingDirectory $pkg -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           try {
             $ok=$false
-            for($i=0;$i -lt 30;$i++) {
+            for($i=0;$i -lt 40;$i++) {
               Start-Sleep -Milliseconds 200
+              if ($p.HasExited) { break }
               try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/; if($r.Content -eq 'GOUNSA_PORTABLE_HTTP_PASS'){$ok=$true;break} } catch {}
             }
-            if(!$ok){throw 'packaged Python HTTP smoke failed'}
+            if(!$ok){
+              Write-Host "process exited: $($p.HasExited) code=$($p.ExitCode)"
+              if(Test-Path $stdout){Get-Content $stdout}
+              if(Test-Path $stderr){Get-Content $stderr}
+              throw 'packaged Python HTTP smoke failed'
+            }
             Write-Host 'PASS packaged local HTTP service'
           } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
 
