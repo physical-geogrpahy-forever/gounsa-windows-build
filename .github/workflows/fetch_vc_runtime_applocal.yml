@@ -1,0 +1,83 @@
+name: Fetch Gounsa VC++ app-local runtime
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CI_VC_RUNTIME_v044.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-vc-runtime:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Locate one official x64 MSVC CRT set
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (!(Test-Path $vswhere)) { throw 'vswhere.exe missing' }
+          $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (!$vs) { throw 'Visual Studio C++ tools installation not found' }
+          $redistRoot = Join-Path $vs 'VC\Redist\MSVC'
+          if (!(Test-Path $redistRoot)) { throw "MSVC Redist root missing: $redistRoot" }
+          $sets = Get-ChildItem $redistRoot -Directory | Sort-Object { [version]$_.Name } -Descending
+          $chosen = $null
+          foreach ($s in $sets) {
+            $crt = Join-Path $s.FullName 'x64\Microsoft.VC143.CRT'
+            $need = @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')
+            if (($need | ForEach-Object { Test-Path (Join-Path $crt $_) }) -notcontains $false) { $chosen = $crt; break }
+          }
+          if (!$chosen) { throw 'No single x64 Microsoft.VC143.CRT set contains all required DLLs' }
+          "CRT_DIR=$chosen" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Chosen CRT set: $chosen"
+
+      - name: Verify Microsoft signatures and collect exact DLLs
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifact\windows\bin | Out-Null
+          $names = @('msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')
+          $rows = @()
+          foreach ($name in $names) {
+            $src = Join-Path $env:CRT_DIR $name
+            $sig = Get-AuthenticodeSignature $src
+            if ($sig.Status -ne 'Valid') { throw "$name signature invalid: $($sig.Status)" }
+            if ($sig.SignerCertificate.Subject -notmatch 'Microsoft') { throw "$name signer is not Microsoft: $($sig.SignerCertificate.Subject)" }
+            $dst = Join-Path 'artifact\windows\bin' $name
+            Copy-Item $src $dst
+            $fi = (Get-Item $src).VersionInfo
+            $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+            $rows += [ordered]@{
+              name=$name; sha256=$sha; file_version=$fi.FileVersion; product_version=$fi.ProductVersion;
+              signer=$sig.SignerCertificate.Subject; signature_status=$sig.Status; source_path=$src
+            }
+          }
+          $versions = @($rows | ForEach-Object { $_.file_version } | Select-Object -Unique)
+          [ordered]@{
+            status='PASS'; architecture='x64'; deployment='app-local';
+            source='Microsoft Visual Studio runner MSVC Redist directory'; crt_directory=$env:CRT_DIR;
+            same_source_directory=$true; files=$rows
+          } | ConvertTo-Json -Depth 6 | Out-File artifact\VC_RUNTIME_PROVENANCE_v0_44.json -Encoding utf8
+          Get-ChildItem artifact\windows\bin | Format-Table Name,Length
+
+      - name: Verify PE and dependency closure inputs
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem artifact\windows\bin\*.dll) {
+            $b=[System.IO.File]::ReadAllBytes($f.FullName)
+            if ($b.Length -lt 2 -or $b[0] -ne 0x4d -or $b[1] -ne 0x5a) { throw "$($f.Name) is not PE/MZ" }
+          }
+          Write-Host 'PASS VC++ app-local CRT collection'
+
+      - name: Upload VC runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-vc-runtime-applocal-v044
+          path: artifact
+          retention-days: 14
