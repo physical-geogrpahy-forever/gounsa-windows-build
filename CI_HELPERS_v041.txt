@@ -1,2 +1,2 @@
 Trigger one controlled Windows build for gounsa_forcing_builder.exe and gounsa_geomorph_driver.exe from exact v0.41 sources.
-Attempt 2 after exact source-byte restoration.
+Attempt 3 after enforcing LF checkout via .gitattributes.
