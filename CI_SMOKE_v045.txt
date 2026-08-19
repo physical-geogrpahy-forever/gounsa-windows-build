@@ -1,1 +1,2 @@
 Trigger one controlled clean-Windows portable runtime smoke test for the exact validated Gounsa runtime artifacts. No science simulation.
+Attempt 2 after absolute-path HTTP smoke fix.
