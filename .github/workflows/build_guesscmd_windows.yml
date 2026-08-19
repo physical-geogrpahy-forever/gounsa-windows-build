@@ -1,0 +1,117 @@
+name: Build Gounsa LPJ-GUESS 4.1.1 Windows CLI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout build repository
+        uses: actions/checkout@v4
+
+      - name: Download official LPJ-GUESS 4.1.1 source from Zenodo
+        shell: pwsh
+        run: |
+          $url = 'https://zenodo.org/records/8065737/files/guess_4.1.1.zip?download=1'
+          Invoke-WebRequest -Uri $url -OutFile guess_4.1.1.zip
+          $actual = (Get-FileHash guess_4.1.1.zip -Algorithm SHA256).Hash.ToLower()
+          $expected = '9d30881c180bd2d291fea0a5d7e7cf22fc33512bf4c99b452722d4d8d3d8f193'
+          if ($actual -ne $expected) { throw "Official source SHA256 mismatch: $actual" }
+          Expand-Archive -Path guess_4.1.1.zip -DestinationPath . -Force
+          if (!(Test-Path guess_4.1\CMakeLists.txt)) { throw 'LPJ-GUESS source did not extract as guess_4.1' }
+
+      - name: Reconstruct and verify Gounsa v0.38 patch
+        shell: pwsh
+        run: |
+          $parts = Get-ChildItem patch_chunks\part_*.b64 | Sort-Object Name
+          if ($parts.Count -ne 7) { throw "Expected 7 patch chunks, found $($parts.Count)" }
+          $b64 = (($parts | ForEach-Object { Get-Content $_.FullName -Raw }) -join '')
+          [IO.File]::WriteAllBytes('GOUNSA_LPJ411_REBASE_v0_38.true.patch', [Convert]::FromBase64String($b64))
+          $actual = (Get-FileHash GOUNSA_LPJ411_REBASE_v0_38.true.patch -Algorithm SHA256).Hash.ToLower()
+          $expected = '215f86f2b2b9ed36ffcc87ae3abc465e363b3808a0720c6337e32d91407c532d'
+          if ($actual -ne $expected) { throw "Gounsa patch SHA256 mismatch: $actual" }
+
+      - name: Apply verified Gounsa patch
+        shell: pwsh
+        run: |
+          git apply --check GOUNSA_LPJ411_REBASE_v0_38.true.patch
+          git apply GOUNSA_LPJ411_REBASE_v0_38.true.patch
+          if (!(Test-Path guess_4.1\modules\gounsa_direct_initial_state.cpp)) { throw 'Gounsa direct-init source missing after patch' }
+          if (!(Test-Path guess_4.1\modules\veslemexchangeoutput.cpp)) { throw 'Gounsa exchange source missing after patch' }
+          if (!(Test-Path guess_4.1\modules\gounsacohortoutput.cpp)) { throw 'Gounsa cohort output source missing after patch' }
+
+      - name: Clone and bootstrap vcpkg
+        shell: pwsh
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+          git -C C:\vcpkg rev-parse HEAD | Out-File vcpkg_commit.txt -Encoding ascii
+
+      - name: Install NetCDF C
+        shell: pwsh
+        run: |
+          C:\vcpkg\vcpkg.exe install netcdf-c:x64-windows --disable-metrics
+
+      - name: Configure LPJ-GUESS
+        shell: pwsh
+        run: |
+          cmake -S guess_4.1 -B build-win64 `
+            -G "Visual Studio 17 2022" -A x64 `
+            -DUNIT_TESTS=OFF `
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
+
+      - name: Require NetCDF detection
+        shell: pwsh
+        run: |
+          $cache = Get-Content build-win64\CMakeCache.txt -Raw
+          if ($cache -match 'NETCDF_C_LIBRARY:FILEPATH=.*NOTFOUND') { throw 'NetCDF C library was not detected' }
+          if ($cache -match 'NETCDF_INCLUDE_DIR:PATH=.*NOTFOUND') { throw 'NetCDF include directory was not detected' }
+          if ($cache -notmatch 'NETCDF_C_LIBRARY:FILEPATH=') { throw 'NetCDF C library cache entry is missing' }
+          if ($cache -notmatch 'NETCDF_INCLUDE_DIR:PATH=') { throw 'NetCDF include cache entry is missing' }
+
+      - name: Build guesscmd.exe
+        shell: pwsh
+        run: |
+          cmake --build build-win64 --config Release --target guesscmd -- /m
+          if (!(Test-Path build-win64\Release\guesscmd.exe)) { throw 'guesscmd.exe was not produced' }
+
+      - name: Verify Windows PE
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path build-win64\Release\guesscmd.exe
+          $bytes = [System.IO.File]::ReadAllBytes($exe)
+          if ($bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) { throw 'guesscmd.exe is not a Windows PE/MZ executable' }
+          $dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
+          if ($dumpbin) {
+            & $dumpbin.Source /dependents $exe | Out-File dependents.txt -Encoding utf8
+          } else {
+            'dumpbin.exe not on PATH; PE/MZ verification passed and vcpkg runtime DLLs will be bundled.' | Out-File dependents.txt -Encoding utf8
+          }
+
+      - name: Assemble portable native bundle
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifact\bin | Out-Null
+          Copy-Item build-win64\Release\guesscmd.exe artifact\bin\guesscmd.exe
+          Copy-Item C:\vcpkg\installed\x64-windows\bin\*.dll artifact\bin\ -Force
+          Copy-Item dependents.txt artifact\dependents.txt
+          Copy-Item vcpkg_commit.txt artifact\vcpkg_commit.txt
+          Get-FileHash artifact\bin\guesscmd.exe -Algorithm SHA256 | Format-List | Out-File artifact\guesscmd_sha256.txt -Encoding utf8
+          Get-ChildItem artifact\bin | Select-Object Name,Length | Format-Table -AutoSize | Out-File artifact\bundle_files.txt -Encoding utf8
+
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-lpjguess411-windows-x64-native
+          path: artifact
+          if-no-files-found: error
+          retention-days: 14
