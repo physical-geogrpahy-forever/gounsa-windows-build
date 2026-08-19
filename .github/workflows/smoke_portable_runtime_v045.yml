@@ -1,0 +1,128 @@
+name: Smoke Gounsa portable Windows runtime
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CI_SMOKE_v045.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  smoke-portable-runtime:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download exact previously validated artifacts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force dl | Out-Null
+          gh run download 32220754988 -n gounsa-lpjguess411-windows-x64-native -D dl\lpj
+          gh run download 32226403260 -n gounsa-windows-helper-executables-v041 -D dl\helper
+          gh run download 32228713485 -n gounsa-python-3.14.7-embed-amd64-v043 -D dl\python
+          gh run download 32272834517 -n gounsa-vc-runtime-applocal-v044 -D dl\crt
+
+      - name: Assemble exact runtime closure
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package\windows\bin | Out-Null
+          New-Item -ItemType Directory -Force package\runtime | Out-Null
+          Copy-Item dl\lpj\bin\* package\windows\bin\ -Force
+          Copy-Item dl\helper\bin\gounsa_forcing_builder.exe package\windows\bin\ -Force
+          Copy-Item dl\helper\bin\gounsa_geomorph_driver.exe package\windows\bin\ -Force
+          Copy-Item dl\python\runtime\python package\runtime\python -Recurse -Force
+          Copy-Item dl\crt\windows\bin\*.dll package\windows\bin\ -Force
+          Get-ChildItem package\windows\bin | Sort-Object Name | Format-Table Name,Length
+
+      - name: Verify exact SHA contracts
+        shell: pwsh
+        run: |
+          $expect = @{
+            'runtime\python\python.exe'='4942b86a6597e5aee0128daa00050ed79bc21f6e709a78eb19cbfeb0c2f39ac9';
+            'windows\bin\guesscmd.exe'='ef1fc163baa44f8bfc16d2bf876f823078a54bdfce1b150bed51d1aa81ee77ee';
+            'windows\bin\gounsa_forcing_builder.exe'='7465e2043921e74d6131e413c4037c6f920202e5f0e3751641cd56e0bf9fc85b';
+            'windows\bin\gounsa_geomorph_driver.exe'='93db7e834f16c864f369656d10e762c7f138b38a2e57d055c8b2a0d7d5d0907b';
+            'windows\bin\msvcp140.dll'='8b3e7b3bd95147c47272b300c566f98607525b620afe6b289a887759d5519edf';
+            'windows\bin\vcruntime140.dll'='3dd51ceefab6c79e5c22b72bf2c11da7d28f390fc4b7852cc71656a61f51f261';
+            'windows\bin\vcruntime140_1.dll'='3667158e396e409345578d93e82167594e45626941daa8766ac17e062c4f214f'
+          }
+          foreach ($rel in $expect.Keys) {
+            $p=Join-Path 'package' $rel
+            if (!(Test-Path $p)) { throw "missing $rel" }
+            $got=(Get-FileHash $p -Algorithm SHA256).Hash.ToLower()
+            if ($got -ne $expect[$rel]) { throw "SHA mismatch $rel : $got" }
+          }
+          Write-Host 'PASS exact runtime SHA contracts'
+
+      - name: Verify native dependency names are app-local closed
+        shell: pwsh
+        run: |
+          $dumpbin = Get-ChildItem 'C:\Program Files\Microsoft Visual Studio' -Recurse -Filter dumpbin.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (!$dumpbin) { throw 'dumpbin.exe not found' }
+          $requiredVc=@('MSVCP140.dll','VCRUNTIME140.dll','VCRUNTIME140_1.dll')
+          foreach ($exe in @('guesscmd.exe','gounsa_forcing_builder.exe','gounsa_geomorph_driver.exe')) {
+            $text = & $dumpbin.FullName /dependents (Join-Path 'package\windows\bin' $exe) | Out-String
+            foreach ($dll in $requiredVc) {
+              if ($text -notmatch [regex]::Escape($dll)) { throw "$exe did not declare expected $dll" }
+              if (!(Test-Path (Join-Path 'package\windows\bin' $dll))) { throw "$dll not app-local" }
+            }
+          }
+          Write-Host 'PASS app-local VC runtime dependency closure'
+
+      - name: Run embedded Python on Windows
+        shell: pwsh
+        run: |
+          & package\runtime\python\python.exe -c "import sys,http.server,subprocess,concurrent.futures,pathlib,json,csv,hashlib,shutil,threading; print(sys.version); print('PASS packaged embedded Python on Windows')"
+          if ($LASTEXITCODE -ne 0) { throw 'embedded Python failed' }
+
+      - name: Run both native helper selftests with app-local CRT
+        shell: pwsh
+        run: |
+          & package\windows\bin\gounsa_forcing_builder.exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'forcing builder selftest failed' }
+          & package\windows\bin\gounsa_geomorph_driver.exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'geomorph driver selftest failed' }
+
+      - name: Load and execute LPJ-GUESS CLI help
+        shell: pwsh
+        run: |
+          & package\windows\bin\guesscmd.exe -help
+          $code=$LASTEXITCODE
+          Write-Host "guesscmd -help exit code: $code"
+          if ($code -ne 0) { throw "guesscmd CLI load/help failed with $code" }
+
+      - name: Start local HTTP service using packaged Python
+        shell: pwsh
+        run: |
+          @'
+          from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+          class H(BaseHTTPRequestHandler):
+              def log_message(self,*a): pass
+              def do_GET(self):
+                  b=b'GOUNSA_PORTABLE_HTTP_PASS'; self.send_response(200); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b)
+          ThreadingHTTPServer(('127.0.0.1',18765),H).serve_forever()
+          '@ | Out-File package\http_smoke.py -Encoding utf8
+          $p=Start-Process -FilePath package\runtime\python\python.exe -ArgumentList 'http_smoke.py' -WorkingDirectory package -PassThru -WindowStyle Hidden
+          try {
+            $ok=$false
+            for($i=0;$i -lt 30;$i++) {
+              Start-Sleep -Milliseconds 200
+              try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18765/; if($r.Content -eq 'GOUNSA_PORTABLE_HTTP_PASS'){$ok=$true;break} } catch {}
+            }
+            if(!$ok){throw 'packaged Python HTTP smoke failed'}
+            Write-Host 'PASS packaged local HTTP service'
+          } finally { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
+
+      - name: Final smoke verdict
+        shell: pwsh
+        run: |
+          Write-Host 'PASS VIDEO_READY_RUNTIME_SMOKE'
+          Write-Host 'No MSYS2, WSL, CMake, Visual Studio, system Python, or admin install was used by the assembled runtime.'
