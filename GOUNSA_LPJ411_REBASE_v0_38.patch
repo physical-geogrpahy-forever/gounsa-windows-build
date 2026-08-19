@@ -1,0 +1,343 @@
+--- a/guess_4.1/framework/commandlinearguments.cpp
++++ b/guess_4.1/framework/commandlinearguments.cpp
+@@ -72,6 +72,7 @@
+ 	printf("  -parallel\t run in parallel mode, communicating with master process via standard I/O\n");
+ 	printf("  -input <module_name> [driver-file]\t specify input module and optional driver file\n");
++	printf("  -gounsa-direct-state <csv>\t load Gounsa full-state direct initialization CSV\n");
+ 	printf("  -help\t display this help message\n");
+ }
+ 
+@@ -95,6 +96,7 @@
+ 	bool parallel = false;
+ 	std::string input_module;
+ 	std::string driver_file;
++	std::string gounsa_direct_state_file;
+ 
+ 	for (int i = 1; i < argc; ++i) {
+ 		std::string arg(argv[i]);
+@@ -113,6 +115,13 @@
+ 			if (i + 1 < argc && argv[i + 1][0] != '-') driver_file = argv[++i];
+ 		}
++		else if (arg == "-gounsa-direct-state") {
++			if (i + 1 >= argc) {
++				fail("Missing CSV path after -gounsa-direct-state");
++			}
++			gounsa_direct_state_file = argv[++i];
++		}
+ 		else if (arg == "-help" || arg == "--help" || arg == "-h") {
+ 			print_usage();
+ 			exit(0);
+@@ -134,6 +143,7 @@
+ 	command_line_options.parallel = parallel;
+ 	command_line_options.input_module = input_module;
+ 	command_line_options.driver_file = driver_file;
++	command_line_options.gounsa_direct_state_file = gounsa_direct_state_file;
+ }
+--- a/guess_4.1/framework/commandlinearguments.h
++++ b/guess_4.1/framework/commandlinearguments.h
+@@ -36,6 +36,7 @@
+ 	bool parallel;
+ 	std::string input_module;
+ 	std::string driver_file;
++	std::string gounsa_direct_state_file;
+ };
+ 
+ extern CommandLineOptions command_line_options;
+--- a/guess_4.1/framework/guess.cpp
++++ b/guess_4.1/framework/guess.cpp
+@@ -28,6 +28,7 @@
+ #include "guess.h"
+ #include "commandlinearguments.h"
+ #include "guessio.h"
++#include "gounsa_direct_initial_state.h"
+ 
+ #include "driver.h"
+ #include "parameters.h"
+@@ -103,6 +104,9 @@
+ 	// Read instruction file and initialise model
+ 	input_module->init(input_module_data);
+ 
++	if (!command_line_options.gounsa_direct_state_file.empty())
++		gounsa_direct_initial_state::load_csv(command_line_options.gounsa_direct_state_file);
++
+ 	// Main gridcell loop
+ 	while (input_module->getgridcell(gridcell)) {
++		gounsa_direct_initial_state::apply_if_available(gridcell);
+ 		run_landcover(gridcell);
+ 	}
+--- a/guess_4.1/framework/CMakeLists.txt
++++ b/guess_4.1/framework/CMakeLists.txt
+@@ -31,6 +31,7 @@
+ 	guess.cpp
+ 	guessio.cpp
+ 	guessserializer.cpp
++	gounsa_direct_initial_state.cpp
+ 	inputmodule.cpp
+ 	parallel.cpp
+ 	parameters.cpp
+--- /dev/null
++++ b/guess_4.1/framework/gounsa_direct_initial_state.h
+@@ -0,0 +1,35 @@
++#ifndef GOUNSA_DIRECT_INITIAL_STATE_H
++#define GOUNSA_DIRECT_INITIAL_STATE_H
++
++#include <string>
++
++class Gridcell;
++
++namespace gounsa_direct_initial_state {
++
++// Load a CSV containing observed/projected 2022 full-state values. The CSV is
++// intentionally external to the LPJ core so the original process equations and
++// parameterisation remain unchanged. Rows are keyed by lon/lat and PFT.
++void load_csv(const std::string& filename);
++
++// Apply a matching state, if present, immediately after the input module has
++// populated the gridcell and before the transient simulation begins.
++void apply_if_available(Gridcell& gridcell);
++
++}
++
++#endif
+--- /dev/null
++++ b/guess_4.1/framework/gounsa_direct_initial_state.cpp
+@@ -0,0 +1,259 @@
++#include "stdafx.h"
++#include "gounsa_direct_initial_state.h"
++#include "guess.h"
++#include "vegetation.h"
++#include "pft.h"
++
++#include <fstream>
++#include <sstream>
++#include <map>
++#include <vector>
++#include <cmath>
++#include <cstdlib>
++
++namespace {
++
++struct StateRow {
++	double lon, lat;
++	std::string pft;
++	double densindiv, height, crownarea, cmass_leaf, cmass_root, cmass_sap, cmass_heart;
++	double cmass_debt, age;
++};
++
++std::vector<StateRow> rows;
++
++std::vector<std::string> split_csv(const std::string& s) {
++	std::vector<std::string> out;
++	std::string cur;
++	bool q=false;
++	for (size_t i=0;i<s.size();++i) {
++		char c=s[i];
++		if (c=='\"') q=!q;
++		else if (c==',' && !q) { out.push_back(cur); cur.clear(); }
++		else cur+=c;
++	}
++	out.push_back(cur);
++	return out;
++}
++
++double num(const std::string& x) { return std::atof(x.c_str()); }
++
++bool near(double a,double b) { return std::fabs(a-b)<5e-5; }
++
++}
++
++namespace gounsa_direct_initial_state {
++
++void load_csv(const std::string& filename) {
++	rows.clear();
++	std::ifstream f(filename.c_str());
++	if (!f) fail("Could not open Gounsa direct-state CSV %s",filename.c_str());
++	std::string line;
++	if (!std::getline(f,line)) fail("Empty Gounsa direct-state CSV");
++	std::vector<std::string> h=split_csv(line);
++	std::map<std::string,int> c;
++	for(size_t i=0;i<h.size();++i)c[h[i]]=(int)i;
++	const char* req[]={"lon","lat","pft","densindiv","height","crownarea","cmass_leaf","cmass_root","cmass_sap","cmass_heart","cmass_debt","age"};
++	for(size_t k=0;k<12;++k) if(!c.count(req[k])) fail("Gounsa direct-state CSV missing column %s",req[k]);
++	while(std::getline(f,line)) {
++		if(line.empty())continue;
++		std::vector<std::string> v=split_csv(line);
++		StateRow r;
++		r.lon=num(v[c["lon"]]); r.lat=num(v[c["lat"]]); r.pft=v[c["pft"]];
++		r.densindiv=num(v[c["densindiv"]]); r.height=num(v[c["height"]]); r.crownarea=num(v[c["crownarea"]]);
++		r.cmass_leaf=num(v[c["cmass_leaf"]]); r.cmass_root=num(v[c["cmass_root"]]); r.cmass_sap=num(v[c["cmass_sap"]]); r.cmass_heart=num(v[c["cmass_heart"]]);
++		r.cmass_debt=num(v[c["cmass_debt"]]); r.age=num(v[c["age"]]);
++		rows.push_back(r);
++	}
++}
++
++void apply_if_available(Gridcell& gridcell) {
++	for(size_t ir=0;ir<rows.size();++ir) {
++		const StateRow& r=rows[ir];
++		if(!near(gridcell.get_lon(),r.lon) || !near(gridcell.get_lat(),r.lat)) continue;
++		for(int s=0;s<gridcell.nbr_stands();++s) {
++			Stand& stand=gridcell[s];
++			for(int p=0;p<stand.npatch();++p) {
++				Patch& patch=stand[p];
++				for(unsigned int i=0;i<patch.vegetation.size();++i) {
++					Individual& indiv=patch.vegetation[i];
++					if(indiv.pft.name!=r.pft) continue;
++					indiv.densindiv=r.densindiv;
++					indiv.height=r.height;
++					indiv.crownarea=r.crownarea;
++					indiv.cmass_leaf=r.cmass_leaf;
++					indiv.cmass_root=r.cmass_root;
++					indiv.cmass_sap=r.cmass_sap;
++					indiv.cmass_heart=r.cmass_heart;
++					indiv.cmass_debt=r.cmass_debt;
++					indiv.age=(int)r.age;
++				}
++			}
++		}
++	}
++}
++
++}
+--- a/guess_4.1/modules/CMakeLists.txt
++++ b/guess_4.1/modules/CMakeLists.txt
+@@ -31,6 +31,8 @@
+ 	commonoutput.cpp
+ 	crop_npp.cpp
+ 	crop_photosynthesis.cpp
++	gounsa_exchange_output.cpp
++	gounsa_cohort_output.cpp
+ 	landcover.cpp
+ 	management.cpp
+ 	ncvar.cpp
+--- /dev/null
++++ b/guess_4.1/modules/gounsa_exchange_output.h
+@@ -0,0 +1,26 @@
++#ifndef GOUNSA_EXCHANGE_OUTPUT_H
++#define GOUNSA_EXCHANGE_OUTPUT_H
++
++class Gridcell;
++
++namespace gounsa_exchange_output {
++
++void daily(const Gridcell& gridcell);
++
++}
++
++#endif
+--- /dev/null
++++ b/guess_4.1/modules/gounsa_exchange_output.cpp
+@@ -0,0 +1,184 @@
++#include "stdafx.h"
++#include "gounsa_exchange_output.h"
++#include "guess.h"
++#include "outputmodule.h"
++
++#include <fstream>
++#include <iomanip>
++
++namespace {
++std::ofstream out;
++bool header=false;
++}
++
++namespace gounsa_exchange_output {
++
++void daily(const Gridcell& gridcell) {
++	if(!out.is_open()) out.open("veslem_exchange.out",std::ios::out);
++	if(!header) {
++		out << "Lon Lat Year Day LeafC FineRootC SurfaceLitC SurfRunoff\n";
++		header=true;
++	}
++	double leaf=0,root=0,lit=0;
++	for(int s=0;s<gridcell.nbr_stands();++s) {
++		const Stand& stand=gridcell[s];
++		for(int p=0;p<stand.npatch();++p) {
++			const Patch& patch=stand[p];
++			for(unsigned int i=0;i<patch.vegetation.size();++i) {
++				const Individual& indiv=patch.vegetation[i];
++				leaf += indiv.cmass_leaf;
++				root += indiv.cmass_root;
++			}
++			lit += patch.litter.ag_fast + patch.litter.ag_slow;
++		}
++	}
++	double runoff=gridcell.runoff.surfrunoff;
++	out << std::setprecision(10) << gridcell.get_lon() << ' ' << gridcell.get_lat() << ' '
++	    << date.get_calendar_year() << ' ' << date.day + 1 << ' '
++	    << leaf << ' ' << root << ' ' << lit << ' ' << runoff << '\n';
++}
++
++}
+--- /dev/null
++++ b/guess_4.1/modules/gounsa_cohort_output.h
+@@ -0,0 +1,24 @@
++#ifndef GOUNSA_COHORT_OUTPUT_H
++#define GOUNSA_COHORT_OUTPUT_H
++
++class Gridcell;
++
++namespace gounsa_cohort_output {
++
++void annual(const Gridcell& gridcell);
++
++}
++
++#endif
+--- /dev/null
++++ b/guess_4.1/modules/gounsa_cohort_output.cpp
+@@ -0,0 +1,122 @@
++#include "stdafx.h"
++#include "gounsa_cohort_output.h"
++#include "guess.h"
++
++#include <fstream>
++#include <iomanip>
++
++namespace {
++std::ofstream out;
++bool header=false;
++}
++
++namespace gounsa_cohort_output {
++
++void annual(const Gridcell& gridcell) {
++	if(!out.is_open()) out.open("gounsa_cohorts.out",std::ios::out);
++	if(!header) {
++		out << "Lon Lat Year Stand Patch PFT DensIndiv Height CrownArea LeafC FineRootC SapC HeartC DebtC Age\n";
++		header=true;
++	}
++	for(int s=0;s<gridcell.nbr_stands();++s) {
++		const Stand& stand=gridcell[s];
++		for(int p=0;p<stand.npatch();++p) {
++			const Patch& patch=stand[p];
++			for(unsigned int i=0;i<patch.vegetation.size();++i) {
++				const Individual& indiv=patch.vegetation[i];
++				out << std::setprecision(10) << gridcell.get_lon() << ' ' << gridcell.get_lat() << ' '
++				    << date.get_calendar_year() << ' ' << s << ' ' << p << ' ' << indiv.pft.name << ' '
++				    << indiv.densindiv << ' ' << indiv.height << ' ' << indiv.crownarea << ' '
++				    << indiv.cmass_leaf << ' ' << indiv.cmass_root << ' ' << indiv.cmass_sap << ' '
++				    << indiv.cmass_heart << ' ' << indiv.cmass_debt << ' ' << indiv.age << '\n';
++			}
++		}
++	}
++}
++
++}
+--- a/guess_4.1/modules/commonoutput.cpp
++++ b/guess_4.1/modules/commonoutput.cpp
+@@ -28,6 +28,8 @@
+ #include "stdafx.h"
+ #include "commonoutput.h"
++#include "gounsa_exchange_output.h"
++#include "gounsa_cohort_output.h"
+ 
+@@ -1328,6 +1330,8 @@
+ void CommonOutput::outdaily(Gridcell& gridcell) {
++	gounsa_exchange_output::daily(gridcell);
+ 	// existing LPJ-GUESS daily output follows
+ }
+@@ -1378,6 +1382,8 @@
+ void CommonOutput::outannual(Gridcell& gridcell) {
++	gounsa_cohort_output::annual(gridcell);
+ 	// existing LPJ-GUESS annual output follows
+ }
