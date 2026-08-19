@@ -1,0 +1,130 @@
+name: Build Gounsa Windows helper executables
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CI_HELPERS_v041.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-helpers-windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout build repository
+        uses: actions/checkout@v4
+
+      - name: Verify exact v0.41 helper sources
+        shell: pwsh
+        run: |
+          $forcing = (Get-FileHash helper_sources\forcing_builder.cpp -Algorithm SHA256).Hash.ToLower()
+          $geomorph = (Get-FileHash helper_sources\geomorph_driver.cpp -Algorithm SHA256).Hash.ToLower()
+          if ($forcing -ne 'a3189cecb1691581b03f7e08c4c4a934c19cfc548e35efc480d3943cd6fa6001') { throw "forcing_builder source SHA mismatch: $forcing" }
+          if ($geomorph -ne '8c0624542685a9d24d8000021aa661ae58cd1323aeade20f5df4d6cc4932266d') { throw "geomorph_driver source SHA mismatch: $geomorph" }
+          Write-Host "Exact v0.41 helper sources verified"
+
+      - name: Prepare pinned isolated vcpkg
+        shell: pwsh
+        run: |
+          $vcpkg = Join-Path $env:RUNNER_TEMP 'vcpkg-gounsa-helpers'
+          if (Test-Path $vcpkg) { Remove-Item $vcpkg -Recurse -Force }
+          git init $vcpkg
+          if ($LASTEXITCODE -ne 0) { throw 'vcpkg git init failed' }
+          git -C $vcpkg remote add origin https://github.com/microsoft/vcpkg.git
+          git -C $vcpkg fetch --depth 1 origin 06d00ffa491e4668627728f14b891d22c6fea146
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned vcpkg fetch failed' }
+          git -C $vcpkg checkout --detach FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned vcpkg checkout failed' }
+          & "$vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+          if ($LASTEXITCODE -ne 0) { throw 'vcpkg bootstrap failed' }
+          "VCPKG_HELPER=$vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install NetCDF C
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_HELPER\vcpkg.exe" install netcdf-c:x64-windows --disable-metrics
+          if ($LASTEXITCODE -ne 0) { throw 'vcpkg netcdf-c install failed' }
+
+      - name: Write minimal CMake project
+        shell: pwsh
+        run: |
+          @'
+          cmake_minimum_required(VERSION 3.20)
+          project(gounsa_helpers LANGUAGES CXX)
+          set(CMAKE_CXX_STANDARD 17)
+          set(CMAKE_CXX_STANDARD_REQUIRED ON)
+          file(TO_CMAKE_PATH "$ENV{VCPKG_HELPER}" VCPKG_ROOT_CMAKE)
+          set(VCPKG_INSTALLED "${VCPKG_ROOT_CMAKE}/installed/x64-windows")
+          add_executable(gounsa_forcing_builder helper_sources/forcing_builder.cpp)
+          target_include_directories(gounsa_forcing_builder PRIVATE "${VCPKG_INSTALLED}/include")
+          target_link_libraries(gounsa_forcing_builder PRIVATE "${VCPKG_INSTALLED}/lib/netcdf.lib")
+          add_executable(gounsa_geomorph_driver helper_sources/geomorph_driver.cpp)
+          '@ | Set-Content CMakeLists.helpers.txt -Encoding utf8
+          New-Item -ItemType Directory -Force helper_project | Out-Null
+          Copy-Item CMakeLists.helpers.txt helper_project\CMakeLists.txt
+          Copy-Item helper_sources helper_project\helper_sources -Recurse
+
+      - name: Configure helper build
+        shell: pwsh
+        run: |
+          cmake -S helper_project -B build-helpers -G "Visual Studio 17 2022" -A x64
+          if ($LASTEXITCODE -ne 0) { throw 'Helper CMake configure failed' }
+
+      - name: Build helper executables
+        shell: pwsh
+        run: |
+          cmake --build build-helpers --config Release --target gounsa_forcing_builder gounsa_geomorph_driver -- /m
+          if ($LASTEXITCODE -ne 0) { throw 'Helper build failed' }
+          if (!(Test-Path build-helpers\Release\gounsa_forcing_builder.exe)) { throw 'forcing builder EXE missing' }
+          if (!(Test-Path build-helpers\Release\gounsa_geomorph_driver.exe)) { throw 'geomorph driver EXE missing' }
+
+      - name: Run helper selftests
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:VCPKG_HELPER\installed\x64-windows\bin;$env:PATH"
+          & build-helpers\Release\gounsa_forcing_builder.exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'forcing builder selftest failed' }
+          & build-helpers\Release\gounsa_geomorph_driver.exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'geomorph driver selftest failed' }
+
+      - name: Verify PE and dependencies
+        shell: pwsh
+        run: |
+          $forcing = (Resolve-Path build-helpers\Release\gounsa_forcing_builder.exe).Path
+          $geomorph = (Resolve-Path build-helpers\Release\gounsa_geomorph_driver.exe).Path
+          foreach ($exe in @($forcing,$geomorph)) {
+            $bytes = [System.IO.File]::ReadAllBytes($exe)
+            if ($bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) { throw "$exe is not PE/MZ" }
+          }
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $dumpbin = Get-ChildItem "$vs\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (!$dumpbin) { throw 'dumpbin.exe not found' }
+          & $dumpbin.FullName /dependents $forcing | Tee-Object -FilePath forcing_dependents.txt
+          & $dumpbin.FullName /dependents $geomorph | Tee-Object -FilePath geomorph_dependents.txt
+
+      - name: Assemble helper artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifact\bin | Out-Null
+          Copy-Item build-helpers\Release\gounsa_forcing_builder.exe artifact\bin\
+          Copy-Item build-helpers\Release\gounsa_geomorph_driver.exe artifact\bin\
+          Copy-Item "$env:VCPKG_HELPER\installed\x64-windows\bin\*.dll" artifact\bin\ -Force
+          Copy-Item forcing_dependents.txt artifact\forcing_dependents.txt
+          Copy-Item geomorph_dependents.txt artifact\geomorph_dependents.txt
+          Get-FileHash artifact\bin\gounsa_forcing_builder.exe -Algorithm SHA256 | Format-List | Out-File artifact\forcing_builder_sha256.txt -Encoding utf8
+          Get-FileHash artifact\bin\gounsa_geomorph_driver.exe -Algorithm SHA256 | Format-List | Out-File artifact\geomorph_driver_sha256.txt -Encoding utf8
+          Get-ChildItem artifact\bin | Select-Object Name,Length | Format-Table -AutoSize | Out-String | Out-File artifact\bundle_contents.txt -Encoding utf8
+
+      - name: Upload helper artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-windows-helper-executables-v041
+          path: artifact
+          if-no-files-found: error
+          retention-days: 14
