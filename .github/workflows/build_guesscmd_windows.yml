@@ -3,6 +3,8 @@ name: Build Gounsa LPJ-GUESS 4.1.1 Windows CLI
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'CI_OBSERVE_v038.txt'
   workflow_dispatch:
 
 permissions:
