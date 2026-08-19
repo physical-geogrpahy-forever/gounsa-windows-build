@@ -1,0 +1,1 @@
+Trigger one controlled Windows collection of the app-local x64 Microsoft VC++ runtime DLL set for Gounsa v0.44.
