@@ -63,14 +63,16 @@ jobs:
           )
           foreach ($m in $markers) { if (!(Test-Path $m)) { throw "Patched source marker missing: $m" } }
 
-      - name: Checkout pinned vcpkg
+      - name: Use preinstalled vcpkg
         shell: pwsh
         run: |
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          git -C C:\vcpkg checkout 06d00ffa491e4668627728f14b891d22c6fea146
-          if ($LASTEXITCODE -ne 0) { throw 'Pinned vcpkg checkout failed' }
-          C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
-          if ($LASTEXITCODE -ne 0) { throw 'vcpkg bootstrap failed' }
+          if (!(Test-Path C:\vcpkg)) { throw 'Preinstalled C:\vcpkg directory is missing' }
+          if (!(Test-Path C:\vcpkg\vcpkg.exe)) {
+            C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+            if ($LASTEXITCODE -ne 0) { throw 'vcpkg bootstrap failed' }
+          }
+          git -C C:\vcpkg rev-parse HEAD | Out-File vcpkg_commit.txt -Encoding ascii
+          Write-Host "Using runner vcpkg commit: $(Get-Content vcpkg_commit.txt -Raw)"
 
       - name: Install NetCDF C
         shell: pwsh
@@ -124,6 +126,7 @@ jobs:
           Copy-Item build-win64\Release\guesscmd.exe artifact\bin\guesscmd.exe
           Copy-Item C:\vcpkg\installed\x64-windows\bin\*.dll artifact\bin\ -Force
           Copy-Item dependents.txt artifact\dependents.txt
+          Copy-Item vcpkg_commit.txt artifact\vcpkg_commit.txt
           Copy-Item GOUNSA_LPJ411_REBASE_v0_38_FULL.patch artifact\GOUNSA_LPJ411_REBASE_v0_38.patch
           Get-FileHash artifact\bin\guesscmd.exe -Algorithm SHA256 | Format-List | Out-File artifact\guesscmd_sha256.txt -Encoding utf8
           Get-ChildItem artifact\bin | Select-Object Name,Length | Format-Table -AutoSize | Out-String | Out-File artifact\bundle_contents.txt -Encoding utf8
