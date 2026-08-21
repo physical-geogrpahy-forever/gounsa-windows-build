@@ -1,0 +1,63 @@
+name: Materialize v0.59 normalized source
+
+on:
+  pull_request:
+    branches: [v059-normalized-backbone]
+    paths:
+      - '.github/workflows/materialize_v059_normalized_source.yml'
+  push:
+    branches: [v060-source-materialize]
+    paths:
+      - '.github/workflows/materialize_v059_normalized_source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  materialize-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends curl unzip
+
+      - name: Reconstruct v0.59 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat v059_patch/part_00.b64 v059_patch/part_01.b64 | tr -d '\r\n' | base64 --decode > v059.patch.gz
+          echo '717b0a2c4efbf2e4bbd4997f5f89020750e0a3d90a11125db9e8c480b115cdb5  v059.patch.gz' | sha256sum -c -
+          gzip -dc v059.patch.gz > v059.patch
+          echo 'a4c8a93775b0975db9d3075833f2df83d79844572425e9132ab216dcfc6605b4  v059.patch' | sha256sum -c -
+
+      - name: Download official LPJ-GUESS 4.1.1 and apply patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 5 -o guess_4.1.1.zip 'https://zenodo.org/records/8065737/files/guess_4.1.1.zip?download=1'
+          echo '9d30881c180bd2d291fea0a5d7e7cf22fc33512bf4c99b452722d4d8d3d8f193  guess_4.1.1.zip' | sha256sum -c -
+          unzip -q guess_4.1.1.zip -d upstream
+          cd upstream
+          git init -q
+          git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v059.patch
+
+      - name: Collect normalized source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a upstream/guess_4.1 materialized_guess_4.1
+          printf '%s\n' 'Materialized from official LPJ-GUESS 4.1.1 + verified v0.59 cumulative patch.' > materialized_guess_4.1/V059_MATERIALIZED_ORIGIN.txt
+          find materialized_guess_4.1 -type f -print0 | sort -z | xargs -0 sha256sum > materialized_guess_4.1/V059_MATERIALIZED_SHA256SUMS.txt
+
+      - name: Upload normalized source tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-v059-normalized-source-tree
+          path: materialized_guess_4.1
+          if-no-files-found: error
+          retention-days: 7
