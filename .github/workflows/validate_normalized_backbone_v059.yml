@@ -1,0 +1,112 @@
+name: Validate Gounsa v0.59 normalized backbone
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'v059_patch/**'
+      - '.github/workflows/validate_normalized_backbone_v059.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconstruct-and-build-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential cmake curl unzip libnetcdf-dev
+
+      - name: Reconstruct and verify v0.59 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat v059_patch/part_00.b64 v059_patch/part_01.b64 | tr -d '\r\n' | base64 --decode > v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch.gz
+          echo '717b0a2c4efbf2e4bbd4997f5f89020750e0a3d90a11125db9e8c480b115cdb5  v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch.gz' | sha256sum -c -
+          gzip -dc v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch.gz > v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch
+          echo 'a4c8a93775b0975db9d3075833f2df83d79844572425e9132ab216dcfc6605b4  v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch' | sha256sum -c -
+          test "$(wc -l < v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch)" -eq 2146
+
+      - name: Download and verify official LPJ-GUESS 4.1.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 5 \
+            -o guess_4.1.1.zip \
+            'https://zenodo.org/records/8065737/files/guess_4.1.1.zip?download=1'
+          echo '9d30881c180bd2d291fea0a5d7e7cf22fc33512bf4c99b452722d4d8d3d8f193  guess_4.1.1.zip' | sha256sum -c -
+          unzip -q guess_4.1.1.zip -d upstream
+          test -f upstream/guess_4.1/CMakeLists.txt
+
+      - name: Apply normalized backbone patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd upstream
+          git init -q
+          git apply --check --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch
+          git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v059_patch/GOUNSA_LPJ411_NORMALIZED_BACKBONE_v0_59.patch
+          test -s guess_4.1/framework/lockstep_framework.cpp
+          test -s guess_4.1/framework/lockstep_framework.h
+          test -s guess_4.1/modules/gounsa_direct_initial_state.cpp
+          test -s guess_4.1/modules/gounsa_direct_initial_state.h
+          test -s guess_4.1/modules/veslemexchangeoutput.cpp
+          test -s guess_4.1/modules/gounsacohortoutput.cpp
+          grep -q 'guess_lockstep' guess_4.1/CMakeLists.txt
+          grep -q 'external_runon_mm' guess_4.1/modules/soilwater.cpp
+
+      - name: Configure normalized LPJ-GUESS source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S upstream/guess_4.1 -B build-v059 -DUNIT_TESTS=OFF
+          grep -q 'NETCDF_C_LIBRARY:FILEPATH=' build-v059/CMakeCache.txt
+          if grep -q 'NETCDF_C_LIBRARY:FILEPATH=.*NOTFOUND' build-v059/CMakeCache.txt; then
+            echo 'NetCDF C library not detected' >&2
+            exit 1
+          fi
+
+      - name: Build guess and guess_lockstep
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build build-v059 --target guess guess_lockstep --parallel 2
+          test -x build-v059/guess
+          test -x build-v059/guess_lockstep
+          sha256sum build-v059/guess build-v059/guess_lockstep | tee v059_linux_binary_sha256.txt
+
+      - name: Record source reconstruction gate
+        shell: bash
+        run: |
+          cat > V059_CI_GATE.txt <<'EOF'
+          PASS: official LPJ-GUESS 4.1.1 SHA verified
+          PASS: v0.59 cumulative normalized-backbone patch SHA verified
+          PASS: normalized source markers verified
+          PASS: Linux guess build completed
+          PASS: Linux guess_lockstep build completed
+          NOT TESTED HERE: 2021 state recapture/merge SHA
+          NOT TESTED HERE: 4454-cell day-1 restart regression
+          NOT TESTED HERE: DOY147 final predictor/corrector callback closure
+          NOT TESTED HERE: 2022 365-day current-lockstep
+          NOT TESTED HERE: 2025 native BLAZE fire/fuel rerun
+          BLOCKED: physical sediment-mass/DEM update
+          EOF
+          cat V059_CI_GATE.txt
+
+      - name: Upload validation record
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-v059-normalized-backbone-linux-validation
+          path: |
+            V059_CI_GATE.txt
+            v059_linux_binary_sha256.txt
+          if-no-files-found: error
+          retention-days: 14
