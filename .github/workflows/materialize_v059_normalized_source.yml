@@ -57,6 +57,10 @@ jobs:
           cp upstream/guess_4.1/framework/guessserializer.h materialized/framework/
           cp upstream/guess_4.1/framework/partitionedmapserializer.cpp materialized/framework/
           cp upstream/guess_4.1/framework/partitionedmapserializer.h materialized/framework/
+          cp upstream/guess_4.1/framework/framework.cpp materialized/framework/
+          cp upstream/guess_4.1/framework/framework.h materialized/framework/
+          cp upstream/guess_4.1/framework/guess.cpp materialized/framework/
+          cp upstream/guess_4.1/framework/guess.h materialized/framework/
           cp upstream/guess_4.1/modules/gounsa_direct_initial_state.cpp materialized/modules/
           cp upstream/guess_4.1/modules/gounsa_direct_initial_state.h materialized/modules/
           cp upstream/guess_4.1/modules/veslemexchangeoutput.cpp materialized/modules/
@@ -64,7 +68,6 @@ jobs:
           cp upstream/guess_4.1/modules/cfinput.cpp materialized/modules/
           cp upstream/guess_4.1/modules/cfinput.h materialized/modules/
           cp upstream/guess_4.1/CMakeLists.txt materialized/
-          cp upstream/guess_4.1/guess.cpp materialized/
           printf '%s\n' 'Materialized from official LPJ-GUESS 4.1.1 + verified v0.59 cumulative patch.' > materialized/docs/ORIGIN.txt
           sha256sum $(find materialized -type f | sort) > materialized/docs/SHA256SUMS.txt
 
