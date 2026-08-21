@@ -91,22 +91,22 @@ jobs:
           $cache=Get-Content build-v059-win64\CMakeCache.txt -Raw
           if($cache -match 'NETCDF_C_LIBRARY:FILEPATH=.*NOTFOUND'){throw 'NetCDF C library not detected'}
 
-      - name: Build guess.exe and guess_lockstep.exe
+      - name: Build guesscmd.exe and guess_lockstep.exe
         shell: pwsh
         run: |
-          cmake --build build-v059-win64 --config Release --target guess guess_lockstep -- /m
+          cmake --build build-v059-win64 --config Release --target guesscmd guess_lockstep -- /m
           if($LASTEXITCODE -ne 0){throw 'normalized Windows build failed'}
-          if(!(Test-Path build-v059-win64\Release\guess.exe)){throw 'guess.exe missing'}
+          if(!(Test-Path build-v059-win64\Release\guesscmd.exe)){throw 'guesscmd.exe missing'}
           if(!(Test-Path build-v059-win64\Release\guess_lockstep.exe)){throw 'guess_lockstep.exe missing'}
 
       - name: Assemble Windows validation artifact
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifact\bin | Out-Null
-          Copy-Item build-v059-win64\Release\guess.exe artifact\bin\guess.exe
+          Copy-Item build-v059-win64\Release\guesscmd.exe artifact\bin\guesscmd.exe
           Copy-Item build-v059-win64\Release\guess_lockstep.exe artifact\bin\guess_lockstep.exe
           Copy-Item "$env:VCPKG_GOUNSA\installed\x64-windows\bin\*.dll" artifact\bin\ -Force
-          Get-FileHash artifact\bin\guess.exe -Algorithm SHA256 | Format-List | Out-File artifact\windows_binary_sha256.txt -Encoding utf8
+          Get-FileHash artifact\bin\guesscmd.exe -Algorithm SHA256 | Format-List | Out-File artifact\windows_binary_sha256.txt -Encoding utf8
           Get-FileHash artifact\bin\guess_lockstep.exe -Algorithm SHA256 | Format-List | Out-File artifact\windows_binary_sha256.txt -Encoding utf8 -Append
           @'
           PASS: Windows source reconstruction/build gate
