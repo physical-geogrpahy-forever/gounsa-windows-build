@@ -1,0 +1,235 @@
+name: Validate Gounsa v0.60 per-cell forcing restart
+
+on:
+  pull_request:
+    branches: [v059-normalized-backbone]
+    paths:
+      - 'v060_patch/**'
+      - 'v060_ci_fixture/**'
+      - '.github/workflows/validate_v060_per_cell_restart.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-native-restart-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential cmake curl unzip libnetcdf-dev
+
+      - name: Reconstruct and verify v0.59 normalized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat v059_patch/part_00.b64 v059_patch/part_01.b64 | tr -d '\r\n' | base64 --decode > v059.patch.gz
+          echo '717b0a2c4efbf2e4bbd4997f5f89020750e0a3d90a11125db9e8c480b115cdb5  v059.patch.gz' | sha256sum -c -
+          gzip -dc v059.patch.gz > v059.patch
+          echo 'a4c8a93775b0975db9d3075833f2df83d79844572425e9132ab216dcfc6605b4  v059.patch' | sha256sum -c -
+          curl -L --fail --retry 3 --retry-delay 5 -o guess_4.1.1.zip 'https://zenodo.org/records/8065737/files/guess_4.1.1.zip?download=1'
+          echo '9d30881c180bd2d291fea0a5d7e7cf22fc33512bf4c99b452722d4d8d3d8f193  guess_4.1.1.zip' | sha256sum -c -
+          unzip -q guess_4.1.1.zip -d upstream
+          cd upstream
+          git init -q
+          git apply --check --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v059.patch
+          git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v059.patch
+
+      - name: Reconstruct, verify, and apply v0.60 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          tr -d '\r\n' < v060_patch/delta.b64 | base64 --decode > v060.delta.patch.gz
+          echo '54138268ddea785a08f21fdc2b9f293001e095ddf48bd10ac5d5f667edde0e2f  v060.delta.patch.gz' | sha256sum -c -
+          gzip -dc v060.delta.patch.gz > v060.delta.patch
+          echo 'be6f5e9cbbcb627870b185085c999126a3a0e40bd6c2d3b07c1eb619dd0bcbee  v060.delta.patch' | sha256sum -c -
+          cd upstream
+          git apply --check --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v060.delta.patch
+          git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ../v060.delta.patch
+          test -s guess_4.1/framework/gounsa_lockstep_forcing.cpp
+          test -s guess_4.1/framework/gounsa_lockstep_forcing.h
+          grep -q 'restart_calendar_year' guess_4.1/framework/lockstep_framework.cpp
+          grep -q 'per-cell-forcing' guess_4.1/lockstep_command_line_version/main.cpp
+
+      - name: Configure and build v0.60
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S upstream/guess_4.1 -B build-v060 -DUNIT_TESTS=OFF
+          cmake --build build-v060 --target guess guess_lockstep --parallel 2
+          test -x build-v060/guess
+          test -x build-v060/guess_lockstep
+          sha256sum build-v060/guess build-v060/guess_lockstep | tee v060_build_sha256.txt
+
+      - name: Reconstruct synthetic text fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          tr -d '\r\n' < v060_ci_fixture/text_fixture.b64 | base64 --decode > fixture.tar.gz
+          echo 'f7a4d9ff7378baeb6b7dbe674fc1939cea0fdd919ce6b5b0462e6fe08976def4  fixture.tar.gz' | sha256sum -c -
+          mkdir fixture
+          tar -xzf fixture.tar.gz -C fixture
+          test -s fixture/run.ins
+          test -s fixture/direct_state.csv
+          test -s fixture/cell_params.csv
+          test -s fixture/routing.csv
+
+      - name: Generate 1991-2031 CF forcing and native restart state
+        shell: bash
+        run: |
+          set -euo pipefail
+          g++ -std=c++11 -O2 v060_ci_fixture/generate_v060_forcing.cpp -lnetcdf -o generate_v060_forcing
+          ./generate_v060_forcing input fixture/forcing.nc
+          (cd fixture && ../build-v060/guess -input cf run.ins)
+          test -s fixture/state/0.state
+          test -s fixture/state/meta.bin
+          sha256sum fixture/state/0.state fixture/state/meta.bin | tee v060_synthetic_state_sha256.txt
+
+      - name: Run native multi-cell restart with explicit landid forcing
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -e 's/^save_state 1/save_state 0/' \
+              -e 's/^gounsa_direct_init_enabled 1/gounsa_direct_init_enabled 0/' \
+              fixture/run.ins > fixture/lockstep.ins
+          ./generate_v060_forcing percell fixture/percell.nc
+          (
+            cd fixture
+            ../build-v060/guess_lockstep \
+              -input cf \
+              -routing routing.csv \
+              -cell-area 900 \
+              -cell-parameters cell_params.csv \
+              -per-cell-forcing percell.nc \
+              -restart-state-path state \
+              -restart-state-year 33 \
+              -restart-calendar-year 2023 \
+              -output cells_out.csv \
+              -daily-summary daily.csv \
+              -validation validation.json \
+              -max-days 3 \
+              lockstep.ins
+          )
+
+      - name: Assert restart, calendar, landid, forcing, wind-unit, and routing contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv, json, math
+          from collections import defaultdict
+
+          with open('fixture/cells_out.csv', newline='') as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==6, len(rows)
+          by=defaultdict(list)
+          for r in rows:
+              by[int(r['landid'])].append(r)
+          assert set(by)=={42,9001}, set(by)
+          assert {(int(r['row']),int(r['col']),int(r['landid'])) for r in rows} == {(10,20,9001),(10,21,42)}
+          for lid in by:
+              by[lid].sort(key=lambda r:int(r['day_of_year']))
+          assert [float(r['temperature_c']) for r in by[9001]] == [10.0,11.0,12.0]
+          assert [float(r['precip_mm']) for r in by[9001]] == [1.0,3.0,5.0]
+          assert [float(r['temperature_c']) for r in by[42]] == [20.0,21.0,22.0]
+          assert [float(r['precip_mm']) for r in by[42]] == [2.0,4.0,6.0]
+          assert all(int(r['calendar_year'])==2023 and int(r['simulation_year'])==33 for r in rows)
+          assert sum(int(r['is_outlet']) for r in rows if int(r['day_of_year'])==1)==1
+
+          with open('fixture/daily.csv', newline='') as f:
+              daily=list(csv.DictReader(f))
+          assert len(daily)==3
+          assert [float(r['mean_precip_mm']) for r in daily] == [1.5,3.5,5.5]
+          assert all(int(r['routing_outlet_cells'])==1 for r in daily)
+          assert all(abs(float(r['routing_residual_m3'])) < 1e-12 for r in daily)
+
+          with open('fixture/validation.json') as f:
+              v=json.load(f)
+          assert v['mode']=='native_multicell_restart_per_cell_forcing'
+          assert v['active_cells']==2
+          assert v['final_routing_outlet_cells']==1
+          assert v['lockstep_days_completed']==3
+          assert v['per_cell_forcing_enabled'] is True
+          assert v['explicit_landid_mapping'] is True
+          assert v['restart_state_year']==33
+          assert v['restart_calendar_year']==2023
+          assert v['native_restart_global_semantics'] is True
+          assert v['per_cell_forcing_wind_unit']=='m s-1 (LPJ climate.u10; BLAZE converts once to km h-1)'
+          print('PASS native restart + explicit landid + per-cell forcing + wind units')
+          PY
+
+      - name: Assert missing landid fails fast
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp fixture/cell_params.csv fixture/cell_params_bad.csv
+          sed -i 's/10,20,9001,/10,20,7777,/' fixture/cell_params_bad.csv
+          set +e
+          (
+            cd fixture
+            ../build-v060/guess_lockstep \
+              -input cf \
+              -routing routing.csv \
+              -cell-area 900 \
+              -cell-parameters cell_params_bad.csv \
+              -per-cell-forcing percell.nc \
+              -restart-state-path state \
+              -restart-state-year 33 \
+              -restart-calendar-year 2023 \
+              -output bad_cells.csv \
+              -daily-summary bad_daily.csv \
+              -validation bad_validation.json \
+              -max-days 1 \
+              lockstep.ins > bad_landid.log 2>&1
+          )
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          grep -q 'Requested landid 7777 absent from per-cell forcing NetCDF' fixture/bad_landid.log
+          echo 'PASS missing landid fail-fast gate'
+
+      - name: Record synthetic engineering gate
+        shell: bash
+        run: |
+          cat > V060_CI_GATE.txt <<'EOF'
+          PASS: official LPJ-GUESS 4.1.1 SHA verified
+          PASS: v0.59 normalized-backbone patch SHA verified
+          PASS: v0.60 per-cell forcing/native-restart delta SHA verified
+          PASS: Linux guess and guess_lockstep build
+          PASS: synthetic native GuessDeserializer multi-cell restart
+          PASS: explicit landid mapping with landid != row/col and reversed NetCDF ordering
+          PASS: explicit restart calendar origin (state year 33 -> calendar 2023)
+          PASS: global LPJ restart semantics enabled in lockstep restart mode
+          PASS: per-cell wind remains m s-1; native BLAZE conversion is unchanged
+          PASS: missing requested landid fails fast
+          NOT TESTED: real Gounsa 2021-12-31 state recapture/merge SHA
+          NOT TESTED: real 3-cell 2022-01-01 restart
+          NOT TESTED: real 4454-cell day-1 restart
+          NOT TESTED: DOY147 final predictor/corrector closure
+          NOT TESTED: 2022 365-day current-lockstep
+          NOT TESTED: 2025 native BLAZE rerun
+          BLOCKED: physical sediment-mass/DEM update
+          EOF
+          cat V060_CI_GATE.txt
+
+      - name: Upload v0.60 synthetic validation record
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-v060-native-restart-linux-validation
+          path: |
+            V060_CI_GATE.txt
+            v060_build_sha256.txt
+            v060_synthetic_state_sha256.txt
+            fixture/cells_out.csv
+            fixture/daily.csv
+            fixture/validation.json
+            fixture/bad_landid.log
+          if-no-files-found: error
+          retention-days: 14
