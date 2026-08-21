@@ -1,0 +1,67 @@
+name: Archive upstream models for v0.60
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/archive_upstream_models_v060.yml'
+      - 'archive/v060/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive-upstream-models:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch and verify official LPJ-GUESS 4.1.1 archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p upstream-archive/lpj_guess_4.1.1 upstream-archive/siberia_8.3.3
+          curl -L --fail --retry 3 --retry-delay 5 \
+            -o upstream-archive/lpj_guess_4.1.1/guess_4.1.1.zip \
+            'https://zenodo.org/records/8065737/files/guess_4.1.1.zip?download=1'
+          echo '9d30881c180bd2d291fea0a5d7e7cf22fc33512bf4c99b452722d4d8d3d8f193  upstream-archive/lpj_guess_4.1.1/guess_4.1.1.zip' | sha256sum -c -
+          stat -c '%s' upstream-archive/lpj_guess_4.1.1/guess_4.1.1.zip > upstream-archive/lpj_guess_4.1.1/size_bytes.txt
+          sha256sum upstream-archive/lpj_guess_4.1.1/guess_4.1.1.zip > upstream-archive/lpj_guess_4.1.1/SHA256SUMS.txt
+
+      - name: Record canonical SIBERIA 8.3.3 acquisition contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > upstream-archive/siberia_8.3.3/ORIGIN.txt <<'EOF'
+          SIBERIA version: 8.3.3 / 8.33
+          DOI: 10.1594/IEDA/100163
+          Canonical DOI archive: https://csdms.colorado.edu/pub/models/doi-source-code/siberia-10.1594.IEDA.100163-8.3.3.tar.gz
+          Official repository used for source cross-check: https://github.com/csdms-contrib/siberia
+
+          Redistribution policy for this Gounsa repository:
+          The audited COPLAS/SIBERIA package explicitly requires original SIBERIA source to remain external.
+          Therefore this workflow records and probes the canonical source but does NOT upload the SIBERIA source archive as a Gounsa artifact.
+          EOF
+          curl -L --fail --retry 2 --retry-delay 5 --head \
+            'https://csdms.colorado.edu/pub/models/doi-source-code/siberia-10.1594.IEDA.100163-8.3.3.tar.gz' \
+            > upstream-archive/siberia_8.3.3/doi_archive_headers.txt || true
+          git ls-remote https://github.com/csdms-contrib/siberia.git HEAD \
+            > upstream-archive/siberia_8.3.3/github_HEAD.txt
+
+      - name: Record archive gate
+        shell: bash
+        run: |
+          cat > upstream-archive/UPSTREAM_ARCHIVE_GATE.txt <<'EOF'
+          PASS requirement: LPJ-GUESS 4.1.1 official Zenodo bytes match pinned SHA-256.
+          SIBERIA: identity/acquisition metadata only; original source is intentionally not redistributed in the derivative repository.
+          This archive gate does not alter BLAZE, COPLAS, SIBERIA, or LPJ-GUESS equations.
+          EOF
+
+      - name: Upload official LPJ-GUESS package and upstream provenance record
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-v060-upstream-model-archive
+          path: upstream-archive
+          if-no-files-found: error
+          retention-days: 90
