@@ -1,6 +1,10 @@
 name: Materialize v0.59 normalized source
 
 on:
+  pull_request:
+    branches: [v059-normalized-backbone]
+    paths:
+      - '.github/workflows/materialize_v059_normalized_source.yml'
   push:
     branches: [v060-source-materialize]
     paths:
@@ -46,7 +50,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p materialized/framework materialized/modules materialized/input materialized/docs
+          mkdir -p materialized/framework materialized/modules materialized/docs
           cp upstream/guess_4.1/framework/lockstep_framework.cpp materialized/framework/
           cp upstream/guess_4.1/framework/lockstep_framework.h materialized/framework/
           cp upstream/guess_4.1/framework/guessserializer.cpp materialized/framework/
@@ -61,7 +65,6 @@ jobs:
           cp upstream/guess_4.1/modules/cfinput.h materialized/modules/
           cp upstream/guess_4.1/CMakeLists.txt materialized/
           cp upstream/guess_4.1/guess.cpp materialized/
-          cp upstream/guess_4.1/framework.cpp materialized/ || true
           printf '%s\n' 'Materialized from official LPJ-GUESS 4.1.1 + verified v0.59 cumulative patch.' > materialized/docs/ORIGIN.txt
           sha256sum $(find materialized -type f | sort) > materialized/docs/SHA256SUMS.txt
 
