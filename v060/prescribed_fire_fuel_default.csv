@@ -1,0 +1,2 @@
+scenario,dry_surface_fuel_t_ha,carbon_fraction,fuel_c_g_m2,representation,source
+PRESCRIBED_FUEL_BLAZE,9.17,0.45,412.65,fine_surface_litter_precombustion,Won_et_al_2006_mixed_forest
