@@ -64,8 +64,6 @@ q_bg
 +
 q_rootgrowth
 +
-q_treethrow
-+
 q_dryravel
 ```
 
@@ -101,17 +99,15 @@ Do not use a field-calibrated total `K` unchanged while adding tree throw/root g
 
 Use LPJ-GUESS native root state/turnover.
 
-### q_treethrow
-**Doane et al. 2021**, annual stochastic event process.
-
-Supporting actual annual model precedent:
-CSDMS TreeThrow.
+### tree throw / uprooting
+Current production baseline에서 제외한다.
+Doane/Gallaway/Constantine 계보는 future optional reference로만 보존한다.
 
 ### q_dryravel
 Lamb 2011 postfire disturbance/storage pathway, already separately adopted.
 
 ### shallow landslide
-separate discrete module, not hidden inside nonlinear diffusion.
+Current production baseline에서 제외한다.
 
 ---
 
@@ -209,9 +205,8 @@ LPJ-GUESS
   +-- annual root state/turnover
   |      -> Gabet root-growth transport
   |
-  +-- annual woody cohorts/mortality
-  |      -> Gabet-Mudd mechanical weathering
-  |      -> Doane tree throw
+  +-- annual root state/turnover
+  |      -> Gabet root-growth transport
   |
   +-- background
   |      -> residual creep
@@ -246,3 +241,27 @@ Pelletier는 장기 consistency benchmark로 유지한다.
 - Roering & Gerber 2005, Jackson & Roering 2009를 postfire dry-ravel/root-decay process-separation 근거로 강화
 
 최종 아키텍처 자체는 변경되지 않는다.
+
+
+---
+
+## 3차 범위 수정
+
+최신 범위 결정:
+`decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
+
+현재 production baseline에서:
+- tree throw / uprooting 제외
+- shallow landslide 제외
+
+따라서 현재 핵심은:
+```
+water erosion
++ residual creep
++ root-growth/decay transport
++ dry ravel
++ weathering/regolith production
++ fire spall/coarse fragments
+```
+
+이다.
