@@ -49,6 +49,7 @@
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
+- `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 
 ---
 
@@ -459,12 +460,32 @@ erosion Ki/Kr root effect != shallow-landslide root cohesion
 
 vertical mixing을 lateral downslope sediment flux와 동일 diffusion coefficient로 처리하지 않는다.
 
-## long-term landscape/soil evolution
-- Pelletier 2013
-- Pelak 2016
-- related soil-production/weathering studies
+## 100-year hillslope transport
 
-100-year 고운사에서는 장기항의 실제 크기를 sensitivity로 확인한다.
+Pelletier 2013의 biomass-dependent long-term diffusivity를 주식으로 사용하지 않는다.
+
+현재 구조:
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_treethrow
++
+q_dryravel
+```
+
+- `q_bg`: residual background creep, first implementation은 annual linear diffusion
+- `q_rootgrowth`: Gabet et al. 2003, annual root turnover
+- `q_treethrow`: Doane et al. 2021, annual stochastic events
+- `q_dryravel`: Lamb 2011 postfire disturbance pathway
+- shallow landslide는 별도 discrete module
+
+Roering 2001 nonlinear transport는 steep-slope sensitivity/alternative로 유지한다. 자연산림에서 보정된 total diffusivity를 그대로 쓰면서 root growth, tree throw, landslide를 별도로 더하면 double counting 위험이 있으므로 `K` 또는 `D`는 residual background coefficient로 보정해야 한다.
+
+Pelletier 2013은 long-term consistency benchmark로만 유지한다.
 
 ---
 
@@ -743,7 +764,7 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 7. coarse-fragment supply vs armour dynamics
 8. shallow-landslide root architecture conversion
 9. fire-spall production의 정량식/수치모델
-10. 100-year scale에서 long-term creep/weathering 항의 실제 중요도
+10. LPJ-GUESS-CNP weathering flux -> geomorphic regolith mass/thickness conversion 및 100년 내 실제 중요도
 
 유수침식 엔진 자체의 우선순위는 현재:
 
@@ -774,6 +795,9 @@ Iber+ = source access 확보 시 재평가
 - `models/EUROSEM_RootCohesion.md`
 - `models/LPJ_GUESS_Root_Erosion_Interface.md`
 - `models/Postfire_Root_Persistence_Erosion.md`
+- `models/Short_Timestep_Weathering_HillslopeTransport.md`
+- `models/TreeThrow_Annual.md`
+- `models/SSSPAM.md`
 
 ---
 
@@ -827,17 +851,29 @@ Iber+ = source access 확보 시 재평가
 산불 후 dead wood는 SurfaceLitC로만 보내지 않고 CWD 상태를 별도 검토한다.
 
 ### 풍화 및 soil/regolith production
-현재 작업구조:
-`W_total = W_hydroclimatic + W_deep_root_chemical + W_woody_mechanical`
+100년 시간척도에서 Pelletier 2013을 주식으로 사용하지 않는다.
 
-근거:
-- Pelak et al. 2016: biomass-driven soil production의 최소모델
-- Gabet & Mudd 2010: woody mechanical weathering
-- REWTCrunch 2022: root biomass/exudation -> reactive weathering
-- Pawlik et al. 2023/2024: living tree roots와 soil formation의 최근 현장근거
-- Osorio-Leon et al. 2025: deep roots가 bedrock-vadose-zone silicate weathering을 정량적으로 강화
-- Billings et al. 2025: deep root-regolith interaction의 biome-scale 근거
-- Bemis et al. 2026: bare rock -> moss -> grass -> shrub -> tree succession과 Critical Zone 생성
+현재 작업구조:
+```
+Delta H_prod
+=
+Delta H_chem
++
+Delta H_woody_mech
++
+Delta H_other_phys
+```
+
+핵심 모델:
+- **LPJ-GUESS-CNP 2025**: patch별 daily runoff + soil temperature -> daily chemical weathering
+- **Gabet & Mudd 2010**: annual root fracture + tree throw -> woody mechanical bedrock erosion
+- REWTCrunch 2022: deep-root chemical-weathering validation/advanced option
+- SoilGen 2022: daily-hydrology 1D chemical-weathering benchmark
+- SSSPAM 2019/2021: physical weathering/profile/armour + 100-year feasibility benchmark
+- Pelletier 2013: geologic-timescale structural benchmark only
+
+중요:
+LPJ-GUESS-CNP weathering output을 geomorphic soil/regolith thickness로 바꾸는 mass/volume conversion은 **새로운 coupling**이다.
 
 ### 최신 결정 파일
 - [COPLAS/MUSLE 제외](decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md)
@@ -975,3 +1011,67 @@ LPJ-GUESS root calculation
 ```
 
 `RLD = C_root * SRL_C * f / Dz`는 output이 직접 제공되지 않을 때의 audit/fallback relation으로만 보존한다. 따라서 PFT별 `SRL_C` 탐색은 현재 유수침식 구현의 다음 우선과제가 아니다.
+
+
+---
+
+## 2026-09-21 풍화와 사면수송 시간척도 재결정
+
+최신 결정:
+`decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
+
+### Pelletier 2013 판정
+Pelletier는 작은 내부 numerical timestep을 사용하지만 model objective와 constitutive calibration은 geologic timescale이고 결과도 10 Myr landscape states를 비교한다.
+
+따라서:
+```
+small solver dt != annual ecological process model
+```
+
+으로 판정하며 100년 고운사의 주 weathering/diffusion model에서 제외한다.
+
+### chemical weathering
+```
+LPJ-GUESS-CNP
+ -> daily runoff + daily soil temperature
+ -> daily chemical weathering
+ -> annual accumulation
+ -> [NEW] regolith mass/thickness conversion
+```
+
+### woody mechanical weathering
+```
+LPJ-GUESS woody cohorts
+ -> Gabet & Mudd 2010 annual root fracture/tree throw
+ -> physical bedrock erosion
+```
+
+### hillslope transport
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_treethrow
++
+q_dryravel
+```
+
+- background: residual annual creep
+- root growth/decay: Gabet 2003
+- tree throw: Doane 2021 annual stochastic
+- dry ravel: Lamb 2011
+- shallow landslide: separate discrete module
+
+Roering 2001 nonlinear law is retained as steep-slope sensitivity/alternative, with explicit double-counting control.
+
+### comparison models
+- HydroLorica: dynamic daily/monthly/yearly hydrology but authors warn its vegetation representation is not for annual-decadal systems
+- SSSPAM: actual 100-year coupled soilscape-landform simulation; useful for physical weathering/armour/profile benchmark but lacks dynamic forest roots
+- SoilGen: daily hydrology + chemical soil-profile weathering, 1D
+- REWTCrunch: root-induced reactive transport, advanced validation
+
+### 현재 결론
+100년 고운사에서는 **Pelletier 단일 장기계수보다 process-specific daily/annual models를 사용한다.**
