@@ -58,12 +58,10 @@ q_bg
 +
 q_rootgrowth
 +
-q_treethrow
-+
 q_dryravel
 ```
 
-with shallow landslide separate.
+Tree throw/uprooting and shallow landslide are outside the current production baseline.
 
 `q_bg` contains only unresolved/local processes such as:
 - wetting-drying
@@ -95,8 +93,6 @@ Fire effects are already represented by:
 - changing `H_active`
 - dry ravel
 - root dynamics
-- tree throw
-- landslides
 
 Additional time variation in `D*_bg` requires separate evidence.
 
