@@ -1,52 +1,67 @@
 # 서지정보
-Yang et al. (2026). LPJ-GUESS v4.1과 CSLE vegetation factor를 결합한 soil erosion 연구. 정확한 전체 서지정보는 원문 재검증 필요.
+Yang, L., Chu, W., Zhang, W., Zhang, L., Huang, B., Wang, Z., Wang, T., Yang, X., & Wu, Y. (2026). *The potential alleviation of vegetation restoration on future soil erosion in China using a coupled dynamic vegetation evolution model*. Environmental Impact Assessment Review, article 108550. DOI: 10.1016/j.eiar.2026.108550.
 
 # 이 논문을 찾은 이유
-LPJ-GUESS를 실제 erosion model과 연결한 직접 선례가 있는지 확인하기 위해 검토했다.
+LPJ-GUESS를 실제 soil-erosion model과 coupled한 최신 논문이 quantitative biomass/root coupling을 제공하는지 확인하기 위해 검토했다.
 
 # 연구 유형
-- 수치모델
-- DGVM-to-erosion coupling
+- coupled dynamic vegetation + empirical soil-loss assessment
+- national-scale scenario modeling
 
 # 공간 구조
-- spatially distributed erosion assessment
+- China-wide regional grid
+- hillslope process-based 2D erosion model 아님
 
 # 적용 환경
-- vegetation and soil erosion assessment
+- China
+- potential natural vegetation restoration
+- SSP2-4.5 future scenario
 
 # 핵심 과정
-- LPJ-GUESS vegetation dynamics
-- LAI
-- fractional vegetation cover
-- CSLE soil erosion
+- LPJ-GUESS vegetation succession
+- rainfall erosivity / soil-loss assessment through CSLE
+- restoration effects on erosion
 
 # 식생 입력
-- LPJ-GUESS LAI
-- derived fractional vegetation cover
+LPJ-GUESS outputs include LAI and PFT dynamics, but erosion coupling proceeds through:
+```
+LPJ-GUESS LAI
+ -> Fractional Vegetation Cover (FVC)
+ -> CSLE B factor
+ -> soil loss
+```
 
 # 핵심 식
-LPJ-GUESS -> LAI -> fractional vegetation cover -> CSLE vegetation B factor -> soil erosion.
+The study converts simulated PNV-LAI to FVC using a canopy radiative-transfer approach and then computes the vegetation-related CSLE B factor.
 
 # 파라미터와 단위
-원문 재검증 필요.
+- LAI
+- FVC
+- CSLE B factor
+- rainfall/soil/topographic CSLE factors
 
 # 원 논문의 구현 범위
-LPJ-GUESS output을 erosion-factor model에 일방향으로 전달한다.
+Dynamic vegetation evolution is used to update an empirical/semi-empirical soil-loss factor at national scale.
 
 # 고운사에 직접 사용할 수 있는 부분
-LPJ-GUESS output을 geomorphic model input으로 사용하는 직접 선례.
+- confirms LPJ-GUESS can operationally drive erosion assessments through time
+- useful precedent for temporal coupling and PFT/LAI outputs
 
 # 새로운 coupling이 필요한 부분
-고운사에서 PFT별 root biomass, understory, evolving DEM, bidirectional feedback을 넣는 것은 원 논문 밖의 새로운 coupling이다.
+A quantitative FineRootC/litter -> physically based detachment model is not provided. Creating that linkage remains a new coupling.
 
 # 한계
-- one-way coupling
-- DEM evolution 없음
-- canopy/fractional vegetation cover가 고운사 지표 ground cover를 대체하지 못함
+- LAI is transformed to FVC
+- vegetation effect is a cover/B-factor representation
+- no rill/interrill process separation
+- no 2D flow
+- no sediment routing/morphodynamics
+- does not meet Gounsa strict quantitative-biomass criterion
 
 # 최종 판정
-- 보조근거
-- 직접 채택 아님
+- **탈락 as final Gounsa water-erosion formulation**
+- retain only as direct LPJ-GUESS-to-erosion coupling precedent
+- do not use its LAI -> FVC -> B-factor pathway in the final model
 
 # 참고 링크 / DOI
-미복구, 원문 재검증 필요.
+https://doi.org/10.1016/j.eiar.2026.108550
