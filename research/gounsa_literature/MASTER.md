@@ -739,7 +739,7 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 3. 한국 산림 litter별 dry mass -> cover `b_m`와 cover -> protection `k_lit`
 4. 1시간 강수자료의 storm-event separation dry-gap 및 event wrapper
 5. actual Gounsa DEM에서 SWEHR runtime / CFL / event count benchmark
-6. dead-root pool의 fire mortality 후 시간변화
+6. dead-root mechanical-integrity decay와 fire severity/depth별 root mortality transfer
 7. coarse-fragment supply vs armour dynamics
 8. shallow-landslide root architecture conversion
 9. fire-spall production의 정량식/수치모델
@@ -773,6 +773,7 @@ Iber+ = source access 확보 시 재평가
 - `models/Hairsine_Rose_2D_Postfire.md`
 - `models/EUROSEM_RootCohesion.md`
 - `models/LPJ_GUESS_Root_Erosion_Interface.md`
+- `models/Postfire_Root_Persistence_Erosion.md`
 
 ---
 
@@ -917,3 +918,39 @@ RLD_p,i = C_root,p * SRL_C,p * f_p,i / Dz_i
 5. `RLD -> J_eff`의 local calibration
 
 세부 계보: `models/LPJ_GUESS_Root_Erosion_Interface.md`
+
+
+---
+
+## 2026-09-21 postfire live/dead-root persistence 확정사항
+
+산불 후 root erosion protection을 live FineRootC 하나로 표현하지 않는다.
+
+필수 상태:
+
+```text
+RLD_live
+RLD_dead
+I_dead = dead-root mechanical integrity
+```
+
+Ghidey & Alberts 1997은 dead-root mass/length가 interrill erodibility를 지수적으로 낮추고 soil shear strength를 높인다는 직접 실험식을 제시한다. Wang et al. 2014와 Wang & Zhang 2017은 concentrated-flow erosion에서 dead/live root와 physical binding/live-root bonding을 분리한다.
+
+postfire 시간근거는 Montagnoli 2023, Uljin의 Ramirez et al. 2024, Lei et al. 2022, Vergani et al. 2017, Sousa et al. 2026으로 보강했다. 이들은 산불 직후 dead-root/necromass pulse가 존재하고, 이후 root quantity와 mechanical quality가 수개월부터 수년 동안 함께 저하되며, 새 뿌리 재생이 회복을 담당함을 보여준다.
+
+따라서 다음 처리는 금지한다.
+
+```text
+fire mortality -> root resistance = 0 immediately
+```
+
+현재 SWEHR용 일반형 후보는:
+
+```text
+J_eff = J_bare * exp(b_live*RLD_live + b_dead*RLD_dead_eff)
+RLD_dead_eff = RLD_dead * I_dead
+```
+
+이나, `b_dead`와 `I_dead(t)`는 아직 production-approved 값이 아니다. slope-stability root-decay 계수를 SWEHR에 직접 이식하지 않는다.
+
+세부: `models/Postfire_Root_Persistence_Erosion.md`
