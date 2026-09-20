@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (266)
+## Papers (274)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -153,6 +153,7 @@
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
 - `papers/2012_Francipane_tRIBS_Erosion.md`
+- `papers/2012_Noh_PinusDensiflora_FineRootDynamics.md`
 - `papers/2012_Taylor_DGVMWeathering.md`
 - `papers/2013_Hurst_Vegetation_SedimentTransport.md`
 - `papers/2013_Kim_tRIBS_OFM_HairsineRose_2D.md`
@@ -162,6 +163,7 @@
 - `papers/2014_Kim_Nonuniqueness_SurfaceShield.md`
 - `papers/2014_Li_LeafLitter_SurfaceRunoff_Erosion.md`
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
+- `papers/2014_Wang_DeadLiveRoots_Detachment.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Gould_VIC_WEPP_Wildfire_Mountain_Watershed.md`
@@ -175,6 +177,8 @@
 - `papers/2017_Guan_2D_River_Morphology_Vegetation.md`
 - `papers/2017_Kim_PinusDensiflora_SRL_Korea.md`
 - `papers/2017_McGuire_Postfire_DebrisFlow_Initiation.md`
+- `papers/2017_Vergani_Postfire_RootReinforcementDecay.md`
+- `papers/2017_Wang_BindingBonding_Roots.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
 - `papers/2018_Juez_2D_HEM_MediterraneanWatershed.md`
@@ -205,6 +209,7 @@
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part2.md`
 - `papers/2022_Ding_Fu_StemLitterTransportCapacity.md`
 - `papers/2022_Lee_WEPP_Erodibility_Critical_Shear.md`
+- `papers/2022_Lei_Postfire_SoilRoot_Hydromechanics.md`
 - `papers/2022_Liu_UnderstoryShadingErosion.md`
 - `papers/2022_Ma_LandUseDetachment.md`
 - `papers/2022_Ma_RootEffectsDetachment.md`
@@ -221,6 +226,7 @@
 - `papers/2023_Kim_Microtopography_HairsineRose.md`
 - `papers/2023_Li_AnisotropicPorosity_VegetatedMorphodynamics.md`
 - `papers/2023_Ma_RootDetachmentGrassShrub.md`
+- `papers/2023_Montagnoli_Postfire_FineRoots.md`
 - `papers/2023_Ouyang_Postfire_HairsineRose_DebrisFlow.md`
 - `papers/2023_Pawlik_SandstoneRootsSoilProduction.md`
 - `papers/2023_Wang_2D_Slope_Soil_Erosion.md`
@@ -238,6 +244,7 @@
 - `papers/2024_Parhizkar_TreeShrubSedimentDetachment.md`
 - `papers/2024_Pawlik_GraniteBioweatheringSoilFormation.md`
 - `papers/2024_Pawlik_PitMoundSoilHydrology.md`
+- `papers/2024_Ramirez_Uljin_Postfire_SoilRoots.md`
 - `papers/2024_Wang_VED.md`
 - `papers/2024_Wei_VegetationComponentsErosion.md`
 - `papers/2024_Zeng_PlantCommunitiesErosionResistance.md`
@@ -266,6 +273,7 @@
 - `papers/2026_Parhizkar_RootSystem_Detachment_Review.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
+- `papers/2026_Sousa_Postfire_RootStrength_Decay.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
 - `papers/2026_Wang_DeconstructingSoilDetachment.md`
 - `papers/2026_Yang_LPJGUESS_CSLE.md`
@@ -273,7 +281,7 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 
-## Models (27)
+## Models (28)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
@@ -289,6 +297,7 @@
 - `models/McGuire_RillNetwork.md`
 - `models/OpenLISEM.md`
 - `models/Postfire_Dry_Ravel.md`
+- `models/Postfire_Root_Persistence_Erosion.md`
 - `models/PROMET_DANUBIA.md`
 - `models/PSEM_2D.md`
 - `models/REWTCrunch.md`
