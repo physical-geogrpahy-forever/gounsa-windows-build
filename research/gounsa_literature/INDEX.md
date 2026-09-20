@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (261)
+## Papers (266)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -173,6 +173,7 @@
 - `papers/2016_Sun_Temporal_IncorporatedLitter_RillResistance.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
 - `papers/2017_Guan_2D_River_Morphology_Vegetation.md`
+- `papers/2017_Kim_PinusDensiflora_SRL_Korea.md`
 - `papers/2017_McGuire_Postfire_DebrisFlow_Initiation.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
@@ -240,18 +241,22 @@
 - `papers/2024_Wang_VED.md`
 - `papers/2024_Wei_VegetationComponentsErosion.md`
 - `papers/2024_Zeng_PlantCommunitiesErosionResistance.md`
+- `papers/2024_Zhou_LPJGUESS_Hydrology_RootLayers.md`
 - `papers/2024_Zhou_NaturalSuccessionRunoffErosion.md`
 - `papers/2024_Zuo_VegetationErosionWeathering.md`
 - `papers/2025_Billings_DeepRootsRegolith.md`
 - `papers/2025_Chaibva_RootTraitsParentMaterial.md`
 - `papers/2025_CrutchfieldPeters_DeepRhizosphere.md`
+- `papers/2025_DantasDePaula_LPJGUESS_SRL_FineRoot.md`
 - `papers/2025_Eltner_RillGrow_3D_Calibration.md`
 - `papers/2025_Geyman_RockStrengthSoilProduction.md`
+- `papers/2025_Huh_Korea_FineRoot_Pine_Oak.md`
 - `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md`
 - `papers/2025_MartinezAranda_SERGHEI_SE.md`
 - `papers/2025_NguyenTran_tRIBS_VEGGIE_FEaST_Uncertainty.md`
 - `papers/2025_OsorioLeon_DeepRootsSilicateWeathering.md`
 - `papers/2025_Rogger_BiomassWeathering.md`
+- `papers/2025_Verbruggen_LPJGUESS_RE_RootDistribution.md`
 - `papers/2025_Wang_SeasonalRootErosionResistance.md`
 - `papers/2025_Zhou_SedimentSourceSinkSuccession.md`
 - `papers/2026_Bemis_CriticalZoneSuccession.md`
@@ -268,7 +273,7 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 
-## Models (26)
+## Models (27)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
@@ -279,6 +284,7 @@
 - `models/Hairsine_Rose_2D_Postfire.md`
 - `models/Iber.md`
 - `models/LAPSUS.md`
+- `models/LPJ_GUESS_Root_Erosion_Interface.md`
 - `models/LPJ_GUESS_Weathering.md`
 - `models/McGuire_RillNetwork.md`
 - `models/OpenLISEM.md`
