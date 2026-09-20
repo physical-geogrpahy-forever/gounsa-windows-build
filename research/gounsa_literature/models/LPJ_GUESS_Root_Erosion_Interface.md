@@ -1,8 +1,10 @@
-# LPJ-GUESS FineRootC -> RLD -> water-erosion interface
+# LPJ-GUESS root-state -> water-erosion interface
 
 ## 목적
 
-고운사에서 LPJ-GUESS의 quantitative fine-root carbon state를 SWEHR/Hairsine-Rose erosion resistance에 전달하는 인터페이스를 정의한다.
+고운사에서 LPJ-GUESS가 자체 계산한 quantitative root state를 SWEHR/Hairsine-Rose erosion resistance에 전달하는 인터페이스를 정의한다.
+
+**Production 원칙:** RLD, root length, layer distribution 등 LPJ-GUESS가 계산해 제공할 수 있는 root quantity는 외부 문헌값으로 재구성하지 않고 LPJ-GUESS 출력을 그대로 사용한다.
 
 이 문서는 다음을 명확히 분리한다.
 
@@ -37,7 +39,7 @@ Do not multiply by vegetation cover/FPC again if the exported C stock is already
 
 ---
 
-## 2. carbon-based SRL을 사용한다
+## 2. production에서는 LPJ-GUESS 계산값을 우선한다
 
 Dantas de Paula et al. (2025) implements:
 
@@ -46,6 +48,8 @@ SRL_C [m root kg C^-1]
 ```
 
 and fine-root C biomass in LPJ-GUESS.
+
+아래 관계는 LPJ-GUESS 출력 단위를 감사하거나 RLD가 직접 출력되지 않는 경우에만 사용하는 **fallback/accounting relation**이다.
 
 Therefore root length per ground area is:
 
@@ -226,7 +230,7 @@ same total RLD
 
 for conifer and broadleaf PFTs.
 
-This strongly supports PFT-specific `SRL_C` and vertical root allocation.
+This supports the need for PFT-specific root traits, but **고운사 production coupling에서는 이 값을 외부에서 따로 추정하지 않는다. LPJ-GUESS가 계산한 PFT별 root state를 사용한다.**
 
 ---
 
@@ -385,12 +389,11 @@ No arbitrary carbon-to-dry-mass factor is required if `SRL_C` is used.
 
 ### still unresolved / calibration required
 
-1. exact Gounsa export semantics of `FineRootC`
-2. PFT/species-specific `SRL_C`
-3. postfire live/dead root persistence
-4. erosion-active depth weighting
-5. local/calibrated `b` in RLD -> erosion reduction
-6. `J_bare` calibration
+1. 어떤 LPJ-GUESS root output을 coupling variable로 export할지 확인: RLD가 직접 있으면 그것을 최우선 사용
+2. surface erosion에 사용할 erosion-active depth weighting
+3. postfire live/dead root persistence와 dead-root mechanical integrity
+4. local/calibrated `b` in RLD -> erosion reduction
+5. `J_bare` calibration
 
 ---
 
@@ -407,8 +410,8 @@ should no longer be described as lacking an equation.
 It is now:
 
 ```
-formula resolved
-+ PFT trait parameterization unresolved
+LPJ-GUESS native root-state output을 사용
++ output/interface mapping 확인 필요
 + depth/mechanical weighting unresolved
 ```
 
@@ -421,3 +424,24 @@ This is a major reduction in the vegetation-coupling uncertainty.
 - Verbruggen et al. 2025, LPJ-GUESS root distribution equation
 - Huh et al. 2025, Korean conifer/broadleaf fine-root SRL/depth/turnover
 - Gyssels et al. 2005, RLD relative erosion synthesis
+
+
+---
+
+## 2026-09-21 project correction: no external SRL parameterization
+
+사용자 프로젝트 설계에 따라 PFT별 SRL/RLD는 LPJ-GUESS가 계산한다.
+
+따라서 production workflow는:
+
+```text
+LPJ-GUESS native root calculation
+ -> export RLD/root-length/layer state
+ -> unit and spatial-basis check only
+ -> erosion-active root state
+ -> SWEHR JSMASK coupling
+```
+
+으로 수정한다.
+
+`FineRootC * SRL_C * f / Dz` 식은 LPJ-GUESS output audit 또는 RLD 미출력 시의 진단/호환용 관계로 보존하지만, 외부에서 PFT별 `SRL_C`를 정해 production RLD를 재계산하는 것이 기본안은 아니다.
