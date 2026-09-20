@@ -767,7 +767,7 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 6. dead-root mechanical-integrity decay와 fire severity/depth별 root mortality transfer
 7. coarse-fragment supply vs armour dynamics
 9. fire-spall production의 정량식/수치모델
-10. chemical front advance와 dissolved mass loss의 100년 규모 비교 및 front-model calibration
+10. sandstone `P0_sand`/`gamma_sand` calibration과 dissolved chemical mass-loss 규모
 
 유수침식 엔진 자체의 우선순위는 현재:
 
@@ -1044,13 +1044,6 @@ LPJ-GUESS-CNP
  -> [NEW] regolith mass/thickness conversion
 ```
 
-### woody mechanical weathering
-```
-LPJ-GUESS woody cohorts
- -> Gabet & Mudd 2010 annual root fracture/tree throw
- -> physical bedrock erosion
-```
-
 ### hillslope transport
 ```
 q_hill
@@ -1253,17 +1246,18 @@ F_P_release
 
 LPJ-GUESS P-weathering output만을 역산해 geomorphic mass loss를 만드는 것이 기본안은 아니다.
 
-### chemical front candidates
-- DynSoil/MErSiM: preferred transient state architecture
-- Braun 2016: groundwater/pore-fluid-driven alternative
+### sandstone production hierarchy
+- sandstone-specific `P_sand(h)`: production baseline
+- DynSoil/MErSiM: optional advanced transient mineral/regolith state
+- Braun 2016: optional groundwater/pore-fluid-driven alternative
 
 ### 현재 남은 풍화 문제
-수식 구조가 아니라:
-1. 100년 동안 실제 magnitude
-2. local lithology parameters
-3. initial C/Cr state
-4. chemical front model calibration
-5. woody mechanical production과의 double counting
+1. exact Gounsa sandstone petrography
+2. local `P0_sand`
+3. local `gamma_sand`
+4. parent/soil bulk density and porosity
+5. chemical dissolved-loss partition
+6. fire-spall production
 이다.
 
 
