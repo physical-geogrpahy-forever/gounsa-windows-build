@@ -56,6 +56,7 @@
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
+- `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
 
 ---
 
@@ -1371,3 +1372,32 @@ q_dryravel
 - shallow-landslide root cohesion
 
 필요성이 후속 자료에서 확인될 때만 optional module로 재검토한다.
+
+
+---
+
+## 2026-09-21 sandstone lithology correction
+
+고운사 parent material은 **sandstone**으로 취급한다.
+
+최신 결정: `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
+
+Production baseline:
+
+```text
+P_sand(h) = P0_sand exp(-h/gamma_sand)
+```
+
+Sandstone field constraints:
+- Evans et al. 2019: 0.026-0.096 mm yr^-1
+- temperate conifer woodland mean: 0.070 +/- 0.010 mm yr^-1
+- Evans et al. 2021: P0_sand = 0.071-0.274 mm yr^-1
+- Evans et al. 2021: gamma_sand = 0.80-4.50 m
+
+따라서 granite analog를 이용해 century-scale soil production이 negligible하다고 가정하지 않는다.
+
+Final P0_sand/gamma_sand는 matrix abundance, cement type, permeability, tensile strength, fracture density를 확인한 뒤 정한다.
+
+Chemical dissolved mass loss W_chem은 P_sand와 별도 질량수지항으로 유지한다.
+
+DynSoil/MErSiM과 Braun 2016은 optional advanced sensitivity model로 둔다.
