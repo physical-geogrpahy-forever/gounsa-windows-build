@@ -309,10 +309,11 @@
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
-## Sessions (2)
+## Sessions (3)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
+- `sessions/2026-09-21_0147_SESSION_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
