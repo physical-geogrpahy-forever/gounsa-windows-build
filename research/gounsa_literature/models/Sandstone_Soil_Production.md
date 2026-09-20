@@ -247,3 +247,22 @@ P0_sand exp(-H_AB/gamma_sand)
 This replaces:
 - granite-based century-scale magnitude reasoning
 - full DynSoil/MErSiM as default front-production engine
+
+
+## timescale caveat
+
+Heimsath/Evans sandstone production functions are derived from cosmogenic-nuclide long-term average soil-production rates.
+
+Therefore evaluating `P_sand(h)` every year is a numerical bookkeeping choice for a slowly varying background process. It does **not** imply that the published relation resolves year-to-year climate or vegetation fluctuations.
+
+Current division of roles:
+
+```text
+P_sand(h)
+ -> slow background parent-material to soil production
+
+LPJ-GUESS/Hartmann
+ -> daily climate/hydrology-sensitive chemical dissolved loss
+```
+
+Do not add annual climate or biomass multipliers to `P_sand` without a separate published/local relation.
