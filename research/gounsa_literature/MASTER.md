@@ -50,6 +50,7 @@
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
+- `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 
 ---
 
@@ -865,7 +866,7 @@ Delta H_other_phys
 ```
 
 핵심 모델:
-- **LPJ-GUESS-CNP 2025**: patch별 daily runoff + soil temperature -> daily chemical weathering
+- **LPJ-GUESS-CNP 2025**: patch별 daily runoff + soil temperature -> daily empirical chemical-weathering/P-release forcing, geomorphic soil-production engine 자체는 아님
 - **Gabet & Mudd 2010**: annual root fracture + tree throw -> woody mechanical bedrock erosion
 - REWTCrunch 2022: deep-root chemical-weathering validation/advanced option
 - SoilGen 2022: daily-hydrology 1D chemical-weathering benchmark
@@ -885,7 +886,7 @@ LPJ-GUESS-CNP weathering output을 geomorphic soil/regolith thickness로 바꾸�
 2. genuine 2D 산지 flow solver와 biomass-dependent detachment 식의 최종 결합
 3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
 4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
-5. 2025 LPJ-GUESS P-weathering 논문의 정확한 서지정보 재복구
+5. LPJ-GUESS-CNP chemical-weathering flux를 geomorphic solid-mass/thickness 변화로 바꾸는 mass-balance coupling
 
 
 ---
@@ -1075,3 +1076,105 @@ Roering 2001 nonlinear law is retained as steep-slope sensitivity/alternative, w
 
 ### 현재 결론
 100년 고운사에서는 **Pelletier 단일 장기계수보다 process-specific daily/annual models를 사용한다.**
+
+
+---
+
+## 2026-09-21 풍화 및 사면수송 2차 문헌감사
+
+최신 감사:
+`decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
+
+1차 결론인:
+```
+Pelletier 2013을 100년 주식으로 사용하지 않고
+daily/annual process-specific modules를 사용
+```
+은 유지한다.
+
+### 중요한 정정
+
+#### Gabet et al. 2021
+DOI `10.1029/2020JF005858`은:
+```
+Hilltop Curvature Increases With the Square Root of Erosion Rate
+```
+이며 biomass-transport efficiency 논문이 아니다.
+
+기존 잘못된 파일을 삭제하고:
+`papers/2021_Gabet_HilltopCurvature_ErosionRate.md`
+로 교체했다.
+
+#### Pelletier et al. 2018
+DOI `10.1002/esp.4306`은:
+```
+Which way do you lean? Using slope aspect variations to understand Critical Zone processes and feedbacks
+```
+이며 직접 biomass -> diffusivity 수치모델이 아니다.
+
+기존 잘못된 파일을 삭제하고:
+`papers/2018_Pelletier_SlopeAspect_CriticalZone.md`
+로 교체했다.
+
+#### Kirwan & Shugart 2008
+peer-reviewed full paper가 아니라 AGU Fall Meeting abstract로 재분류했다.
+정량 tree-throw 근거는 Constantine 2012, Doane 2021, Gabet & Mudd 2010을 우선한다.
+
+### chemical weathering의 최종 역할 구분
+
+```
+LPJ-GUESS-CNP
+= daily chemical-weathering/P-release forcing
+!= geomorphic regolith-production engine
+```
+
+따라서:
+
+```
+weathering flux
+ -> solid mass balance
+ -> volume conversion
+ -> regolith thickness change
+```
+
+는 여전히 새로운 coupling이다.
+
+Oeser & von Blanckenburg 2020에 따라 NPP를 보편적 weathering multiplier로 추가하지 않는다.
+
+### postfire hillslope process separation
+
+Roering & Gerber 2005와 Jackson & Roering 2009를 다시 확인하여:
+
+```
+background creep
+!= postfire dry ravel
+!= root-decay / landslide response
+```
+
+를 유지한다.
+
+따라서 산불 후 모든 사면수송을 하나의 증가된 diffusivity로 표현하지 않는다.
+
+### 최종 문헌 hierarchy
+
+Production process sources:
+- Dantas de Paula et al. 2025
+- Gabet & Mudd 2010
+- Gabet et al. 2003
+- Doane et al. 2021
+- Constantine et al. 2012
+- Lamb et al. 2011
+
+Advanced validation/sensitivity:
+- REWTCrunch 2022
+- SoilGen 2022
+- Roering 2001
+- Roering & Gerber 2005
+- Jackson & Roering 2009
+
+Comparison/long-term consistency:
+- SSSPAM 2019/2021
+- HydroLorica 2020
+- Pelletier 2013
+- Pelletier et al. 2018
+- Gabet et al. 2021
