@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (274)
+## Papers (278)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -125,6 +125,7 @@
 - `papers/1999_Ludwig_Tongway_Marsden_Patterns.md`
 - `papers/1999_Puigdefabregas_WaterSedimentRedistribution.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
+- `papers/2001_Roering_NonlinearHillslopeTransport.md`
 - `papers/2003_Gabet_BioturbationSedimentTransport.md`
 - `papers/2003_Pannkuk_Robichaud_Postfire_NeedleCast.md`
 - `papers/2004_Istanbulluoglu_ForestDisturbanceSediment.md`
@@ -185,6 +186,7 @@
 - `papers/2018_Pelletier_Biomass_Diffusivity.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
+- `papers/2019_Welivitiya_SSSPAM_CoupledSoilscapeLandform.md`
 - `papers/2019_Xia_ForestLitter_HydrologicalResponse.md`
 - `papers/2020_Caponi_AboveBelowground_Biomass_Ecomorphodynamics.md`
 - `papers/2020_DeBaets_RootHairs_Mechanistic_Erosion.md`
@@ -205,9 +207,11 @@
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
 - `papers/2021_Parhizkar_NaturalPlantedForests.md`
 - `papers/2021_Schweiger_XBeach_BelowgroundBiomass_DuneErosion.md`
+- `papers/2021_Welivitiya_SSSPAM_100yr.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part1.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part2.md`
 - `papers/2022_Ding_Fu_StemLitterTransportCapacity.md`
+- `papers/2022_GarciaGamero_SoilGen_ChemicalWeathering.md`
 - `papers/2022_Lee_WEPP_Erodibility_Critical_Shear.md`
 - `papers/2022_Lei_Postfire_SoilRoot_Hydromechanics.md`
 - `papers/2022_Liu_UnderstoryShadingErosion.md`
@@ -254,11 +258,11 @@
 - `papers/2025_Billings_DeepRootsRegolith.md`
 - `papers/2025_Chaibva_RootTraitsParentMaterial.md`
 - `papers/2025_CrutchfieldPeters_DeepRhizosphere.md`
+- `papers/2025_DantasDePaula_LPJGUESS_CNP_Weathering.md`
 - `papers/2025_DantasDePaula_LPJGUESS_SRL_FineRoot.md`
 - `papers/2025_Eltner_RillGrow_3D_Calibration.md`
 - `papers/2025_Geyman_RockStrengthSoilProduction.md`
 - `papers/2025_Huh_Korea_FineRoot_Pine_Oak.md`
-- `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md`
 - `papers/2025_MartinezAranda_SERGHEI_SE.md`
 - `papers/2025_NguyenTran_tRIBS_VEGGIE_FEaST_Uncertainty.md`
 - `papers/2025_OsorioLeon_DeepRootsSilicateWeathering.md`
@@ -281,7 +285,7 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 
-## Models (28)
+## Models (31)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
@@ -305,14 +309,17 @@
 - `models/Root_Reinforcement.md`
 - `models/SCION_FLORA.md`
 - `models/SERGHEI_SE.md`
+- `models/Short_Timestep_Weathering_HillslopeTransport.md`
 - `models/SIBERIA.md`
+- `models/SSSPAM.md`
+- `models/TreeThrow_Annual.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
 - `models/WEPP.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (9)
+## Decisions (10)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -323,12 +330,14 @@
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
+- `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 
-## Sessions (3)
+## Sessions (4)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0147_SESSION_HANDOFF.md`
+- `sessions/2026-09-21_0300_SESSION_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
