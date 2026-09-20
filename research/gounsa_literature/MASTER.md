@@ -734,7 +734,7 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 
 우선순위 순:
 
-1. 고운사 PFT/species별 SRL_C parameterization과 surface effective-depth weighting
+1. LPJ-GUESS native root output의 SWEHR coupling mapping과 surface effective-depth weighting
 2. 고운사 토양의 `J_bare` calibration과 root-dependent `J_eff` 검증
 3. 한국 산림 litter별 dry mass -> cover `b_m`와 cover -> protection `k_lit`
 4. 1시간 강수자료의 storm-event separation dry-gap 및 event wrapper
@@ -845,7 +845,7 @@ Iber+ = source access 확보 시 재평가
 - [세 지형과정 구조](decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md)
 
 ### 남은 핵심 gap
-1. FineRootC -> RMD/RLD/RSAD/SRL의 PFT별 변환
+1. LPJ-GUESS native root-state output을 geomorphic modules에 전달하는 interface mapping
 2. genuine 2D 산지 flow solver와 biomass-dependent detachment 식의 최종 결합
 3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
 4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
@@ -867,8 +867,8 @@ Iber+ = source access 확보 시 재평가
 
 ### root
 ```
-FineRootC
- -> RLD
+LPJ-GUESS native root state
+ -> RLD_eff
  -> SEP_root
  -> J_eff
 ```
@@ -909,10 +909,12 @@ RLD_p,i = C_root,p * SRL_C,p * f_p,i / Dz_i
 
 한국 산림 제약도 추가했다. Huh et al. 2025에서는 Korean pine과 oak의 0-30 cm total fine-root biomass가 비슷하지만 oak SRL이 전체 토층에서 약 3배, 0-10 cm에서 거의 5배 높아 `same FineRootC != same surface RLD`임을 보여준다. Kim et al. 2017 Pinus densiflora 자료는 국내 소나무 SRL의 토양조건 민감성을 보조한다.
 
-현재 남은 것은 식 자체가 아니라 다음 parameterization이다.
+프로젝트 수정: PFT별 SRL/RLD는 LPJ-GUESS가 계산한다. 따라서 외부에서 `SRL_C`를 별도 설정해 production RLD를 재계산하지 않는다. 아래 관계는 output audit/fallback 용도로만 보존한다.
 
-1. 고운사 PFT/species별 `SRL_C`
-2. 실제 Gounsa LPJ-GUESS `FineRootC` output normalization
+현재 남은 것은:
+
+1. 어떤 LPJ-GUESS native root output을 coupling에 사용할지 확인
+2. output의 단위/patch-gridcell normalization 확인
 3. surface erosion에 사용할 effective depth
 4. postfire live/dead root persistence
 5. `RLD -> J_eff`의 local calibration
@@ -954,3 +956,22 @@ RLD_dead_eff = RLD_dead * I_dead
 이나, `b_dead`와 `I_dead(t)`는 아직 production-approved 값이 아니다. slope-stability root-decay 계수를 SWEHR에 직접 이식하지 않는다.
 
 세부: `models/Postfire_Root_Persistence_Erosion.md`
+
+
+---
+
+## 2026-09-21 LPJ-GUESS native root-state 원칙
+
+PFT별 SRL, root length, RLD, 층별 root distribution 등 LPJ-GUESS가 계산하는 root quantity는 외부에서 별도 parameterization하지 않고 model-native 결과를 사용한다.
+
+Production coupling:
+
+```text
+LPJ-GUESS root calculation
+ -> native RLD/root-length/layer output
+ -> unit/spatial-basis check
+ -> erosion-active RLD_eff
+ -> SWEHR JSMASK
+```
+
+`RLD = C_root * SRL_C * f / Dz`는 output이 직접 제공되지 않을 때의 audit/fallback relation으로만 보존한다. 따라서 PFT별 `SRL_C` 탐색은 현재 유수침식 구현의 다음 우선과제가 아니다.
