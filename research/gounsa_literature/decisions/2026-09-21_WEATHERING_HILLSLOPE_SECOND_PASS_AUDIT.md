@@ -251,10 +251,78 @@ is adopted.
 - Pelletier et al. 2018
 - Gabet et al. 2021
 
-## unresolved
-1. chemical-weathering flux -> solid regolith-thickness mass balance
-2. Gounsa lithology parameters
-3. residual `D_bg`
-4. LPJ-GUESS woody cohort -> rootwad/root-fracture geometry
-5. tree-throw probability/volume from cohort state
-6. quantify actual 100-year weathering magnitude before increasing complexity
+## updated unresolved after mass-balance review
+1. 100-year magnitude of chemical front advance, dissolved mass loss and woody mechanical production
+2. Gounsa lithology, rock density and initial C/Cr state
+3. select/calibrate chemical front model: DynSoil/MErSiM vs Braun-type hydrologic front
+4. residual `D_bg`
+5. LPJ-GUESS woody cohort -> rootwad/root-fracture geometry
+6. tree-throw probability/volume from cohort state
+7. partition chemical dissolved loss between mobile A/B and deeper C/Cr
+
+
+---
+
+## G. weathering mass-balance review
+
+새 결정:
+`decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
+
+이전:
+```
+chemical weathering flux
+ -> density conversion
+ -> regolith thickness
+```
+처럼 압축해 표현했던 gap을 철회한다.
+
+정확한 분리는:
+
+```
+chemical dissolved mass loss
+!=
+bedrock-to-regolith front advance
+```
+
+### mobile A/B soil
+Yoo 2007, Brosens 2020:
+
+```
+dM_AB/dt
+=
+Phi_AB + D_phys - E_phys - W_AB
+```
+
+### C/Cr regolith
+DynSoil/MErSiM:
+
+```
+dh_reg/dt
+=
+P_r - E_boundary
+```
+
+while mineral dissolution is tracked separately:
+
+```
+W_chem
+=
+integral K tau^sigma x dz
+```
+
+### Hartmann/LPJ-GUESS correction
+Hartmann 2011 parent model computes bulk rock-weathering flux first, then derives P liberation from lithology-specific P content.
+
+Therefore Gounsa should retain separate:
+```
+F_bulk_chem
+F_P_release
+```
+
+and should not reconstruct geomorphic mass loss from the LPJ-GUESS P pool if the parent bulk-weathering relation can be evaluated directly.
+
+### current front candidates
+- DynSoil/MErSiM: preferred transient state architecture
+- Braun 2016: groundwater-driven weathering-front alternative
+
+The conceptual mass-balance gap is now resolved. The remaining issue is quantitative calibration and 100-year significance.
