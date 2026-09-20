@@ -2,62 +2,84 @@
 Hales, T. C. (2018). *Modelling biome-scale root reinforcement and slope stability*. Earth Surface Processes and Landforms, 43(10), 2157-2166. DOI: 10.1002/esp.4381.
 
 # 이 논문을 찾은 이유
-LPJ-GUESS의 root biomass를 shallow-landslide mechanics의 root reinforcement로 연결할 때 필요한 biome-scale mechanistic bridge를 찾기 위해 검토했다.
+LPJ-GUESS의 root biomass를 shallow-landslide mechanics의 root reinforcement/root cohesion으로 연결할 biome-scale mechanistic bridge를 찾기 위해 검토했다.
 
 # 연구 유형
-- mechanistic root-reinforcement/slope-stability model
+- 수치모델
+- root-reinforcement model
+- biome-scale parameterization
+- Monte Carlo uncertainty propagation
 
 # 공간 구조
-- biome/hillslope parameterization
-- slope stability mechanics
+- biome-scale root-depth distribution
+- depth-dependent reinforcement/cohesion profile
+- slope-stability input용 mechanics
 
 # 적용 환경
-- vegetated slopes across biomes
-- mountain shallow-landslide relevance
+- 산지
+- 산림
+- 관목
+- 초본 biome
 
 # 핵심 과정
-- root distribution
+- root biomass distribution
 - root tensile/material properties
 - root reinforcement
-- slope stability
+- shallow landslide resistance
 
 # 식생 입력
-- root distributions
-- root material strength/properties
-- vegetation/biome-dependent root traits
+- root biomass
+- root biomass depth distribution
+- root tissue density
+- root tensile strength
+- root traits / plant functional group
 
 # 핵심 식
-이 세션에서 exact full equation set은 저장하지 않았으므로 원문을 직접 참조한다. 핵심 pathway:
+개념적 연결:
 ```
-root biomass / root distribution
--> root geometric and mechanical traits
--> root reinforcement
--> slope stability
+root biomass
+ -> root cross-sectional area
+ -> tensile failure force
+ -> root cohesion
 ```
+
+채팅에서 복구된 modified Wu/Waldron 형태:
+```
+C_r = r F / D_s
+```
+정확한 기호 정의와 전체 식은 원문을 기준으로 한다.
 
 # 파라미터와 단위
-root cohesion/reinforcement and root-distribution/material-property parameters. exact units는 원문 기준.
+- root biomass: M L^-2
+- root tissue density: kg m^-3 계열
+- tensile strength: Pa
+- root cohesion: Pa 또는 kPa
+- soil depth: m
 
 # 원 논문의 구현 범위
-biome-scale root reinforcement의 magnitude와 variability를 slope stability에 연결한다.
+biome-level biomass distribution과 root mechanical properties를 이용해 depth-dependent root reinforcement와 불확실성을 계산한다.
 
 # 고운사에 직접 사용할 수 있는 부분
 ```
 LPJ-GUESS FineRootC
--> root distribution / architecture
--> c_r
--> factor of safety
+ -> root distribution / architecture
+ -> root reinforcement or c_r
+ -> factor of safety
 ```
-의 근거.
+의 핵심 mechanistic bridge.
 
 # 새로운 coupling이 필요한 부분
-LPJ-GUESS FineRootC에서 실제 root diameter distribution, RAR, tensile strength를 생성하는 구체적 conversion은 **새로운 coupling 또는 별도 문헌식 필요**.
+LPJ-GUESS FineRootC를 Hales가 요구하는 root dry mass, diameter/area distribution, depth profile, tensile properties로 변환하는 과정은 **새로운 coupling 또는 별도 문헌식이 필요**하다.
 
 # 한계
-유수침식 Ki/Kr와 shallow-landslide root cohesion을 동일 parameter로 취급해서는 안 된다.
+- dynamic vegetation model 자체는 아님
+- root-trait uncertainty가 큼
+- 유수침식 Ki/Kr용 root effect와 동일 parameter로 사용하면 안 됨
 
 # 최종 판정
-**채택: shallow-landslide root-reinforcement bridge.**
+- 채택 후보
+- shallow-landslide 모듈 활성화 시 핵심 근거
+- root biomass -> mechanics bridge로 유지
 
 # 참고 링크 / DOI
-10.1002/esp.4381
+https://doi.org/10.1002/esp.4381
