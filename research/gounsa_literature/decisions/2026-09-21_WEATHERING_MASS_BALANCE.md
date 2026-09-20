@@ -1,31 +1,33 @@
-# 결정: 고운사 chemical weathering, regolith production, soil-thickness mass balance
+# 결정: 고운사 sandstone soil production, chemical weathering, soil-thickness mass balance
 
 날짜: 2026-09-21
 
-## 질문
-LPJ-GUESS-CNP/Hartmann weathering flux를 실제 토양/레골리스 두께변화로 어떻게 변환할 것인가?
+## 핵심 전제
+고운사 parent material은 현재 프로젝트 기준 **sandstone**으로 취급한다.
 
-## 핵심 결정
-다음 두 과정을 절대 동일시하지 않는다.
+다음은 분리한다.
 
 ```
-chemical dissolved mass loss
+sandstone -> mobile soil production
 !=
-bedrock-to-regolith front advance
+chemical dissolved mass loss
 ```
 
-따라서 A/B mobile soil과 C/Cr regolith를 별도 상태로 계산한다.
+또한 current production baseline에서는:
+```
+tree throw / uprooting = excluded
+shallow landslide      = excluded
+```
 
 ---
 
-## 1. A/B mobile soil
+## 1. A/B mobile soil mass balance
 
-상태:
 ```
 M_AB = rho_AB H_AB
 ```
 
-Yoo 2007, Brosens et al. 2020 계열:
+Yoo 2007 / Brosens 2020 계열:
 
 ```
 dM_AB/dt
@@ -38,6 +40,12 @@ E_phys
 -
 W_AB
 ```
+
+where:
+- `Phi_AB`: sandstone/saprolite에서 mobile soil로 공급되는 질량
+- `D_phys`: physical deposition
+- `E_phys`: SWEHR + hillslope transport에 의한 physical export
+- `W_AB`: dissolved chemical mass loss
 
 approximately constant `rho_AB`이면:
 
@@ -56,38 +64,108 @@ W_AB
 / rho_AB
 ```
 
-여기서:
-- `Phi_AB`: underlying C/Cr에서 mobile soil로 공급되는 질량
-- `D_phys`: 물리적 퇴적
-- `E_phys`: SWEHR 및 사면과정에 의한 물리적 제거
-- `W_AB`: chemical dissolved mass loss
+---
 
-이 식을 A/B soil-thickness bookkeeping의 기본으로 채택한다.
+## 2. sandstone soil-production baseline
+
+Production rate:
+
+```
+P_sand(h)
+=
+P0_sand exp(-h/gamma_sand)
+```
+
+where:
+- `P_sand`: bedrock/saprolite -> mobile-soil production [m yr^-1]
+- `P0_sand`: zero-soil-thickness production rate
+- `h`: mobile-soil thickness
+- `gamma_sand`: e-folding depth
+
+Mass supply:
+
+```
+Phi_AB
+=
+rho_parent * P_sand
+```
+
+with density/porosity conversion treated explicitly.
+
+### supporting sandstone data
+
+Evans et al. 2019:
+```
+0.026-0.096 mm yr^-1
+```
+across two temperate sandstone sites.
+
+Coniferous Comer Wood mean:
+```
+0.070 +/- 0.010 mm yr^-1
+```
+
+Evans et al. 2021 sandstone sites:
+
+```
+P0_sand
+=
+0.071-0.274 mm yr^-1
+```
+
+```
+gamma_sand
+=
+0.80-4.50 m
+```
+
+The wide range is caused by sandstone matrix/cementation differences.
+
+Heimsath et al. 2001 provides the forested Oregon sandstone soil-production-function lineage.
 
 ---
 
-## 2. bulk chemical weathering
+## 3. sandstone petrography is required
 
-LPJ-GUESS-CNP의 P-weathering 계보를 재검토했다.
+Do not assign one production coefficient to all sandstone.
 
-Hartmann & Moosdorf 2011 부모모델은 먼저:
-```
-bulk chemical silicate-rock weathering
-```
-을 major cations + dissolved silica flux로 계산한 뒤, lithology-specific P content를 사용해 P liberation을 계산한다.
+Important controls:
+- matrix abundance
+- cement type
+- quartz/feldspar overgrowth
+- iron oxides
+- permeability
+- tensile strength
+- fracture density
+- degree of weathering
 
-따라서 고운사에서는:
+Marshall et al. 2014 and Evans et al. 2021 show that these properties can change soil-production susceptibility strongly.
+
+Uiseong regional studies report lithic arkose and feldspathic wacke among common Cretaceous sandstones.
+
+This is regional context only.
+
+Exact Gounsa sandstone classification must be confirmed before final parameter selection.
+
+---
+
+## 4. chemical dissolved mass loss
+
+Hartmann 2011/2014 + LPJ-GUESS-CNP remain the chemical-weathering forcing.
+
+Keep separate:
 
 ```
 F_bulk_chem
 ```
-과:
+
+and:
+
 ```
 F_P_release
 ```
-를 별도 변수로 둔다.
 
-개념적으로:
+Conceptually:
 
 ```
 F_bulk_chem
@@ -104,157 +182,137 @@ F_bulk_chem
 * p_rel
 ```
 
-LPJ-GUESS P-pool flux를 geomorphic mass flux로 역산하는 방식은 기본안으로 쓰지 않는다.
+Do not infer geomorphic mass loss from the P pool if the parent bulk-weathering term can be evaluated directly.
 
 ---
 
-## 3. C/Cr regolith thickness
+## 5. postfire behavior
 
-Regolith thickness는 chemical dissolved mass flux를 density로 나눈 값으로 직접 갱신하지 않는다.
-
-DynSoil/MErSiM lineage:
+No arbitrary:
 
 ```
-dh_reg/dt
-=
-P_r
--
-E_boundary
+fire -> P_sand multiplier
 ```
 
-Primary-mineral depletion:
+is adopted.
+
+Soil thinning already creates a published feedback:
 
 ```
-partial x/partial t
-=
--P_r partial x/partial z
--
-K tau^sigma x
+fire / erosion
+ -> H_AB down
+ -> P_sand(H_AB) up
 ```
 
-Chemical weathering:
+If sandstone is locally exposed, the production function naturally approaches `P0_sand`.
 
-```
-W
-=
-integral K tau^sigma x dz
-```
-
-즉:
-- `P_r` controls bedrock-to-regolith production
-- `W` controls mineral dissolution within regolith
-- `E_boundary` removes regolith physically
-
-를 별도로 둔다.
+Fire spall remains a separate physical-fragment source.
 
 ---
 
-## 4. front-production 후보
+## 6. root effect
 
-### DynSoil / MErSiM
-장점:
-- transient state equations
-- `h_reg`, `x(z)`, `tau(z)` explicit
-- climate and physical erosion coupling
-- annual outer bookkeeping에 이식하기 쉬움
+Pawlik et al. 2023 shows living roots can:
+- penetrate sandstone fractures
+- wedge fragments
+- contribute to soil formation
 
-단점:
-- global/geologic parameterization
-- vegetation/root effects absent
+But no universal quantitative:
+```
+root biomass -> P_sand
+```
+law is available.
 
-### Braun 2016
-장점:
-- pore-fluid velocity and groundwater gradient로 weathering-front advance를 물리적으로 계산
-- rock/mineral properties explicit
-
-단점:
-- recharge, groundwater geometry, fractured-bedrock permeability 필요
-- parameter burden 큼
-
-현재:
-**DynSoil/MErSiM state architecture를 우선 후보, Braun 2016을 hydrologic-mechanism alternative로 둔다.**
-
-production hard-lock은 아직 하지 않는다.
+Therefore no LPJ-GUESS biomass multiplier is added to `P_sand` in the baseline.
 
 ---
 
-## 5. woody mechanical production
+## 7. DynSoil / MErSiM
 
-Gabet & Mudd 2010:
+Current role:
+**optional advanced module, not production baseline.**
+
+Use only if later required to track:
+- primary-mineral fraction `x(z,t)`
+- mineral exposure time `tau(z,t)`
+- deeper transient regolith chemistry
+
+The simple sandstone soil-production function is more directly constrained by relevant lithology.
+
+---
+
+## 8. Braun 2016
+
+Retained as a groundwater-driven weathering-front alternative.
+
+Not baseline because it requires:
+- recharge/groundwater state
+- fractured-bedrock permeability
+- additional rock/mineral parameters
+
+---
+
+## 9. granite literature correction
+
+Granite papers reviewed previously remain comparison-only.
+
+They must not be used to infer the Gounsa production magnitude.
+
+The earlier granite-based statement that production may be only sub-mm to a few mm per 100 yr is withdrawn.
+
+Sandstone observations support a plausible production magnitude of:
+```
+several mm to roughly 1-3 cm per 100 yr
+```
+depending on soil thickness, matrix and cementation.
+
+This is a sensitivity envelope, not a final Gounsa rate.
+
+---
+
+## 10. current annual bookkeeping
 
 ```
-LPJ-GUESS woody cohort/root state
- -> root fracture/tree throw
- -> P_woody_mech
-```
-
-Chemical front production과 별도 항으로 취급한다.
-
-그러나 selected `P_r`가 자연조건의 total regolith production에 이미 biological mechanical effects를 포함하도록 calibration되었다면 중복 가능성이 있다.
-
-따라서 Gounsa에서는:
-
-```
-P_total
+P_sand(t)
 =
-P_chem_front,residual
+P0_sand exp[-H_AB(t)/gamma_sand]
+```
+
+```
+Phi_AB(t)
+=
+rho_parent P_sand(t)
+```
+
+```
+M_AB(t+1)
+=
+M_AB(t)
 +
-P_woody_mech
+Phi_AB
 +
-P_other_phys
+D_phys
+-
+E_phys
+-
+W_AB
 ```
 
-처럼 process attribution을 유지하는 방향을 선호한다.
+with consistent units and density conversion.
 
 ---
 
-## 6. current full state architecture
+## unresolved
 
-```
-LPJ-GUESS
-  |
-  +-- runoff/Tsoil
-  |     -> Hartmann bulk chemical-loss forcing
-  |     -> W_chem
-  |
-  +-- hydrologic/climate state
-  |     -> chemical front production P_chem
-  |
-  +-- woody cohorts/root state
-        -> Gabet-Mudd P_woody_mech
-
-SWEHR/hillslope modules
-  -> E_phys / D_phys
-
-A/B balance
-  -> H_AB
-
-C/Cr regolith balance
-  -> H_reg
-
-H_AB + H_reg
-  -> surface/subsurface geometry
-```
-
----
-
-## 7. resolved
-- chemical dissolved mass loss and regolith production are now separated
-- A/B mobile-soil mass-balance form is selected
-- Hartmann parent bulk weathering is separated from P release
-- transient regolith state candidate is identified
-
-## 8. unresolved
-1. Gounsa 100-year magnitude of `P_chem_front`, `W_chem`, `P_woody_mech`
-2. local lithology parameters and rock density
-3. exact C/Cr initial thickness/state
-4. recharge/subsurface hydrology if Braun is used
-5. residual calibration of chemical front production after explicit woody mechanical weathering
-6. how much chemical mass loss occurs in A/B versus deeper C/Cr
+1. exact Gounsa sandstone formation/petrography
+2. local `P0_sand`
+3. local `gamma_sand`
+4. parent and soil bulk densities / porosity
+5. chemical-loss partition between A/B and deeper weathered material
+6. fire-spall production
+7. whether a root-dependent production modifier is necessary after validation
 
 ## 최종 판정
-다음 단계는 **100년 order-of-magnitude test**다.
+**Sandstone-specific annual soil-production function is the production baseline.**
 
-If chemical/front production over 100 years is negligible relative to water erosion, dry ravel, tree throw and landslide, use the simplest mass-balance implementation.
-
-If it is material, implement DynSoil/MErSiM-style transient regolith states.
+DynSoil/MErSiM and Braun remain advanced alternatives.
