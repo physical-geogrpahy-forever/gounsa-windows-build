@@ -479,14 +479,11 @@ q_bg
 +
 q_rootgrowth
 +
-q_treethrow
-+
 q_dryravel
 ```
 
 - `q_bg`: residual background creep, Furbish 2009 depth-slope structure
 - `q_rootgrowth`: Gabet et al. 2003, annual root turnover
-- `q_treethrow`: Doane et al. 2021, annual stochastic events
 - `q_dryravel`: Lamb 2011 postfire disturbance pathway
 - shallow landslide는 별도 discrete module
 
@@ -1062,16 +1059,12 @@ q_bg
 +
 q_rootgrowth
 +
-q_treethrow
-+
 q_dryravel
 ```
 
 - background: residual annual creep
 - root growth/decay: Gabet 2003
-- tree throw: Doane 2021 annual stochastic
 - dry ravel: Lamb 2011
-- shallow landslide: separate discrete module
 
 Roering 2001 nonlinear law is retained as steep-slope sensitivity/alternative, with explicit double-counting control.
 
