@@ -28,20 +28,19 @@ optional profile/physical-weathering benchmark
 HILLSLOPE TRANSPORT
 
 background continuous creep
- = residual diffusion term [annual outer step]
+ = Furbish-style depth-dependent residual creep [annual outer step]
 
 root growth/decay bioturbation
  = Gabet et al. 2003 [annual turnover]
 
-tree throw
- = Doane 2021 [annual stochastic events]
-   + CSDMS TreeThrow precedent
-
 postfire dry ravel
  = Lamb 2011 [disturbance/event pathway]
 
+tree throw / uprooting
+ = excluded from current production baseline
+
 shallow landslide
- = separate stability/mass-wasting module
+ = excluded from current production baseline
 ```
 
 ---
@@ -150,41 +149,16 @@ Role:
 
 # 5. woody mechanical weathering: preferred core
 
-## Gabet & Mudd 2010
+## current mechanical-weathering scope
 
-**Annual timestep.**
+Gabet & Mudd 2010 remains an important annual biogeomorphic reference, but its rootwad/tree-throw production pathway is **not in the current Gounsa production baseline**.
 
-Processes:
-```
-tree establishment/growth
- -> root fracture of bedrock
- -> mortality
- -> tree throw
- -> physical bedrock erosion / soil mantling
-```
+Current baseline weathering emphasizes:
+- Hartmann / LPJ-GUESS chemical-weathering forcing
+- transient regolith-front production
+- mobile-soil mass balance
 
-For Gounsa the simple original vegetation model is replaced by LPJ-GUESS cohort outputs.
-
-Recommended interface:
-
-```
-LPJ-GUESS woody cohorts
- DBH
- density
- mortality
- root state
-       |
-       v
-root-fracture / rootwad geometry
-       |
-       v
-physical bedrock erosion
-       |
-       v
-Delta H_mech
-```
-
-Do not copy Oregon weak-sandstone rates.
+Woody uprooting/rootwad disturbance is archive-only unless later evidence shows it is required.
 
 ---
 
@@ -379,12 +353,10 @@ q_bg
 +
 q_rootgrowth
 +
-q_treethrow
-+
 q_dryravel
 ```
 
-Shallow landslides are discrete mass-wasting events and should not be hidden in `q_hill`.
+Tree throw/uprooting and shallow landslides are currently excluded from the production baseline rather than hidden in `q_hill`.
 
 ## weathering/soil-production
 ```
@@ -510,3 +482,40 @@ Therefore no universal postfire diffusivity multiplier is adopted.
 - Pelletier 2013
 - Pelletier et al. 2018
 - Gabet et al. 2021
+
+
+---
+
+## 15. scope correction: uprooting and shallow landslide excluded
+
+Current production scope was narrowed by user decision.
+
+```
+tree throw / uprooting = excluded from current baseline
+shallow landslide      = excluded from current baseline
+```
+
+The corresponding literature is retained for future optional use only.
+
+Current hillslope transport core:
+
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_dryravel
+```
+
+Current weathering core:
+- chemical-weathering forcing
+- regolith-front production
+- mobile-soil mass balance
+
+Do not spend implementation effort on:
+- windthrow probability
+- rootwad geometry
+- landslide factor-of-safety
+unless the project scope is expanded again.
