@@ -127,8 +127,8 @@ J_eff
 
 ### 제한
 - Gyssels average `b`는 sensitivity/initial prior로만 사용
-- 최종 `b`는 PFT/species/root architecture를 고려하여 보정
-- FineRootC -> RLD 변환은 별도 해결
+- 최종 `b`는 root-state/현장자료를 고려하여 보정
+- RLD/root length/layer distribution은 LPJ-GUESS native calculation을 사용
 - 같은 root effect를 `J`와 `UC`에 동시에 적용하지 않는다
 - `cohesion -> J` 보편식이 있다고 주장하지 않는다
 
@@ -277,7 +277,7 @@ Iber+ = source access 확보 시 재평가
 
 ## 아직 확정되지 않은 것
 
-1. LPJ-GUESS FineRootC -> PFT별 RLD 변환
+1. LPJ-GUESS native root output의 SWEHR coupling variable/단위/층 매핑
 2. `J_bare`의 고운사 토양 calibration
 3. 한국 산림 litter별 `b_m`, `k_lit`
 4. storm-event separation dry-gap
@@ -297,7 +297,7 @@ Iber+ = source access 확보 시 재평가
 다음 hard-lock 조건:
 - actual DEM runtime benchmark
 - hourly rainfall event wrapper prototype
-- FineRootC -> RLD interface
+- LPJ-GUESS native root-state -> SWEHR interface
 - litter mass -> cover/protection interface
 - 최소 수 개 관측/대표 storm calibration
 
@@ -308,23 +308,23 @@ Iber+ = source access 확보 시 재평가
 
 ## FineRootC -> RLD 업데이트
 
-이전 결정문에서 미해결로 두었던 `FineRootC -> RLD`의 수식/단위 구조는 해결됐다.
+이전 결정문에서 미해결로 두었던 root-state 계산은 LPJ-GUESS가 담당한다. 외부에서 PFT별 SRL을 따로 정해 RLD를 재구성하지 않는다.
 
 ```text
 RLD_p,i = C_root,p * SRL_C,p * f_p,i / Dz_i
 ```
 
-이 식은 LPJ-GUESS fine-root C와 carbon-based SRL, PFT별 soil-layer root fraction을 사용한다.
+아래 식은 LPJ-GUESS output audit/fallback 관계로만 보존한다. RLD가 native output으로 제공되면 직접 사용한다.
 
 따라서 root coupling의 현재 baseline은:
 
 ```text
-FineRootC
- -> PFT-specific RLD
+LPJ-GUESS native root state
+ -> RLD_eff
  -> SEP_root = exp(-b RLD)
  -> J_eff = J_bare / SEP_root
 ```
 
-남은 것은 `SRL_C`, active-depth weighting, postfire live/dead-root persistence와 local calibration이다.
+남은 것은 LPJ-GUESS native output의 단위/공간기준 확인, active-depth weighting, postfire live/dead-root persistence와 local calibration이다.
 
 세부: `models/LPJ_GUESS_Root_Erosion_Interface.md`
