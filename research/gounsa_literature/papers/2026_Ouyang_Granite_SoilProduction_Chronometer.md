@@ -69,3 +69,24 @@ Use to decide model complexity, not as a direct Gounsa production coefficient.
 
 # 참고 링크 / DOI
 https://doi.org/10.1029/2025GL119252
+
+
+## 2026-09-21 lithology correction
+
+고운사 parent material은 현재 프로젝트 기준 **sandstone**으로 취급한다.
+
+따라서 이 granite paper는:
+- Gounsa local/regional calibration source가 아님
+- sandstone production magnitude를 제약하는 1차 근거가 아님
+- cross-lithology comparison only
+
+로 역할을 하향한다.
+
+고운사 production baseline은 sandstone literature:
+- Heimsath et al. 2001
+- Evans et al. 2019
+- Evans et al. 2021
+- Marshall et al. 2014
+- Pawlik et al. 2023
+
+를 우선한다.
