@@ -302,3 +302,29 @@ Iber+ = source access 확보 시 재평가
 - 최소 수 개 관측/대표 storm calibration
 
 이 조건을 통과하지 못하면 SERGHEI-SE를 본체로 승격하고 Hairsine-Rose/postfire process closure를 이식하는 방안을 검토한다.
+
+
+---
+
+## FineRootC -> RLD 업데이트
+
+이전 결정문에서 미해결로 두었던 `FineRootC -> RLD`의 수식/단위 구조는 해결됐다.
+
+```text
+RLD_p,i = C_root,p * SRL_C,p * f_p,i / Dz_i
+```
+
+이 식은 LPJ-GUESS fine-root C와 carbon-based SRL, PFT별 soil-layer root fraction을 사용한다.
+
+따라서 root coupling의 현재 baseline은:
+
+```text
+FineRootC
+ -> PFT-specific RLD
+ -> SEP_root = exp(-b RLD)
+ -> J_eff = J_bare / SEP_root
+```
+
+남은 것은 `SRL_C`, active-depth weighting, postfire live/dead-root persistence와 local calibration이다.
+
+세부: `models/LPJ_GUESS_Root_Erosion_Interface.md`
