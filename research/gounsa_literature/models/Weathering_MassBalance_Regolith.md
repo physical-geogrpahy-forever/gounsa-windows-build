@@ -3,10 +3,10 @@
 ## 목적
 고운사에서 풍화를 하나의 단일 `weathering rate`로 처리하지 않고 다음을 분리한다:
 
-1. bedrock/regolith interface advance
-2. chemical dissolution within existing regolith
+1. sandstone parent-material to mobile-soil production
+2. chemical dissolution within existing soil/regolith
 3. mobile A/B soil production/loss
-4. woody mechanical bedrock production
+4. deeper regolith/front state when needed
 5. physical erosion/deposition
 
 ---
@@ -183,30 +183,32 @@ integral K tau^sigma x dz
 
 # 5. candidate weathering-front production models
 
+## sandstone-specific empirical production baseline
+
+Current production baseline:
+
+```
+P_sand(h)
+=
+P0_sand exp(-h/gamma_sand)
+```
+
+Sandstone evidence:
+- Heimsath et al. 2001
+- Evans et al. 2019
+- Evans et al. 2021
+
+Evans 2021 reports sandstone-specific zero-thickness production and e-folding depths spanning roughly:
+
+```
+P0_sand = 0.071-0.274 mm yr^-1
+gamma_sand = 0.80-4.50 m
+```
+
+These are sensitivity/analogue bounds, not direct Gounsa coefficients.
+
 ## DynSoil / MErSiM
-```
-P_r
-=
-P_0 f(h)
-```
-
-```
-P_0
-=
-k_rp q
-exp[
-(E_a/R)(1/T_0 - 1/T)
-]
-```
-
-Advantages:
-- transient
-- explicit regolith state
-- mineral residence-time and supply limitation
-- easy annual bookkeeping
-
-Limit:
-- global/geologic calibration
+Retained as optional advanced deeper-regolith/mineral-state module, not the initial production baseline.
 
 ## Braun 2016
 Weathering-front advance is tied to:
@@ -222,16 +224,10 @@ Limit:
 - more subsurface parameters
 - needs recharge/groundwater state
 
-## Gabet & Mudd 2010 woody mechanical
-Separate from chemical front advance:
+## woody uprooting/rootwad production
+Current production baseline excludes tree throw/uprooting.
 
-```
-P_woody_mech
-```
-
-from root fracture/tree throw.
-
-Do not add it blindly to a chemical `P_r` if the selected `P_r` was calibrated to total natural regolith production that already includes biological mechanical effects.
+Gabet & Mudd 2010 remains archive/reference only.
 
 ---
 
@@ -239,11 +235,10 @@ Do not add it blindly to a chemical `P_r` if the selected `P_r` was calibrated t
 
 This is critical.
 
-Possible sources of new regolith:
-- chemical front advance
-- root fracture
-- tree throw bedrock detachment
-- frost/thermal physical weathering
+Possible sources of new material:
+- sandstone soil production at the soil-parent interface
+- deeper chemical/front weathering where explicitly represented
+- frost/thermal physical weathering if supported
 - fire spall
 
 If a published empirical `P_r` already represents total natural regolith production, adding all explicit physical terms would double count.
@@ -274,16 +269,13 @@ For Gounsa's research question, **option A is preferred** because vegetation fee
 
 ```
 LPJ-GUESS
- runoff / Tsoil / vegetation
+ runoff / Tsoil
       |
       +--> Hartmann bulk chemical-loss forcing
       |       -> W_AB / W_reg
       |
-      +--> chemical front model
-      |       -> P_chem_front
-      |
-      +--> woody cohorts/root state
-              -> Gabet-Mudd P_woody_mech
+annual sandstone production
+      +--> P_sand(h)
 
 SWEHR / hillslope modules
       -> E_phys / D_phys
@@ -321,12 +313,62 @@ weathering-front advance
 
 The first is closed by Yoo/Brosens-style mass balance.
 
-The second requires selecting/calibrating a front-production model, with DynSoil/MErSiM and Braun 2016 as the strongest current candidates.
+For the current sandstone baseline, the second is represented first by a sandstone-specific empirical soil-production function. DynSoil/MErSiM and Braun 2016 are advanced alternatives if a deeper regolith-front state is later required.
 
 ## next quantitative task
-Estimate the order of magnitude of:
-- `P_chem_front`
+Calibrate:
+- `P0_sand`
+- `gamma_sand`
 - `W_chem`
-- `P_woody_mech`
 
-for Gounsa over 100 years before choosing the more complex front model.
+and compare them with event erosion and dry-ravel magnitudes over 100 years.
+
+
+---
+
+## 2026-09-21 sandstone correction
+
+고운사 parent material은 sandstone으로 취급한다.
+
+따라서 granite-based century-scale magnitude reasoning is withdrawn for local parameterization.
+
+Current production interface:
+
+```
+P_sand(h)
+=
+P0_sand exp(-h/gamma_sand)
+```
+
+Sandstone observations show several-fold variation in `P0` and `gamma` caused by:
+- matrix content
+- cementation
+- permeability
+- tensile strength
+- fracture density
+
+Thus exact Gounsa sandstone petrography is now a parameterization prerequisite.
+
+Chemical dissolved loss remains separate:
+
+```
+W_chem
+```
+
+and the mobile-soil mass balance remains:
+
+```
+dM_AB/dt
+=
+rho_parent P_sand
++
+D_phys
+-
+E_phys
+-
+W_AB
+```
+
+with consistent density conversion.
+
+DynSoil/MErSiM is demoted to optional advanced mineral/regolith-state sensitivity.
