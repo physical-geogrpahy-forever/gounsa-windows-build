@@ -106,3 +106,9 @@ https://doi.org/10.1029/2021MS002756
 
 # 복구 메모
 - 업로드된 원문과 제공된 ELM-Erosion Fortran 코드를 현재 채팅에서 직접 확인했다.
+
+## 2026-09-21 현재 채팅 최종 보정
+- **수치모델 연구로서 채택 유지.** topsoil root biomass density가 rainfall-driven 및 runoff-driven erosion 저감항에 직접 들어간다는 점이 핵심이다.
+- 다만 이 모델은 고운사의 genuine 2D 산지 surface-flow routing을 제공하지 않는다.
+- 따라서 `FineRootC -> topsoil root biomass density -> erodibility/detachment modifier`만 가져오고, HighLand 또는 별도 2D flow solver에 연결하는 부분은 **새로운 coupling**이다.
+- interrill과 rill을 WEPP/Wu 방식으로 분리할 경우 ELM-Erosion의 rainfall/runoff 구분과 일대일 대응한다고 가정하지 않는다.
