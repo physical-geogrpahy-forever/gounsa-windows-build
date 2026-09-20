@@ -24,7 +24,57 @@ LPJ-GUESS에서는 상층 교목과 하층 초본이 같은 cell에서 수직적
 # 새로운 coupling
 LPJ-GUESS carbon pools를 RMD/RLD/RSAD, erodibility, tree-throw probability, weathering rate로 변환하는 단계는 기존 단일 published model이 아니며 모두 **새로운 coupling**으로 표기한다.
 
+# 2026-09-21 FineRootC -> RLD 업데이트
+
+이 연결의 **수식/단위 구조는 해결됨**.
+
+Dantas de Paula et al. 2025 LPJ-GUESS-NTD는 carbon-based SRL을 사용한다:
+
+```
+SRL_C [m root kg C^-1]
+C_root [kg C m^-2]
+```
+
+따라서 PFT p, soil layer i에서:
+
+```
+RLD_p,i
+=
+C_root,p
+* SRL_C,p
+* f_p,i
+/ Dz_i
+```
+
+- `f_p,i`: LPJ-GUESS PFT-specific root fraction in layer i
+- `Dz_i`: soil-layer thickness
+
+현재 LPJ-GUESS는 15 x 0.1 m layer 구조와 PFT별 vertical root fraction을 제공한다.
+따라서 `SRL_C`를 사용하면 별도 임의 carbon-to-dry-mass 변환은 필요 없다.
+
+한국 산림 근거:
+- Huh et al. 2025: Korean pine vs oak에서 비슷한 총 fine-root biomass에도 SRL과 0-10 cm 분배가 크게 다름
+- Kim et al. 2017: Pinus densiflora seedling SRL도 국내 토양조건에 따라 변함
+
+따라서 이제 unresolved gap은:
+```
+FineRootC -> RLD equation
+```
+자체가 아니라:
+
+1. 고운사 PFT/species별 `SRL_C`
+2. exact Gounsa FineRootC output normalization
+3. surface erosion에 사용할 effective depth
+4. postfire live/dead root persistence
+5. RLD -> erosion resistance parameter calibration
+
+이다.
+
+세부 구현:
+- `models/LPJ_GUESS_Root_Erosion_Interface.md`
+
 # 아직 해결되지 않은 문제
-- FineRootC -> RLD/RSAD의 PFT별 변환계수
+- PFT별 SRL_C parameterization
+- live/dead root postfire persistence
 - WoodC/cohort state -> tree throw 및 CWD
 - NPP/root respiration -> chemical weathering rate
