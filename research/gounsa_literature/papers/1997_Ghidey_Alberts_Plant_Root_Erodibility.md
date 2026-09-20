@@ -2,59 +2,108 @@
 Ghidey, F., & Alberts, E. E. (1997). *Plant root effects on soil erodibility, splash detachment, soil strength, and aggregate stability*. Transactions of the ASAE, 40(1), 129-135. DOI: 10.13031/2013.21257.
 
 # 이 논문을 찾은 이유
-interrill erodibility가 cover가 아니라 root mass 또는 root length density와 직접 관계하는 실험근거를 확인하기 위해 검토했다.
+산불 후 죽은 fine roots를 즉시 erosion resistance에서 제거해도 되는지, dead-root mass/length가 실제 interrill erodibility와 soil strength에 어떤 정량 효과를 갖는지 확인하기 위해 검토했다.
 
 # 연구 유형
 - laboratory rainfall-simulation experiment
 - empirical erosion/root relation
-- 수치모델 논문 아님
+- numerical-model implementation 아님
 
 # 공간 구조
-- laboratory soil samples/plots
+- 1 m x 0.3 m soil boxes
+- 4% slope
+- rainfall simulation
 
 # 적용 환경
 - Mexico silt loam
-- crop treatments: alfalfa, Canada bluegrass, corn, soybean
+- crop-derived dead roots
+- alfalfa, Canada bluegrass, corn, soybean
 
 # 핵심 과정
 - interrill erosion
-- splash detachment
+- rainfall detachment
 - soil strength
 - aggregate stability
+- dead-root physical legacy
 
 # 식생 입력
-- dead root mass/density
-- root length density
+- dead root mass in 0-0.15 m soil
+- dead root length in 0-0.15 m soil
+
+Observed ranges included approximately:
+- dead root mass: 0.092-0.495 kg m^-2
+- dead root length: 2.364-12.289 km m^-2
 
 # 핵심 식
-이 채팅에서 Gyssels review를 통해 확인한 대표 relation:
-```
-K_i = 3.55 exp(-0.71 RD)
-K_i = 3.62 exp(-0.029 RLD)
-```
-해당 계수/단위는 원 논문 조건을 그대로 확인하여 사용할 것.
 
-# 파라미터와 단위
-- RD: root density
-- RLD: root length density
-정확한 units는 original tables/equations 기준.
+Interrill erodibility versus dead root mass:
+```
+K_i = 3.55 exp(-0.71 RTM)
+```
 
-# 원 논문의 구현 범위
-root quantities와 interrill erodibility의 empirical relationship.
+where:
+- `RTM`: dead root mass [kg m^-2]
+- coefficient reported for the study's `K_i` scaling
+
+Interrill erodibility versus dead root length:
+```
+K_i = 3.62 exp(-0.029 RTL)
+```
+
+where:
+- `RTL`: dead root length [km m^-2]
+
+Reported fit:
+- root-mass relation: R2 = 0.63 using individual plots
+- root-length relation: R2 = 0.59 using individual plots
+- treatment means produced stronger relationships
+
+# 핵심 결과
+- dead roots did not materially alter runoff
+- soil loss and sediment concentration decreased as dead root mass/length increased
+- interrill erodibility decreased exponentially
+- soil shear strength increased with dead root abundance
+- aggregate stability increased
+- splash detachment itself did not show a significant crop/root effect
+
+This distinction is important:
+```
+dead roots
+ -> soil erodibility / binding effect
+but not necessarily
+ -> raindrop splash shielding
+```
 
 # 고운사에 직접 사용할 수 있는 부분
-WEPP/PROMET 계열 root-effect parameterization이 물리적/실험적으로 근거를 가진다는 보조증거.
+A postfire dead-root pool must not automatically be set to zero erosion protection immediately after root mortality.
+
+This paper supports:
+```
+dead-root state
+ -> persistent soil-resistance effect
+ -> decay with root decomposition
+```
+
+It also supports keeping litter/rainfall shielding separate from root-soil binding.
 
 # 새로운 coupling이 필요한 부분
-이 회귀식을 고운사 numerical model에 직접 삽입하면 **새로운 model coupling/parameterization**이다.
+Transferring this agricultural interrill relationship directly to SWEHR `J` or `ASMASK` would be a new coupling and is not justified as a universal coefficient.
+
+For high-gradient forest concentrated flow, use this primarily as:
+- evidence for dead-root persistence
+- validation bound
+- interrill/dead-root sensitivity reference
 
 # 한계
-- 농경 실험
-- numerical-model implementation 아님
-- 산림 산지 검증 아님
+- agricultural soil and crop roots
+- 4% slope
+- dead roots were inherited from cropping systems, not wildfire-killed forest roots
+- not a rill/concentrated-flow forest experiment
 
 # 최종 판정
-**보조근거 בלבד: empirical root-interrill relationship.** 최종 모델 자체로 사용하지 않는다.
+**채택: direct quantitative evidence that dead roots retain erosion-resistance effects.**
+
+Do not use the raw coefficients as universal Gounsa parameters.
 
 # 참고 링크 / DOI
-10.13031/2013.21257
+https://doi.org/10.13031/2013.21257
