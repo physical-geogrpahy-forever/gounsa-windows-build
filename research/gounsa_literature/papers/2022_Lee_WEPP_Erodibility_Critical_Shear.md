@@ -57,3 +57,9 @@ LPJ-GUESS FineRootC를 WEPP root-mass 변수로 변환하는 절차는 별도 �
 
 # 최종 판정
 **채택: WEPP biomass-erodibility 근거문헌.**
+
+## 2026-09-21 현재 채팅 최종 보정
+- **현재 유수침식 모델 계보에서 매우 중요한 모델 연구.** WEPP는 interrill erodibility Ki, rill erodibility Kr, critical shear stress를 분리하고 live/dead root biomass, residue, cover 등의 시간변화를 이용해 이들을 갱신한다.
+- 특히 root biomass가 Ki와 Kr에 서로 다른 강도로 작용하는 구조는 `FineRootC -> Ki/Kr` coupling의 직접적인 published precedent이다.
+- 단, WEPP의 hillslope routing은 고운사에서 요구하는 genuine 2D 산지 지표유출 엔진이 아니다. WEPP 자체를 최종 erosion engine으로 채택하지 않는다.
+- WEPP의 biomass-dependent Ki/Kr를 Wu 2D 또는 HighLand 유동장에 연결하는 것은 **새로운 coupling**이다.
