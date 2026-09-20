@@ -262,26 +262,28 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (4)
+## Decisions (7)
 
+- `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
 - `decisions/2026-09-21_EXCLUSIONS.md`
+- `decisions/2026-09-21_LPJGUESS_BIOMASS_COUPLING.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
+- `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 
-## Sessions (1)
+## Sessions (2)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
+- `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
 
 ## Core files
-
-- `SYSTEM.md` — 문헌관리 운영규칙
-- `MASTER.md` — 전체 문헌검토 통합본
-- `README.md` — 저장소 구조와 원칙
-- `INDEX.md` — 현재 인덱스
+- `SYSTEM.md`
+- `MASTER.md`
+- `README.md`
+- `INDEX.md`
 
 ## 유지 규칙
-
 1. 새 논문은 먼저 `papers/`에 저장한다.
 2. 여러 논문에 걸친 모델은 `models/`에 누적한다.
 3. 판정 변화는 `decisions/`에 남긴다.
