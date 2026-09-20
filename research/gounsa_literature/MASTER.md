@@ -51,6 +51,7 @@
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
+- `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 
 ---
 
@@ -765,7 +766,7 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 7. coarse-fragment supply vs armour dynamics
 8. shallow-landslide root architecture conversion
 9. fire-spall production의 정량식/수치모델
-10. LPJ-GUESS-CNP weathering flux -> geomorphic regolith mass/thickness conversion 및 100년 내 실제 중요도
+10. chemical front advance, dissolved mass loss, woody mechanical production의 100년 규모 비교와 front-model calibration
 
 유수침식 엔진 자체의 우선순위는 현재:
 
@@ -799,6 +800,8 @@ Iber+ = source access 확보 시 재평가
 - `models/Short_Timestep_Weathering_HillslopeTransport.md`
 - `models/TreeThrow_Annual.md`
 - `models/SSSPAM.md`
+- `models/DynSoil_MErSiM.md`
+- `models/Weathering_MassBalance_Regolith.md`
 
 ---
 
@@ -1178,3 +1181,95 @@ Comparison/long-term consistency:
 - Pelletier 2013
 - Pelletier et al. 2018
 - Gabet et al. 2021
+
+
+---
+
+## 2026-09-21 weathering mass-balance 확정
+
+최신 결정:
+`decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
+
+풍화는 다음 두 과정으로 분리한다.
+
+```
+chemical dissolved mass loss
+!=
+bedrock-to-regolith front advance
+```
+
+### mobile A/B soil
+
+```
+M_AB = rho_AB H_AB
+```
+
+```
+dM_AB/dt
+=
+Phi_AB
++
+D_phys
+-
+E_phys
+-
+W_AB
+```
+
+Yoo 2007와 Brosens 2020의 mass-balance 계보를 사용한다.
+
+### C/Cr regolith
+
+Preferred transient state candidate:
+DynSoil/MErSiM.
+
+```
+dh_reg/dt
+=
+P_r
+-
+E_boundary
+```
+
+```
+partial x/partial t
+=
+-P_r partial x/partial z
+-
+K tau^sigma x
+```
+
+```
+W_chem
+=
+integral K tau^sigma x dz
+```
+
+즉 chemical dissolution은 mineral-state loss이고 regolith thickness production과 동일하지 않다.
+
+### LPJ-GUESS/Hartmann weathering
+Hartmann 2011/2014 parent lineage는 bulk chemical weathering을 먼저 계산하고 lithology-specific P content를 사용해 P release를 얻는다.
+
+따라서 고운사에서는:
+
+```
+F_bulk_chem
+F_P_release
+```
+
+를 별도로 보존한다.
+
+LPJ-GUESS P-weathering output만을 역산해 geomorphic mass loss를 만드는 것이 기본안은 아니다.
+
+### chemical front candidates
+- DynSoil/MErSiM: preferred transient state architecture
+- Braun 2016: groundwater/pore-fluid-driven alternative
+
+### 현재 남은 풍화 문제
+수식 구조가 아니라:
+1. 100년 동안 실제 magnitude
+2. local lithology parameters
+3. initial C/Cr state
+4. chemical front model calibration
+5. woody mechanical production과의 double counting
+이다.
