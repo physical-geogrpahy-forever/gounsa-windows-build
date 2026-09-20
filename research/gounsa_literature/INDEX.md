@@ -378,13 +378,14 @@
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 
-## Sessions (5)
+## Sessions (6)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0147_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0251_SECOND_PASS_HANDOFF.md`
 - `sessions/2026-09-21_0300_SESSION_HANDOFF.md`
+- `sessions/2026-09-21_0345_SANDSTONE_SCOPE_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
@@ -401,10 +402,10 @@
 - shallow landslide: production baseline 제외
 
 ## sandstone correction
-- current parent material: sandstone
+- parent material: sandstone
 - production baseline: `P_sand(h) = P0_sand exp(-h/gamma_sand)`
-- granite papers are cross-lithology comparison only
-- DynSoil/MErSiM is optional advanced sensitivity, not baseline
+- granite papers: cross-lithology comparison only
+- DynSoil/MErSiM: optional advanced sensitivity
 
 ## 중복관리
 - 동일 DOI 또는 동일 서지는 canonical paper file 하나로 병합한다.
