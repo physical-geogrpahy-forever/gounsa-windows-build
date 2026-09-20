@@ -52,6 +52,7 @@
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
+- `decisions/2026-09-21_BACKGROUND_CREEP.md`
 
 ---
 
@@ -479,7 +480,7 @@ q_treethrow
 q_dryravel
 ```
 
-- `q_bg`: residual background creep, first implementation은 annual linear diffusion
+- `q_bg`: residual background creep, Furbish 2009 depth-slope structure
 - `q_rootgrowth`: Gabet et al. 2003, annual root turnover
 - `q_treethrow`: Doane et al. 2021, annual stochastic events
 - `q_dryravel`: Lamb 2011 postfire disturbance pathway
@@ -802,6 +803,7 @@ Iber+ = source access 확보 시 재평가
 - `models/SSSPAM.md`
 - `models/DynSoil_MErSiM.md`
 - `models/Weathering_MassBalance_Regolith.md`
+- `models/Residual_Background_Creep.md`
 
 ---
 
@@ -1273,3 +1275,47 @@ LPJ-GUESS P-weathering output만을 역산해 geomorphic mass loss를 만드는 
 4. chemical front model calibration
 5. woody mechanical production과의 double counting
 이다.
+
+
+---
+
+## 2026-09-21 residual background creep 확정
+
+최신 결정:
+`decisions/2026-09-21_BACKGROUND_CREEP.md`
+
+기존 임시식:
+```
+q_bg = -D_bg S
+```
+을 다음 depth-dependent local-creep 구조로 교체한다.
+
+```
+q_bg
+=
+-D*_bg H_active grad(z)
+```
+
+근거:
+- Furbish et al. 2009: vertically integrated creep flux의 depth-slope dependence
+- Furbish & Haff 2010: local bulk creep와 intermittent/nonlocal transport 분리
+- Doane et al. 2021: temperate forest에서 tree throw는 total flux의 약 11-18%만 설명
+- Sonoda & Kurashige 2017: 일본 풍화화강암 산림에서 wet-dry residual deformation이 net creep로 누적
+- Richards et al. 2011: fauna bioturbation도 nonzero flux
+- Deshpande et al. 2021: 외부 disturbance가 없어도 granular creep가 지속될 수 있음
+
+따라서:
+```
+D*_bg != 0
+```
+을 기본으로 하지만, Richardson 2019 같은 natural-landscape total diffusivity를 직접 residual coefficient로 사용하지 않는다.
+
+`D*_bg`는:
+1. local calibration
+2. total flux에서 explicit process flux를 뺀 residual
+3. sensitivity prior
+순으로 정한다.
+
+Fire multiplier를 임의로 곱하지 않는다. 산불효과는 `H_active`, dry ravel, roots, tree throw, landslide의 explicit states로 우선 전달한다.
+
+Freeze-thaw가 고운사에서 중요하다고 판명되면 Anderson 2002 frost-creep model을 별도 explicit process로 승격한다.
