@@ -23,3 +23,25 @@ LPJ-GUESS woody cohort -> uprooting/tree-throw probability -> sediment flux는 *
 
 ## 판정
 tree-throw 모듈의 핵심 계보.
+
+
+## 2026-09-21 annual-timescale update
+
+Doane et al. 2021 numerical model explicitly uses a **one-year timestep**.
+
+At each annual step:
+- number of new pit-mound events is sampled stochastically
+- new pit-mound couplets are added to the 2D surface
+- roughness evolves under the balance of stochastic production and smoothing
+
+Therefore this lineage is directly compatible with the 100-year Gounsa outer geomorphic clock.
+
+Current Gounsa role:
+```
+LPJ-GUESS woody cohort mortality/disturbance
+ -> annual tree-throw event rate
+ -> pit/mound displaced volume + travel distance
+ -> q_treethrow
+```
+
+This remains a **new coupling** because Doane does not internally use LPJ-GUESS cohort states.
