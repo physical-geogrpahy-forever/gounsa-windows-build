@@ -33,9 +33,11 @@ WEATHERING
 chemical-weathering forcing
  = Hartmann + LPJ-GUESS-CNP [daily forcing]
 
-regolith-front production
- = DynSoil/MErSiM-type transient state
-   or Braun-type hydrologic front [annual geomorphic update]
+sandstone soil production
+ = P_sand(h) = P0_sand exp(-h/gamma_sand) [annual]
+
+advanced deeper-regolith option
+ = DynSoil/MErSiM or Braun [optional]
 
 mobile A/B soil mass balance
  = Yoo 2007 + Brosens 2020
@@ -139,32 +141,31 @@ W_AB
 
 Yoo 2007 / Brosens 2020 계보를 사용한다.
 
-## 3.3 C/Cr regolith front
+## 3.3 sandstone soil production
 
-Preferred state architecture:
-DynSoil/MErSiM.
+Production baseline:
 
 ```
-dh_reg/dt
+P_sand(h)
 =
-P_r - E_boundary
+P0_sand exp(-h/gamma_sand)
 ```
 
-```
-partial x/partial t
-=
--P_r partial x/partial z
--
-K tau^sigma x
-```
+Sandstone evidence:
+- Heimsath et al. 2001
+- Evans et al. 2019
+- Evans et al. 2021
+
+Observed sandstone analogue envelope:
 
 ```
-W_chem
-=
-integral K tau^sigma x dz
+P0_sand = 0.071-0.274 mm yr^-1
+gamma_sand = 0.80-4.50 m
 ```
 
-Braun 2016은 recharge/groundwater-driven front mechanism alternative로 유지한다.
+These are sensitivity bounds only.
+
+DynSoil/MErSiM and Braun 2016 are optional advanced deeper-regolith models, not the first production baseline.
 
 ## 3.4 uprooting 기반 mechanical weathering
 
@@ -324,7 +325,7 @@ SWEHR:
 
 ## annual geomorphic update
 - accumulated chemical-weathering mass balance
-- regolith-front production
+- sandstone soil production
 - Gabet root-growth/decay transport
 - residual depth-dependent creep
 - soil/regolith thickness update
@@ -413,12 +414,13 @@ steep-slope sensitivity comparison only, not the baseline residual flux.
 
 ### weathering
 Primary:
+- sandstone-specific annual soil-production function
 - Hartmann/LPJ-GUESS-CNP bulk chemical-weathering forcing
 - Yoo/Brosens mobile-soil mass balance
-- DynSoil/MErSiM transient regolith-front state
 
-Alternative:
-- Braun 2016 front model
+Advanced optional:
+- DynSoil/MErSiM transient mineral/regolith state
+- Braun 2016 hydrologic front model
 
 ### hillslope diffusion/transport
 Primary:
@@ -434,8 +436,42 @@ Primary:
 Long-term reference only.
 
 ## remaining implementation questions
-1. Gounsa lithology and weathering-front parameters
-2. 100-year magnitude of front advance and chemical mass loss
+1. exact Gounsa sandstone petrography and production parameters
+2. 100-year magnitude of sandstone soil production and chemical mass loss
 3. `D*_bg` residual calibration
 4. exact LPJ-GUESS root-variable/unit mapping into Gabet equation
 5. fire-spall production equation
+
+
+---
+
+# 12. sandstone correction
+
+고운사 parent material은 sandstone으로 취급한다.
+
+따라서 granite-based production magnitude는 local constraint가 아니다.
+
+Sandstone production baseline:
+
+```
+P_sand(h)
+=
+P0_sand exp(-h/gamma_sand)
+```
+
+Evans et al. 2021:
+```
+P0_sand = 0.071-0.274 mm yr^-1
+gamma_sand = 0.80-4.50 m
+```
+
+Evans et al. 2019 temperate conifer woodland mean:
+```
+0.070 +/- 0.010 mm yr^-1
+```
+
+Postfire soil thinning can therefore alter production naturally through `h`, without an arbitrary fire multiplier.
+
+Sandstone matrix/cementation controls are critical, so final values require site petrography.
+
+DynSoil/MErSiM is now optional sensitivity/advanced chemistry only.
