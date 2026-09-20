@@ -48,6 +48,7 @@
 - `decisions/2026-09-21_EXCLUSIONS.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
+- `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
 ---
 
@@ -66,14 +67,16 @@ genuine 2D
 
 ## 3.1 genuine 2D erosion-engine 계열
 
-| 모델 | genuine 2D | process separation | quantitative root state | 산지/산불 선례 | 현재 역할 |
-|---|---:|---:|---:|---:|---|
-| Wu et al. 2020 | O | interrill/rill | X | 제한적 | 2D erosion skeleton |
-| PSEM_2D | O | rainfall/flow | X | 제한적 | 2D 비교엔진 |
-| Iber+ 2024 | O | rainfall/flow | X | catchment scale | 핵심 현대 2D 후보 |
-| McGuire 2013 | O | emergent rill | X | 실험 hillslope | rill-network benchmark |
-| OpenLISEM | O/공간분포형 | splash/flow | external root cohesion, cover weighted | O, burned forest | postfire comparison |
-| SERGHEI-SE | O | hydro-erosive source terms | X | catchment framework | 최신 HPC 비교엔진 |
+| 모델 | genuine 2D | process separation | quantitative root state | 산지/산불 선례 | 공개 수정성 | 현재 역할 |
+|---|---:|---:|---:|---:|---:|---|
+| **SWEHR / McGuire 2016** | O | rainfall/flow | X | **O, steep postfire + TLS** | **GPL C source** | **잠정 1차 구현 엔진** |
+| tRIBS-OFM/FEaST | O | rainfall/flow | X | catchment | coupled code 접근 제한 | 구조적 상위 선례 |
+| tRIBS-VEGGIE-FEaST | O | rainfall/flow | vegetation state O, direct root-resistance X | event sequence | 제한 | dynamic vegetation + 2D erosion structural precedent |
+| SERGHEI-SE | O | rainfall/flow/solid transport | X | catchment | **BSD, public C++/Kokkos** | HPC fallback / port candidate |
+| Iber+ 2024 | O | rainfall/flow | X | catchment | public executable, general public source modification not verified | numerics comparison |
+| Wu et al. 2020 | O | interrill/rill | X | 제한적 | model-level comparison | Ki/Kr interface benchmark |
+| PSEM_2D | O | rainfall/flow | X | 제한적 | comparison | critical-shear lineage benchmark |
+| OpenLISEM | O/공간분포형 | splash/flow | external root cohesion, cover weighted | O, burned forest | open source | postfire comparison |
 
 ## 3.2 quantitative vegetation -> erosion resistance 계열
 
@@ -573,42 +576,144 @@ fire
 
 ---
 
-# 17. 현재 유수침식 implementation 선택 문제
+# 17. 현재 유수침식 implementation 선택
 
-이 문헌 아카이브는 아직 특정 2D engine을 최종 확정하지 않는다.
+최신 결정:
+`decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
-현재 주요 비교:
+## 17.1 잠정 1차 구현 엔진: SWEHR / McGuire 2016
 
-### Wu 2020
-장점:
-- explicit interrill/rill
-- direct Ki/Kr interface
-단점:
-- fixed rill mask
-- older 2D formulation
+선택 이유:
 
-### Iber+ 2024
-장점:
-- modern finite volume/GPU
-- rainfall/flow detachment
-- multiclass + Exner
-단점:
-- no root state
-- mapping WEPP Ki/Kr biology requires new coupling
+```
+steep postfire mountain
++ genuine 2D
++ rainfall detachment
++ flow entrainment
++ emergent rill
++ original cohesive soil
++ deposited/loose layer
++ shielding
++ multi-size sediment
++ topographic change
++ TLS calibration
++ public GPL C source
+```
 
-### PSEM_2D
-장점:
-- clean 2D rainfall/runoff erosion
-단점:
-- plot/bare soil orientation
+공개 SWEHR 코드에서 셀별:
+- `ASMASK`
+- `ADSMASK`
+- `JSMASK`
+- `UC`
+- `UC2`
+- `H`
+- `M[k]`
+
+를 직접 확인했다.
+
+따라서 새 침식엔진을 만드는 대신 LPJ-GUESS 식생/토양 상태가 기존 SWEHR resistance fields를 갱신하는 구조를 우선한다.
+
+## 17.2 root interface
+
+Gyssels et al. 2005:
+
+```
+SEP_root = exp(-b RP)
+```
+
+Hairsine-Rose/SWEHR에서 hydraulic forcing 등이 같을 때:
+
+```
+E_flow ∝ 1/J
+```
+
+따라서 baseline 새 coupling:
+
+```
+J_eff
+= J_bare / SEP_root
+= J_bare * exp(b RP)
+```
+
+으로 둔다.
+
+중요:
+- 이 식은 기존 published single model이 아니라 **새로운 coupling**
+- Gyssels 평균 `b`는 sensitivity/initial prior
+- 같은 root effect를 `J`와 `UC`에 동시에 적용하지 않음
+- `cohesion -> J` 보편식이 있다고 주장하지 않음
+
+대안 검증계보:
+
+```
+RLD
+ -> erosion-specific cohesion / soil strength
+ -> tau_c
+```
+
+근거:
+De Baets + Léonard & Richard + PROMET/Waldmann.
+
+그러나 `tau_c -> SWEHR UC` 직접식은 아직 없다.
+
+## 17.3 surface litter interface
+
+SurfaceLitter와 IncorporatedLitter를 분리한다.
+
+Exposed litter:
+
+```
+C_lit = 1 - exp(-b_m M_lit)
+```
+
+Gregory / WEPP / Pannkuk-Robichaud 계열을 사용한다.
+
+SWEHR rainfall protection의 baseline 새 coupling:
+
+```
+f_lit,rain = exp(-k_lit C_lit)
+
+ASMASK_eff = ASMASK_bare * f_lit,rain
+```
+
+Pannkuk & Robichaud 2003은 postfire conifer forest, 40% slope에서 직접 mass-cover 및 interrill/rill protection을 검증한 핵심 근거이다.
+
+반면 IncorporatedLitter는 soil structure, `Kr`, `tau_c` 유형 효과로 별도 취급한다.
+
+## 17.4 100-year hourly forcing architecture
+
+강수 forcing은 1시간 자료를 그대로 사용한다.
+
+```
+hourly rainfall series
+ -> storm-event segmentation
+ -> piecewise-constant 1 h rainfall forcing
+ -> SWEHR sub-hourly CFL-constrained integration
+ -> topography/H/M[k]/PSD persistence
+ -> next event
+```
+
+SWEHR 내부 numerical time step을 1시간으로 두는 것이 아니다.
+
+LPJ-GUESS는 장기 생태상태를 갱신하고 SWEHR는 실제 침식성 호우사상에서 호출한다.
+
+storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic response와 sensitivity test로 결정한다.
+
+## 17.5 다른 엔진의 역할
 
 ### SERGHEI-SE
-장점:
-- latest HPC/catchment architecture
-단점:
-- no quantitative root state
+- public BSD C++/Kokkos/MPI
+- 가장 강한 modern open-source HPC fallback
+- SWEHR runtime/확장성이 실패하면 본체 승격 또는 Hairsine-Rose-like closure port 검토
 
-최종 선택은 구현 가능성, 산지 DEM resolution, computational cost, vegetation-interface defensibility를 함께 평가한 뒤 결정한다.
+### Iber+ 2024
+- 현대 GPU finite-volume numerics는 매우 강함
+- 일반 공개 배포에서 독립적인 source modification access가 확인되지 않아 현재 1차 구현 본체에서 내림
+- source access 확보 시 즉시 재평가
+
+### tRIBS-FEaST
+- 2D Hairsine-Rose와 event-to-event surface-state memory의 구조적 상위 선례
+- tRIBS-Erosion 100-year simulation은 장기 결합의 계산적 선례
 
 ---
 
@@ -629,14 +734,24 @@ fire
 
 우선순위 순:
 
-1. fire-spall production의 정량식/수치모델
-2. LPJ-GUESS FineRootC -> erosion-model root mass/RLD의 단위와 depth mapping
-3. dead-root pool의 fire mortality 후 시간변화
-4. litter biomass -> rainfall/interrill protection을 cover로 축약하지 않는 가장 방어적인 published interface
-5. 2D engine 최종선택: Wu vs Iber+ vs SERGHEI-SE 등 구현 비교
-6. coarse-fragment supply vs armour dynamics
-7. shallow-landslide root architecture conversion
-8. 100-year scale에서 long-term creep/weathering 항의 실제 중요도
+1. LPJ-GUESS FineRootC -> PFT별 RMD/RLD/RSAD/SRL 변환
+2. 고운사 토양의 `J_bare` calibration과 root-dependent `J_eff` 검증
+3. 한국 산림 litter별 dry mass -> cover `b_m`와 cover -> protection `k_lit`
+4. 1시간 강수자료의 storm-event separation dry-gap 및 event wrapper
+5. actual Gounsa DEM에서 SWEHR runtime / CFL / event count benchmark
+6. dead-root pool의 fire mortality 후 시간변화
+7. coarse-fragment supply vs armour dynamics
+8. shallow-landslide root architecture conversion
+9. fire-spall production의 정량식/수치모델
+10. 100-year scale에서 long-term creep/weathering 항의 실제 중요도
+
+유수침식 엔진 자체의 우선순위는 현재:
+
+```
+SWEHR = 잠정 1차 구현
+SERGHEI-SE = HPC fallback
+Iber+ = source access 확보 시 재평가
+```
 
 ---
 
@@ -655,6 +770,8 @@ fire
 - `models/RillGrow.md`
 - `models/SERGHEI_SE.md`
 - `models/ELM_Erosion.md`
+- `models/Hairsine_Rose_2D_Postfire.md`
+- `models/EUROSEM_RootCohesion.md`
 
 ---
 
@@ -731,3 +848,41 @@ fire
 3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
 4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
 5. 2025 LPJ-GUESS P-weathering 논문의 정확한 서지정보 재복구
+
+
+---
+
+## 2026-09-21 water-erosion deep review 통합
+
+이번 deep review에서 기존 Iber+ 중심 판단을 재검토했다.
+
+### 새 핵심
+- McGuire 2016 SWEHR를 top-tier가 아니라 **잠정 1차 구현 엔진**으로 승격
+- SWEHR 공개 GPL C source에서 cell-wise `J/UC/rainfall detachability/H/M[k]` 확인
+- SERGHEI-SE를 public BSD modern HPC fallback으로 승격
+- Iber+는 일반 공개 source-access 제약 때문에 구현 본체 우선순위 하향
+- tRIBS-FEaST를 event-memory와 dynamic vegetation + 2D Hairsine-Rose 구조적 선례로 채택
+
+### root
+```
+FineRootC
+ -> RLD
+ -> SEP_root
+ -> J_eff
+```
+
+의 새 coupling을 baseline으로 검토한다.
+
+### litter
+```
+SurfaceLitter mass
+ -> litter-type cover
+ -> rainfall protection
+```
+
+을 사용하고 IncorporatedLitter는 별도 soil-resistance pool로 둔다.
+
+### 시간구조
+1시간 강수자료를 외부 forcing으로 쓰되 SWEHR 내부는 CFL 조건의 sub-hourly time step으로 적분한다.
+
+장기 100년 simulation은 continuous SWEHR가 아니라 event-driven wrapper로 구성한다.
