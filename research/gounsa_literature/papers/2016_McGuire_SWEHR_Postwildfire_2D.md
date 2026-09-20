@@ -1,46 +1,125 @@
 # 서지정보
-McGuire et al. (2016). SWEHR 계열 postwildfire 2D shallow-water erosion model. 정확한 논문명/권호/DOI는 현재 채팅에서 완전 복구되지 않아 **원문 재검증 필요**.
+McGuire, L. A., Kean, J. W., Staley, D. M., Rengers, F. K., & Wasklewicz, T. A. (2016). *Constraining the relative importance of raindrop- and flow-driven sediment transport mechanisms in postwildfire environments and implications for recovery time scales*. Journal of Geophysical Research: Earth Surface, 121(11), 2211-2237. DOI: 10.1002/2016JF003867.
 
 # 이 논문을 찾은 이유
-산불 후 환경에서 2D shallow-water와 morphodynamics를 함께 계산하는 모델을 찾기 위해 검토했다.
+고운사처럼 steep postfire mountain hillslope에서 genuine 2D runoff와 Hairsine-Rose rainfall/flow erosion을 함께 계산하고, rill network가 실제로 발달하는 published model을 확인하기 위해 검토했다.
 
 # 연구 유형
-- 수치모델
-- postwildfire erosion
+- process-based numerical erosion model
+- high-resolution postwildfire field-model integration
+- synthetic-hillslope sensitivity experiments
 
 # 공간 구조
-- 2D shallow-water 계열
+- 2D depth-averaged surface flow
+- local orthogonal Cartesian coordinates aligned with topographic surface
+- spatially distributed sediment transport
+- high-resolution topography
+- dynamic erosion/deposition and rill development
 
 # 적용 환경
-- postwildfire hillslope/catchment
+- San Gabriel Mountains, California
+- 2009 Station Fire
+- steep recently burned mountain basin
+- approximately 0.01 km2 monitored headwater basin
 
 # 핵심 과정
-- canopy interception
+- rainfall interception
 - infiltration
-- 2D runoff
-- Hairsine-Rose 계열 sediment/morphodynamics
+- 2D overland flow
+- raindrop detachment/redetachment
+- flow-driven entrainment/reentrainment
+- size-selective sediment
+- deposited-layer shielding
+- deposition
+- bedload extension
+- rill formation/evolution
+- postfire recovery sensitivity
 
 # 식생 입력
-- 주로 vegetation cover fraction
-- quantitative root biomass 직접입력은 확인되지 않음
+Vegetation is represented mainly by:
+- vegetation cover fraction C_v
+- canopy throughfall coefficient T_c
+- canopy storage/drainage parameters
+
+Postfire recovery is not dynamically simulated.
+Instead, C_v and saturated hydraulic conductivity k_s are varied as proxies for recovery.
+
+No root biomass/RLD direct input.
 
 # 핵심 식
-이번 세션에서 원식 전체는 복구되지 않았다. **원문 재검증 필요**.
+The sediment model uses Hairsine-Rose.
+
+For each sediment class k it tracks:
+- suspended concentration c_k
+- deposited sediment mass m_k
+- original-soil detachment
+- deposited-layer redetachment
+- flow entrainment/reentrainment
+- deposition
+
+Rainfall shielding by vegetation is represented with:
+```
+((1 - C_v) + T_c C_v)
+```
+
+A deposited layer progressively shields original soil.
+
+Flow-driven entrainment uses excess stream power and can form rills without predefining a fixed rill mask.
 
 # 파라미터와 단위
-원문 재검증 필요.
+Key variables:
+- C_v: vegetation cover fraction [-]
+- T_c: throughfall coefficient [-]
+- k_s: saturated hydraulic conductivity [mm h^-1]
+- n: Manning coefficient [s m^-1/3]
+- deposited mass needed for complete shielding [kg m^-2]
+- rainfall detachability coefficients
+- stream-power entrainment fraction F
+- particle sizes
 
 # 원 논문의 구현 범위
-산불 후 2D runoff-erosion-morphodynamics.
+The model was calibrated against TLS-derived topographic change from real postfire storms.
+
+Major verified findings:
+- long-duration/modest-intensity storm: >60% of hillslope erosion could be associated with raindrop-driven processes
+- short/high-intensity storm: flow-driven erosion becomes relatively more important
+- rills form when flow-driven detachment is active
+- rills become deeper/more extensive when rainfall- and flow-driven detachment act together
+- erosion recovery timescale depends differently on vegetation recovery and infiltration recovery depending on the dominant erosion process
 
 # 고운사에 직접 사용할 수 있는 부분
-postfire 2D 모델이라는 점의 구조적 선례.
+This is one of the closest process engines to Gounsa:
+```
+steep postfire mountain
++ 2D flow
++ rainfall detachment
++ flow entrainment
++ deposited loose layer
++ multi-size sediment
++ emergent rills
++ field topographic-change calibration
+```
+
+It is especially important because it does **not** require a fixed rill mask.
 
 # 새로운 coupling이 필요한 부분
-LPJ-GUESS FineRootC/LitterC를 직접 연결하려면 **새로운 coupling**.
+Replacing cover-based vegetation effects with:
+- LPJ-GUESS FineRootC/RMD/RLD
+- exposed litter mass/geometry
+- incorporated litter mass/LSAD
+is **새로운 coupling**.
 
 # 한계
-vegetation effect가 cover 중심이므로 고운사의 strict quantitative-vegetation 조건을 충족하지 않는다.
+- vegetation protection remains cover-based
+- no dynamic root biomass/root mechanics
+- vegetation/soil recovery explored through parameter sweeps rather than an ecosystem model
+- event-scale model, not 100-year continuous simulation by itself
 
 # 최종 판정
-**보조근거.** 산불 후 2D 적용 선례지만 최종 vegetation coupling 후보에서는 우선순위 낮음.
+- **top-tier Gounsa water-erosion engine candidate**
+- much stronger than previously recorded
+- must be compared directly with Kim 2013 Hairsine-Rose, Iber+ 2024, Ouyang 2023 and SERGHEI-SE
+- root/litter quantitative coupling remains unresolved
+
+# 참고 링크 / DOI
+https://doi.org/10.1002/2016JF003867
