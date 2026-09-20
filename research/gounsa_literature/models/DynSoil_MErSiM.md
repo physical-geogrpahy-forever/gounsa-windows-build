@@ -164,3 +164,83 @@ Before hard-lock:
 2. define local lithology parameters
 3. determine whether LPJ-GUESS runoff or a recharge/subsurface-water variable should drive `P_0`
 4. ensure no double counting with Gabet-Mudd woody mechanical production
+
+
+---
+
+## 2026-09-21 exact production-law audit
+
+MErSiM/GM09 transient framework gives:
+
+```
+dh_reg/dt = P_r - E
+```
+
+with:
+
+```
+P_r = P_0 f(h)
+```
+
+```
+f(h) = exp(-h/d_0)
+```
+
+and climate-responsive optimal production:
+
+```
+P_0
+=
+k_rp q
+exp[
+(E_a/R)
+(1/T_0 - 1/T)
+]
+```
+
+where:
+- `q`: runoff/water-flux forcing in the published formulation
+- `T`: temperature
+- `d_0`: characteristic regolith-thickness scale
+- `k_rp`: proportionality parameter
+
+Chemical dissolution rate constant is separately:
+
+```
+K
+=
+k_d
+(1-exp(-k_w q))
+exp[
+(E_a/R)
+(1/T_0 - 1/T)
+]
+```
+
+Thus the model already separates:
+- regolith-front production `P_r`
+- chemical dissolution `K` / `W`
+- physical erosion `E`
+
+### important application caveat
+The 2026 paper explicitly notes that current MErSiM applications primarily use a steady-state regolith-thickness assumption for efficient global/deep-time weathering calculations.
+
+Therefore the full `x(z,t)` and `tau(z,t)` transient profile is **not automatically the best 100-year Gounsa production baseline**.
+
+### simplified Gounsa option
+Because East Asian granite production/erosion constraints suggest century-scale front motion is often sub-mm to several-mm, a first implementation may use only:
+
+```
+P_r(t)
+=
+P_0(t)
+exp[-h_reg(t)/d_0]
+```
+
+on an annual geomorphic step.
+
+LPJ-GUESS supplies the climate/hydrologic forcing used to compute or scale `P_0(t)`.
+
+The full transient mineral-age equations are then reserved for sensitivity/advanced validation if weathering proves dynamically important.
+
+This retains a published process equation while avoiding unnecessary state complexity.
