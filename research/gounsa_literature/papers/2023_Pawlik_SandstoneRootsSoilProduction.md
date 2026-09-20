@@ -50,3 +50,14 @@ LPJ-GUESS woody root biomass/depth를 R->C 또는 C/Cr production rate로 바꾸
 
 # 참고 링크 / DOI
 https://doi.org/10.1016/j.scitotenv.2023.166002
+
+
+## 2026-09-21 sandstone baseline role correction
+
+이 논문은 sandstone fracture에 뿌리가 침투하고 fragment 분리 및 rhizosphere alteration에 기여한다는 기작근거로 사용한다.
+
+그러나 보편적인 `root biomass -> annual soil-production rate` 식은 제공하지 않는다.
+
+따라서 현재 baseline `P_sand(h) = P0_sand exp(-h/gamma_sand)`에 LPJ-GUESS root biomass multiplier를 추가하는 근거로 사용하지 않는다.
+
+최종 역할: mechanism support only, not a production-coefficient source.
