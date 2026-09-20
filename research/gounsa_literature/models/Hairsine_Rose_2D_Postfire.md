@@ -213,9 +213,9 @@ But:
 - surface-litter mass -> ASMASK is still unresolved
 - do not describe these mappings as existing SWEHR features
 
-## comparison with Iber+
+## comparison with Iber+ and SERGHEI-SE
 
-SWEHR advantages for Gounsa:
+### SWEHR advantages
 - actual steep postfire mountain validation
 - emergent rills
 - Hairsine-Rose original/deposited soil structure
@@ -223,30 +223,52 @@ SWEHR advantages for Gounsa:
 - published vegetation-recovery sensitivity
 - public GPL C source
 - very small, modifiable code
-- cell-wise erodibility arrays already present
+- cell-wise erodibility arrays already inspected
 
-Iber+ advantages:
+### Iber+ advantages
 - newer GPU/CUDA framework
 - finite-volume mature hydro-morphodynamics
 - multiclass suspended + bedload
 - Exner update
 - higher-performance engineering architecture
 
-Open question:
-whether Iber+ full source is as directly modifiable/public as SWEHR and whether its loose-layer formulation offers enough benefit to outweigh SWEHR's postfire-specific structure.
+### Iber+ source-access disadvantage
+2026-09-21 audit found that the public research-data deposit distributes Iber+ executables, while a 2024 NHESS code-availability statement says source access is limited to collaborators.
 
-## current judgment
-**SWEHR / 2D Hairsine-Rose is now a top candidate, not merely a benchmark.**
+Therefore public independent modification cannot currently be treated as equivalent to SWEHR.
 
-It may be better suited to Gounsa than Iber+ because its published process structure maps directly onto:
-- intact soil
-- loose/deposited postfire layer
-- rill emergence
-- postfire event erosion
-- multi-size sediment
-- long-term event memory through the FEaST lineage
+### SERGHEI-SE advantages
+- public 3-clause BSD source
+- modern C++/Kokkos/MPI HPC architecture
+- CUDA/OpenMP plus newer HIP/SYCL portability work
+- spatial arrays are a first-class architecture for parameters and forcing
+- public test infrastructure
+- recent soil-erosion and bed-update development
 
-Final selection remains pending:
-1. direct comparison of SWEHR vs Iber+ vs SERGHEI-SE source extensibility
-2. final root-resistance mapping
-3. final exposed-litter mapping
+### SERGHEI-SE disadvantage relative to SWEHR
+- no published quantitative root/litter erosion-resistance coupling
+- no equally close steep-postfire TLS validation
+- Hairsine-Rose intact/deposited-layer shielding memory is a closer conceptual fit to the observed postfire loose-layer problem
+
+## current source-audit judgment
+
+```
+SWEHR
+= best inspected postfire process match
++ easiest verified erosion-resistance hooks
+
+SERGHEI-SE
+= best open-source modern HPC architecture
++ legally/technically straightforward to fork and extend
+
+Iber+
+= excellent equations/HPC
+- public source access blocker
+```
+
+Therefore the previous open question about Iber+ public source is now resolved negatively for the general public distribution.
+
+Final engine selection remains pending:
+1. final root-resistance mapping
+2. final exposed-litter mapping
+3. decide whether SWEHR's process match outweighs SERGHEI-SE's modern software architecture
