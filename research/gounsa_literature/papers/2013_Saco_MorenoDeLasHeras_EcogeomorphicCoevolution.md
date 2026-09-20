@@ -84,3 +84,8 @@ LPJ-GUESS의 PFT별 biomass 또는 FineRootC를 각각 다른 `beta_v,i`로 연�
 
 # 참고 링크 / DOI
 https://doi.org/10.1029/2012WR012001
+
+## 2026-09-21 현재 채팅 최종 보정
+- 이 논문의 biomass-erodibility 관계는 유용한 직접 biomass 선례이지만, **유출 라우팅은 SIBERIA 계열의 steepest-descent/D8 단일유향 구조**이므로 HighLand의 분산 지표유출과 동일시하지 않는다.
+- 고운사에서는 Saco의 라우팅을 채택하지 않는다. biomass가 erodibility를 낮추는 개념만 보조근거로 사용한다.
+- 면상침식과 집중류침식을 하나의 fluvial term으로 합치는 구조도 고운사 최종안에는 쓰지 않는다.
