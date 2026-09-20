@@ -14,8 +14,8 @@
 ```
 WEATHERING / SOIL PRODUCTION
 
-chemical hydroclimatic weathering
- = LPJ-GUESS-CNP 2025 [daily]
+chemical-weathering forcing
+ = LPJ-GUESS-CNP 2025 [daily; not direct regolith production]
 
 woody mechanical weathering
  = Gabet & Mudd 2010 [annual]
@@ -412,8 +412,8 @@ Fire spall remains a separate supply process.
 **not selected as primary 100-year process engine.**
 
 ### weathering
-**Primary:**
-- LPJ-GUESS-CNP daily chemical weathering
+**Primary forcing/process sources:**
+- LPJ-GUESS-CNP daily chemical-weathering/P-release forcing
 - Gabet & Mudd annual woody mechanical weathering
 
 **Validation/comparison:**
@@ -431,3 +431,82 @@ Fire spall remains a separate supply process.
 - separate shallow landslide
 
 This is the present preferred architecture for Gounsa.
+
+
+---
+
+# 14. second-pass source audit corrections
+
+A second source-level audit corrected three important archive interpretations.
+
+## Gabet et al. 2021
+DOI `10.1029/2020JF005858` is:
+```
+Hilltop Curvature Increases With the Square Root of Erosion Rate
+```
+
+It is **not** a biomass-to-transport-efficiency paper.
+
+Role:
+- effective hillslope transport coefficient / erosion-rate constraint
+- warning against treating `D` as a simple vegetation parameter
+
+## Pelletier et al. 2018
+DOI `10.1002/esp.4306` is:
+```
+Which way do you lean? Using slope aspect variations to understand Critical Zone processes and feedbacks
+```
+
+It is **not** a direct biomass-to-diffusivity numerical model.
+
+Role:
+- Critical Zone synthesis
+- long-term conceptual consistency only
+
+## Kirwan & Shugart 2008
+```
+A Biologically Based Model of Tree Throw on Hillslopes
+```
+is an AGU Fall Meeting abstract rather than a peer-reviewed full journal article.
+
+Use only as an early annual forest-demography/tree-throw precedent.
+
+Quantitative tree-throw support should instead prioritize:
+- Constantine et al. 2012
+- Doane et al. 2021
+- Gabet & Mudd 2010
+
+## strengthened postfire process separation
+Roering & Gerber 2005 and Jackson & Roering 2009 strengthen:
+
+```
+background creep
+!= postfire dry ravel
+!= root-decay / landslide response
+```
+
+Therefore no universal postfire diffusivity multiplier is adopted.
+
+## final evidence hierarchy
+
+### production process sources
+- Dantas de Paula et al. 2025: chemical-weathering forcing
+- Gabet & Mudd 2010: annual woody mechanical weathering
+- Gabet et al. 2003: root-growth/decay transport equations
+- Doane et al. 2021: annual stochastic tree throw
+- Constantine et al. 2012: cohort/storm windthrow support
+- Lamb et al. 2011: postfire dry ravel
+
+### validation / sensitivity
+- REWTCrunch 2022
+- SoilGen 2022
+- Roering 2001
+- Roering & Gerber 2005
+- Jackson & Roering 2009
+
+### comparison / long-term consistency
+- SSSPAM 2019/2021
+- HydroLorica 2020
+- Pelletier 2013
+- Pelletier et al. 2018
+- Gabet et al. 2021
