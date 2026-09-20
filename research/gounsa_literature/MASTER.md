@@ -1215,34 +1215,29 @@ W_AB
 
 Yoo 2007와 Brosens 2020의 mass-balance 계보를 사용한다.
 
-### C/Cr regolith
+### sandstone soil production
 
-Preferred transient state candidate:
-DynSoil/MErSiM.
+고운사 parent material은 sandstone으로 취급한다.
 
 ```
-dh_reg/dt
+P_sand(h)
 =
-P_r
--
-E_boundary
+P0_sand exp(-h/gamma_sand)
 ```
 
-```
-partial x/partial t
-=
--P_r partial x/partial z
--
-K tau^sigma x
-```
+Sandstone literature:
+- Heimsath et al. 2001
+- Evans et al. 2019
+- Evans et al. 2021
+
+Evans et al. 2021 analogue envelope:
 
 ```
-W_chem
-=
-integral K tau^sigma x dz
+P0_sand = 0.071-0.274 mm yr^-1
+gamma_sand = 0.80-4.50 m
 ```
 
-즉 chemical dissolution은 mineral-state loss이고 regolith thickness production과 동일하지 않다.
+DynSoil/MErSiM은 optional advanced transient mineral/regolith state로 유지한다.
 
 ### LPJ-GUESS/Hartmann weathering
 Hartmann 2011/2014 parent lineage는 bulk chemical weathering을 먼저 계산하고 lithology-specific P content를 사용해 P release를 얻는다.
