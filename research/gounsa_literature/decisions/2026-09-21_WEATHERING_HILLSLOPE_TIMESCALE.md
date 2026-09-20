@@ -228,3 +228,21 @@ slope failure
 **100년 고운사에서는 Pelletier보다 process-specific daily/annual models를 우선한다.**
 
 Pelletier는 장기 consistency benchmark로 유지한다.
+
+
+---
+
+## 2차 감사
+
+이 결정은 유지되며 다음 파일에서 근거 서지와 역할을 재감사했다:
+
+`decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
+
+2차 감사의 주요 보정:
+- LPJ-GUESS-CNP는 full soil-production engine이 아니라 daily chemical-weathering/P-release forcing
+- Gabet et al. 2021 DOI 10.1029/2020JF005858의 기존 biomass-transport 해석 철회
+- Pelletier et al. 2018 DOI 10.1002/esp.4306의 기존 biomass-diffusivity 해석 철회
+- Kirwan & Shugart 2008을 AGU abstract로 재분류
+- Roering & Gerber 2005, Jackson & Roering 2009를 postfire dry-ravel/root-decay process-separation 근거로 강화
+
+최종 아키텍처 자체는 변경되지 않는다.
