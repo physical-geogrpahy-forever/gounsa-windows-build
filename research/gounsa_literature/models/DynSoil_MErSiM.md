@@ -157,7 +157,7 @@ Current comparison:
 - DynSoil/MErSiM: easier transient regolith bookkeeping
 
 ## current judgment
-**Preferred state architecture candidate for C/Cr regolith.**
+**Optional advanced transient regolith/mineral-state architecture.**
 
 Before hard-lock:
 1. quantify expected 100-year magnitude
@@ -244,3 +244,37 @@ LPJ-GUESS supplies the climate/hydrologic forcing used to compute or scale `P_0(
 The full transient mineral-age equations are then reserved for sensitivity/advanced validation if weathering proves dynamically important.
 
 This retains a published process equation while avoiding unnecessary state complexity.
+
+
+---
+
+## 2026-09-21 sandstone scope correction
+
+고운사 parent material은 sandstone으로 취급한다.
+
+Sandstone-specific soil-production measurements now provide a more direct first-order production law:
+
+```
+P_sand(h)
+=
+P0_sand exp(-h/gamma_sand)
+```
+
+with analogue sandstone bounds from Evans et al. 2021 approximately:
+
+```
+P0_sand = 0.071-0.274 mm yr^-1
+gamma_sand = 0.80-4.50 m
+```
+
+Therefore this model lineage is **demoted from preferred production baseline to optional advanced module**.
+
+Current role:
+- transient primary-mineral depletion
+- mineral exposure/residence age
+- deeper regolith chemistry
+- sensitivity analysis
+
+Do not use its global/deep-time `k_rp`, `d_0` parameters instead of sandstone-specific local calibration unless a specific reason is demonstrated.
+
+The earlier granite-based justification for simplifying MErSiM is also withdrawn. The simplification is now justified by **availability of more directly relevant sandstone soil-production functions**, not by assuming sandstone production is negligible.
