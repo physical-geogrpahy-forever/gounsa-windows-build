@@ -1,503 +1,346 @@
 # Short-timescale weathering and hillslope-transport architecture for Gounsa
 
 ## 목적
-고운사 산불 후 약 100년 simulation에서 Pelletier 2013을 soil production/weathering 및 hillslope diffusion의 주식으로 사용할지, 더 짧은 시간간격의 published process models로 대체할지를 통합 판단한다.
+고운사 산불 후 약 100년 simulation에서 Pelletier 2013을 풍화/토양생산 및 사면확산의 주 모델로 쓸지, 더 짧은 시간간격의 published process models로 대체할지를 통합 정리한다.
+
+## 현재 production scope
+
+포함:
+- water erosion
+- residual background creep
+- root-growth/decay biogenic transport
+- postfire dry ravel
+- chemical weathering / regolith-front production
+- fire spall / coarse-fragment supply
+
+제외:
+- tree throw / uprooting
+- shallow landslide
+
+제외 항목 문헌은 archive-only로 유지한다.
 
 ---
 
 # 1. 핵심 결론
 
-**Pelletier 2013을 100년 주식으로 사용하지 않는다.**
+**Pelletier 2013을 100년 production engine으로 사용하지 않는다.**
 
-대신 과정별로 분리한다:
+현재 baseline:
 
 ```
-WEATHERING / SOIL PRODUCTION
+WEATHERING
 
 chemical-weathering forcing
- = LPJ-GUESS-CNP 2025 [daily; not direct regolith production]
+ = Hartmann + LPJ-GUESS-CNP [daily forcing]
 
-woody mechanical weathering
- = Gabet & Mudd 2010 [annual]
+regolith-front production
+ = DynSoil/MErSiM-type transient state
+   or Braun-type hydrologic front [annual geomorphic update]
 
-optional profile/physical-weathering benchmark
- = SSSPAM [annual/short-event capable]
- = SoilGen [daily hydrology, profile chemistry]
+mobile A/B soil mass balance
+ = Yoo 2007 + Brosens 2020
+
+fire spall
+ = separate physical supply process
 
 
 HILLSLOPE TRANSPORT
 
-background continuous creep
- = Furbish-style depth-dependent residual creep [annual outer step]
-
-root growth/decay bioturbation
- = Gabet et al. 2003 [annual turnover]
-
-postfire dry ravel
- = Lamb 2011 [disturbance/event pathway]
-
-tree throw / uprooting
- = excluded from current production baseline
-
-shallow landslide
- = excluded from current production baseline
+q_hill
+ =
+ q_bg
+ + q_rootgrowth
+ + q_dryravel
 ```
 
 ---
 
-# 2. 왜 Pelletier 2013이 주식이 아닌가
+# 2. 왜 Pelletier 2013을 주식으로 쓰지 않는가
 
 Pelletier 2013:
-- explicitly targets geologic-time-scale eco-pedo-geomorphic coevolution
-- separate runs prescribe EEMT states
-- reported topography/soil states after 10 Myr
-- small solver timestep is used only for numerical stability
+- geologic-time-scale eco-pedo-geomorphic coevolution
+- prescribed EEMT states
+- reported landscape states after about 10 Myr
+- small internal dt is numerical-stability requirement
 
-Critical distinction:
+따라서:
 
 ```
-small numerical timestep
+small numerical dt
 !=
-short ecological/process calibration timescale
+annual ecological/process calibration
 ```
 
-Therefore:
-```
-annual LPJ-GUESS biomass(t)
- -> Pelletier Kd(t)
-```
-is not supported as an existing annual process law.
+직접:
 
-Keep Pelletier only for:
-- long-term sign of feedback
-- broad steady-state benchmark
-- long-term eco-pedo-geomorphic consistency
+```
+LPJ-GUESS biomass(t)
+ -> Pelletier diffusivity(t)
+```
+
+를 existing published annual coupling으로 취급하지 않는다.
+
+Pelletier의 현재 역할:
+- long-term sign check
+- steady-state consistency benchmark
+- comparison only
 
 ---
 
-# 3. chemical weathering: preferred core
+# 3. chemical weathering
 
-## LPJ-GUESS-CNP 2025
+## 3.1 Hartmann + LPJ-GUESS-CNP
 
-Daily, patch-level weathering:
+부모 Hartmann 계보는 먼저 bulk chemical-weathering flux를 계산하고, lithology-specific P content를 사용해 P release를 계산한다.
+
+따라서 고운사에서는:
 
 ```
-F_PW
-=
-F_CW,i
-* F_T
-* F_s,i
+F_bulk_chem
+F_P_release
 ```
 
-with:
-```
-F_CW,i
-=
-(b_carbonate + b_silicate)_i
-* p_i
-* q
-```
+를 분리한다.
 
-and daily prognostic:
+LPJ-GUESS-CNP는 daily:
 - soil temperature
 - runoff
+- patch state
 
-Vegetation affects runoff in LPJ-GUESS, so a vegetation-weathering feedback already exists.
+를 제공하므로 short-timescale chemical-weathering forcing에 적합하다.
 
-### role
-**Primary hydroclimatic chemical-weathering driver.**
+그러나:
 
-### unresolved geomorphic conversion
-The output is nutrient/mineral weathering flux, not direct soil/regolith thickness.
-
-Need:
 ```
-weathering mass/mineral flux
- -> solid-volume / density mass balance
- -> Delta H_chem
+chemical dissolved mass loss
+!=
+bedrock-to-regolith production
 ```
 
-This is a new coupling and must be calibrated/validated.
+이다.
+
+## 3.2 A/B mobile-soil mass balance
+
+```
+M_AB = rho_AB H_AB
+```
+
+```
+dM_AB/dt
+=
+Phi_AB
++
+D_phys
+-
+E_phys
+-
+W_AB
+```
+
+Yoo 2007 / Brosens 2020 계보를 사용한다.
+
+## 3.3 C/Cr regolith front
+
+Preferred state architecture:
+DynSoil/MErSiM.
+
+```
+dh_reg/dt
+=
+P_r - E_boundary
+```
+
+```
+partial x/partial t
+=
+-P_r partial x/partial z
+-
+K tau^sigma x
+```
+
+```
+W_chem
+=
+integral K tau^sigma x dz
+```
+
+Braun 2016은 recharge/groundwater-driven front mechanism alternative로 유지한다.
+
+## 3.4 uprooting 기반 mechanical weathering
+
+현재 production baseline에서 제외한다.
+
+Gabet & Mudd 2010의 rootwad/tree-throw physical production은 archive/reference only이다.
+
+현재 물리적 공급에서 핵심은:
+- fire spall
+- 별도로 검증되는 other physical weathering
+
+이다.
 
 ---
 
-# 4. chemical-weathering validation options
+# 4. residual background creep
 
-## REWTCrunch 2022
-- vertically resolved Critical Zone reactive transport
-- root biomass/exudation
-- daily/short process forcing
-- mineral dissolution
-
-Role:
-- deep-root chemical-weathering validation
-- optional advanced module
-
-Not first implementation because coupling/parameter burden is much larger.
-
-## SoilGen 2022
-- 1D soil profile
-- daily precipitation/hydrology
-- mineral weathering and solute transport
-- no lateral flux
-
-Role:
-- independent profile-weathering benchmark
-- not main spatial geomorphic engine
-
----
-
-# 5. woody mechanical weathering: preferred core
-
-## current mechanical-weathering scope
-
-Gabet & Mudd 2010 remains an important annual biogeomorphic reference, but its rootwad/tree-throw production pathway is **not in the current Gounsa production baseline**.
-
-Current baseline weathering emphasizes:
-- Hartmann / LPJ-GUESS chemical-weathering forcing
-- transient regolith-front production
-- mobile-soil mass balance
-
-Woody uprooting/rootwad disturbance is archive-only unless later evidence shows it is required.
-
----
-
-# 6. background hillslope transport
-
-There are two defensible forms.
-
-## A. conservative baseline: residual linear creep
-
-Gabet & Mudd uses:
-
-```
-q_bg = -D_bg S
-```
-
-Advantages:
-- easy annual integration
-- does not artificially explode near critical slope
-- cleaner when tree throw, root growth, dry ravel and landslides are explicitly represented
-
-Disadvantage:
-- may underestimate steep-slope continuous transport
-
-## B. sensitivity/alternative: Roering nonlinear background
+Production baseline:
 
 ```
 q_bg
 =
--K_bg grad(z)
-/
-[1-(|grad(z)|/S_c)^2]
+-D*_bg H_active grad(z)
 ```
 
-Advantages:
-- better-known steep-slope nonlinearity
+근거:
+- Furbish et al. 2009
+- Furbish & Haff 2010
 
-Critical caveat:
-field-calibrated `K` can aggregate biological and other disturbance processes.
+장점:
+- active mobile-soil thickness가 줄면 flux도 줄어듦
+- A/B soil이 거의 없는데도 constant D가 계속 토사를 운반하는 문제 방지
 
-If Gounsa separately calculates:
-- root growth
-- tree throw
-- dry ravel
-- landslides
+`D*_bg`는:
+- natural-landscape total diffusivity가 아님
+- biomass multiplier가 아님
+- residual local-creep coefficient임
 
-then using a natural-forest total `K` can double count them.
+포함 가능한 미해상 과정:
+- wetting-drying
+- weak freeze-thaw
+- fauna
+- micro-scale granular rearrangement
+- unresolved shallow bioturbation
 
-Also the strong increase near `S_c` can overlap with the explicit shallow-landslide module.
-
-### current baseline judgment
-Use **residual linear creep as first implementation**.
-
-Use Roering nonlinear transport as:
-- sensitivity test
-- possible later replacement if field/topographic calibration shows linear residual is inadequate
-
-If Roering is adopted, recalibrate `K_bg` as a residual coefficient after separately represented processes are removed.
+Sonoda & Kurashige 2017의 일본 풍화화강암 산림 관측은 wet-dry residual creep의 중요한 지역적 근거다.
 
 ---
 
-# 7. root-growth / root-decay bioturbation
+# 5. root-growth / root-decay biogenic transport
 
-## Gabet et al. 2003
+Gabet et al. 2003을 사용한다.
 
-Annual root turnover gives a quantitative biogenic sediment-transport term.
-
-Core lineage:
+General:
 
 ```
-q_rootgrowth
-~ x r tau / rho_r
+q_sx
+=
+x r tau / rho_r
+```
+
+```
+x
+=
+z_c sin(theta) cos(theta)
+```
+
+Final form:
+
+```
+q_sx
+=
+-[0.003 r tau / (rho_r log(beta))]
+sin(theta) cos(theta)
 ```
 
 where:
-- `r`: root mass/area
-- `tau`: annual root turnover
+- `r`: root mass per area
+- `tau`: root turnover [yr^-1]
 - `rho_r`: root tissue density
-- `x`: geometry/displacement term
+- `beta`: vertical root-distribution parameter
+- `theta`: slope angle
 
-For Gounsa:
-use LPJ-GUESS native root state and turnover rather than externally parameterized biomass trajectories.
+For production, do not use Gabet's broad vegetation-class example parameters if LPJ-GUESS native root state is available.
 
-Role:
-**primary root-growth/decay hillslope-transport term.**
+Preferred interface:
+
+```
+LPJ-GUESS
+ fine-root state
+ root turnover
+ layer root distribution
+       |
+       v
+root center-of-mass depth
+       |
+       v
+Gabet q_rootgrowth
+```
+
+LPJ-GUESS already contains PFT-specific fine-root turnover parameterization, so an external turnover model is not required.
+
+The Gabet derivation represents an upper-bound-style displacement because some real root-growth strain can be absorbed by local soil-density change.
 
 ---
 
-# 8. tree throw
+# 6. postfire dry ravel
 
-## Doane 2021
-**1-year timestep.**
+Dry ravel remains a separate disturbance transport process.
 
-Annual number of new pit-mound events is sampled stochastically.
-
-Use:
-```
-LPJ-GUESS woody cohort mortality/disturbance
- -> tree-throw event probability
- -> displaced volume
- -> travel distance
- -> q_treethrow
-```
-
-## CSDMS TreeThrow
-Independent annual event-model precedent:
-- annual timestep
-- individual tree growth/death/regeneration
-- DBH controls soil-plate geometry and travel distance
-
-The CSDMS source code is currently categorized as unavailable, so use conceptually rather than as a code base.
-
----
-
-# 9. SSSPAM comparison
-
-SSSPAM is important because it proves:
-```
-100-year coupled soilscape-landform evolution
-```
-is feasible.
-
-It includes:
-- physical weathering
-- diffusion
-- armouring
-- erosion/deposition
-- soil-profile grading
-
-But:
-- no dynamic forest/root model
-- physical rather than chemical weathering
-- overlaps heavily with SWEHR state and erosion
-- later short 100-year applications can omit weathering because profile weathering is slow
-
-Role:
-**comparison and possible armour/coarse-fragment module source**, not main Gounsa framework.
-
----
-
-# 10. HydroLorica comparison
-
-Hydrology can run daily/monthly/yearly, but geomorphic/pedogenic changes are driven by annual aggregates.
-
-However its vegetation module can flip forest/grass annually based on water balance and authors explicitly say it should not be used for annual-to-decadal ecological systems.
-
-Therefore:
-- useful architectural comparison
-- not suitable as Gounsa succession engine
-
----
-
-# 11. recommended temporal architecture
-
-## daily
-LPJ-GUESS:
-- climate
-- hydrology
-- runoff
-- soil temperature
-- chemical weathering driver
-
-SWEHR:
-- only during erosive rainfall events, internal CFL timestep
-
-## annual
-After annual LPJ-GUESS state update:
-- root-growth/decay bioturbation
-- woody root-fracture/mechanical weathering
-- stochastic tree throw
-- residual background creep
-- accumulated chemical-weathering mass balance
-- update soil/regolith thickness and DEM
-
-## event/disturbance
-- wildfire
-- dry ravel pulse
-- shallow landslide
-- major windthrow if explicitly forced
-- SWEHR erosive storms
-
-This multi-rate architecture matches the natural process timescales better than one Pelletier-style coefficient evaluated every year.
-
----
-
-# 12. proposed total equations / bookkeeping
-
-## hillslope transport
-```
-q_hill
-=
-q_bg
-+
-q_rootgrowth
-+
-q_dryravel
-```
-
-Tree throw/uprooting and shallow landslides are currently excluded from the production baseline rather than hidden in `q_hill`.
-
-## weathering/soil-production
-```
-Delta H_prod
-=
-Delta H_chem
-+
-Delta H_woody_mech
-+
-Delta H_other_phys
-```
-
-where:
-- `Delta H_chem`: accumulated LPJ-GUESS-CNP chemical weathering converted by mass/volume balance
-- `Delta H_woody_mech`: Gabet-Mudd root-fracture/tree-throw physical production
-- `Delta H_other_phys`: only if separately justified, e.g. frost/thermal processes
-
-Fire spall remains a separate supply process.
-
----
-
-# 13. current judgment
-
-### Pelletier 2013
-**not selected as primary 100-year process engine.**
-
-### weathering
-**Primary forcing/process sources:**
-- LPJ-GUESS-CNP daily chemical-weathering/P-release forcing
-- Gabet & Mudd annual woody mechanical weathering
-
-**Validation/comparison:**
-- REWTCrunch
-- SoilGen
-- SSSPAM
-- Pelletier long-term
-
-### hillslope transport
-**Primary modular structure:**
-- residual background creep
-- Gabet 2003 annual root-growth/decay transport
-- Doane 2021 annual tree throw
-- Lamb postfire dry ravel
-- separate shallow landslide
-
-This is the present preferred architecture for Gounsa.
-
-
----
-
-# 14. second-pass source audit corrections
-
-A second source-level audit corrected three important archive interpretations.
-
-## Gabet et al. 2021
-DOI `10.1029/2020JF005858` is:
-```
-Hilltop Curvature Increases With the Square Root of Erosion Rate
-```
-
-It is **not** a biomass-to-transport-efficiency paper.
-
-Role:
-- effective hillslope transport coefficient / erosion-rate constraint
-- warning against treating `D` as a simple vegetation parameter
-
-## Pelletier et al. 2018
-DOI `10.1002/esp.4306` is:
-```
-Which way do you lean? Using slope aspect variations to understand Critical Zone processes and feedbacks
-```
-
-It is **not** a direct biomass-to-diffusivity numerical model.
-
-Role:
-- Critical Zone synthesis
-- long-term conceptual consistency only
-
-## Kirwan & Shugart 2008
-```
-A Biologically Based Model of Tree Throw on Hillslopes
-```
-is an AGU Fall Meeting abstract rather than a peer-reviewed full journal article.
-
-Use only as an early annual forest-demography/tree-throw precedent.
-
-Quantitative tree-throw support should instead prioritize:
-- Constantine et al. 2012
-- Doane et al. 2021
-- Gabet & Mudd 2010
-
-## strengthened postfire process separation
-Roering & Gerber 2005 and Jackson & Roering 2009 strengthen:
-
-```
-background creep
-!= postfire dry ravel
-!= root-decay / landslide response
-```
-
-Therefore no universal postfire diffusivity multiplier is adopted.
-
-## final evidence hierarchy
-
-### production process sources
-- Dantas de Paula et al. 2025: chemical-weathering forcing
-- Gabet & Mudd 2010: annual woody mechanical weathering
-- Gabet et al. 2003: root-growth/decay transport equations
-- Doane et al. 2021: annual stochastic tree throw
-- Constantine et al. 2012: cohort/storm windthrow support
-- Lamb et al. 2011: postfire dry ravel
-
-### validation / sensitivity
-- REWTCrunch 2022
-- SoilGen 2022
-- Roering 2001
+Key lineages:
+- Lamb et al. 2011
 - Roering & Gerber 2005
 - Jackson & Roering 2009
 
-### comparison / long-term consistency
-- SSSPAM 2019/2021
-- HydroLorica 2020
-- Pelletier 2013
-- Pelletier et al. 2018
-- Gabet et al. 2021
+Do not convert fire effects into a generic multiplier on `D*_bg`.
 
+Current separation:
+
+```
+background creep
+!=
+root-growth transport
+!=
+postfire dry ravel
+```
 
 ---
 
-## 15. scope correction: uprooting and shallow landslide excluded
+# 7. excluded processes
 
-Current production scope was narrowed by user decision.
+## tree throw / uprooting
+Not in current production baseline.
 
-```
-tree throw / uprooting = excluded from current baseline
-shallow landslide      = excluded from current baseline
-```
+Doane, Gallaway, Constantine, Gabet & Mudd tree-throw literature remains archived only.
 
-The corresponding literature is retained for future optional use only.
+## shallow landslide
+Not in current production baseline.
 
-Current hillslope transport core:
+No factor-of-safety/root-cohesion implementation is currently required.
+
+---
+
+# 8. temporal architecture
+
+## daily
+LPJ-GUESS:
+- hydrology
+- runoff
+- soil temperature
+- vegetation/root state
+- chemical-weathering forcing
+
+SWEHR:
+- erosive rainfall events only
+- internal sub-hourly CFL-constrained timestep
+
+## annual geomorphic update
+- accumulated chemical-weathering mass balance
+- regolith-front production
+- Gabet root-growth/decay transport
+- residual depth-dependent creep
+- soil/regolith thickness update
+- DEM update
+
+## disturbance events
+- wildfire
+- dry-ravel release
+- fire spall
+- SWEHR erosive storms
+
+---
+
+# 9. current production equations
+
+## hillslope transport
 
 ```
 q_hill
@@ -509,13 +352,90 @@ q_rootgrowth
 q_dryravel
 ```
 
-Current weathering core:
-- chemical-weathering forcing
-- regolith-front production
-- mobile-soil mass balance
+with:
 
-Do not spend implementation effort on:
-- windthrow probability
-- rootwad geometry
-- landslide factor-of-safety
-unless the project scope is expanded again.
+```
+q_bg
+=
+-D*_bg H_active grad(z)
+```
+
+and Gabet root-growth/decay flux as above.
+
+## weathering / regolith
+
+```
+A/B:
+dM_AB/dt
+=
+Phi_AB
++
+D_phys
+-
+E_phys
+-
+W_AB
+```
+
+```
+C/Cr:
+dh_reg/dt
+=
+P_r
+-
+E_boundary
+```
+
+Chemical dissolution is tracked separately from front advance.
+
+---
+
+# 10. comparison models
+
+## REWTCrunch
+daily root-exudation/reactive-transport validation.
+
+## SoilGen
+daily hydrology + 1D chemical-profile weathering benchmark.
+
+## SSSPAM
+100-year soilscape/armour/profile benchmark, but no dynamic forest roots and overlaps SWEHR erosion states.
+
+## HydroLorica
+architecture reference only; its vegetation representation is not suitable for annual-decadal succession.
+
+## Roering nonlinear transport
+steep-slope sensitivity comparison only, not the baseline residual flux.
+
+---
+
+# 11. final current judgment
+
+### weathering
+Primary:
+- Hartmann/LPJ-GUESS-CNP bulk chemical-weathering forcing
+- Yoo/Brosens mobile-soil mass balance
+- DynSoil/MErSiM transient regolith-front state
+
+Alternative:
+- Braun 2016 front model
+
+### hillslope diffusion/transport
+Primary:
+- Furbish depth-dependent residual creep
+- Gabet 2003 root-growth/decay transport
+- Lamb postfire dry ravel
+
+### excluded
+- uprooting/tree throw
+- shallow landslide
+
+### Pelletier
+Long-term reference only.
+
+## remaining implementation questions
+1. Gounsa lithology and weathering-front parameters
+2. 100-year magnitude of front advance and chemical mass loss
+3. `D*_bg` residual calibration
+4. exact LPJ-GUESS root-variable/unit mapping into Gabet equation
+5. fire-spall production equation
