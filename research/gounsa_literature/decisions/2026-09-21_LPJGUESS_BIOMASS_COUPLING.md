@@ -22,7 +22,7 @@ LPJ-GUESS에서는 상층 교목과 하층 초본이 같은 cell에서 수직적
 - Pawlik 2023/2024, Osorio-Leon 2025: deep woody-root weathering
 
 # 새로운 coupling
-LPJ-GUESS carbon pools를 RMD/RLD/RSAD, erodibility, tree-throw probability, weathering rate로 변환하는 단계는 기존 단일 published model이 아니며 모두 **새로운 coupling**으로 표기한다.
+LPJ-GUESS가 자체 계산한 root state(RLD/root length/layer state 등)를 erosion parameter로 전달하는 단계는 기존 단일 published model이 아니며 **새로운 coupling**으로 표기한다. LPJ-GUESS가 계산하는 root quantity를 외부 문헌계수로 다시 재구성하지 않는다.
 
 # 2026-09-21 FineRootC -> RLD 업데이트
 
@@ -62,8 +62,8 @@ FineRootC -> RLD equation
 ```
 자체가 아니라:
 
-1. 고운사 PFT/species별 `SRL_C`
-2. exact Gounsa FineRootC output normalization
+1. LPJ-GUESS에서 coupling에 사용할 native root output 확인(RLD가 직접 있으면 RLD를 우선)
+2. output의 공간기준/단위 확인
 3. surface erosion에 사용할 effective depth
 4. postfire live/dead root persistence
 5. RLD -> erosion resistance parameter calibration
@@ -73,8 +73,11 @@ FineRootC -> RLD equation
 세부 구현:
 - `models/LPJ_GUESS_Root_Erosion_Interface.md`
 
+# 2026-09-21 프로젝트 수정
+PFT별 SRL/RLD는 LPJ-GUESS가 계산한다. 따라서 외부에서 PFT별 `SRL_C`를 별도 parameterization하는 작업은 고운사 production coupling의 요구사항에서 제외한다. `FineRootC * SRL_C * f / Dz` 관계는 output audit/fallback 식으로만 보존한다.
+
 # 아직 해결되지 않은 문제
-- PFT별 SRL_C parameterization
+- LPJ-GUESS native root output -> erosion-active root state mapping
 - live/dead root postfire persistence
 - WoodC/cohort state -> tree throw 및 CWD
 - NPP/root respiration -> chemical weathering rate
