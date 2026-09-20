@@ -68,18 +68,17 @@ q_dryravel
 ```
 
 ### q_bg
-First implementation:
+Production baseline:
 ```
-q_bg = -D_bg S
+q_bg = -D*_bg H_active grad(z)
 ```
-as a **residual background creep** term.
+Furbish 2009의 active-soil-depth dependent residual creep를 사용한다.
 
 Reason:
-- explicit tree throw is separate
-- explicit root-growth transport is separate
-- postfire dry ravel is separate
-- shallow landslide is separate
-- therefore a natural-landscape total diffusivity would double count processes
+- root-growth transport is explicit
+- postfire dry ravel is explicit
+- tree throw/uprooting and shallow landslide are excluded from current baseline
+- therefore natural-landscape total diffusivity는 residual coefficient로 직접 사용할 수 없다
 
 ### nonlinear sensitivity
 Roering 2001:
@@ -92,7 +91,7 @@ q
 ```
 is retained as a steep-slope sensitivity/alternative.
 
-Do not use a field-calibrated total `K` unchanged while adding tree throw/root growth/landslides separately.
+Do not use a field-calibrated total `K` unchanged while adding explicit root-growth and dry-ravel terms.
 
 ### q_rootgrowth
 **Gabet et al. 2003**, annual root turnover.
@@ -167,30 +166,27 @@ Therefore:
 
 ### annual
 - accumulated chemical-weathering bookkeeping
+- regolith-front production
 - root-growth/decay bioturbation
-- woody mechanical weathering
-- tree throw
-- background creep
+- residual background creep
 - soil/regolith/DEM update
 
 ### disturbance event
 - wildfire
 - dry ravel
-- shallow landslide
-- major windthrow if modeled
+- fire spall
 
 ---
 
 ## 7. unresolved items
 
-1. LPJ-GUESS-CNP chemical-weathering flux -> geomorphic regolith mass/thickness conversion
-2. Gounsa lithology parameters for chemical weathering
-3. LPJ-GUESS woody cohorts -> root-fracture/rootwad geometry
-4. residual background creep `D_bg` calibration without double counting
-5. tree-throw event geometry/rate from LPJ-GUESS cohort state
-6. whether Roering nonlinear residual materially improves the 100-year result
-7. weathering significance over only 100 years: quantify before adding unnecessary complexity
-8. coarse-fragment/armour state reconciliation with SWEHR
+1. Gounsa lithology and weathering-front parameters
+2. 100-year magnitude of chemical front advance and dissolved mass loss
+3. residual background creep `D*_bg` calibration
+4. exact LPJ-GUESS root-state/unit mapping into Gabet 2003
+5. whether Roering nonlinear residual materially improves the 100-year result
+6. fire-spall production equation
+7. coarse-fragment/armour state reconciliation with SWEHR
 
 ---
 
@@ -201,9 +197,6 @@ LPJ-GUESS
   |
   +-- daily runoff + Tsoil
   |      -> chemical weathering
-  |
-  +-- annual root state/turnover
-  |      -> Gabet root-growth transport
   |
   +-- annual root state/turnover
   |      -> Gabet root-growth transport
@@ -265,3 +258,58 @@ water erosion
 ```
 
 이다.
+
+
+---
+
+## 4차 정리: 현재 production scope
+
+최신 범위에서는:
+```
+tree throw / uprooting = 제외
+shallow landslide      = 제외
+```
+
+사면수송은 다음 세 항만 사용한다.
+
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_dryravel
+```
+
+### q_bg
+```
+q_bg
+=
+-D*_bg H_active grad(z)
+```
+
+### q_rootgrowth
+Gabet et al. 2003 exact equation:
+
+```
+q_sx
+=
+-[0.003 r tau / (rho_r log(beta))]
+sin(theta) cos(theta)
+```
+
+LPJ-GUESS native fine-root state, turnover and root-depth distribution을 사용한다.
+
+### q_dryravel
+Lamb lineage.
+
+풍화는:
+```
+Hartmann/LPJ-GUESS chemical forcing
++ Yoo/Brosens mobile-soil mass balance
++ DynSoil/MErSiM-style regolith front
+```
+로 정리한다.
+
+Gabet & Mudd 2010 rootwad/tree-throw physical weathering은 archive-only다.
