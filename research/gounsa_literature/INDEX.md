@@ -2,9 +2,9 @@
 
 업데이트: 2026-09-21
 
-이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
+이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (222)
+## Papers (261)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -54,6 +54,7 @@
 - `papers/1980_Williams_SPNM.md`
 - `papers/1981_Waldron_Dakessian_RootReinforcement.md`
 - `papers/1981_Ziemer_RootsStabilityForestedSlopes.md`
+- `papers/1982_Gregory_ResidueMass_SurfaceCover.md`
 - `papers/1982_Waldron_RootShearTests.md`
 - `papers/1983_Skiles_Hanson_Parton_SPURPlant.md`
 - `papers/1983_Wight_SPUR.md`
@@ -83,6 +84,8 @@
 - `papers/1991_Abe_Ziemer_ShallowLandslides.md`
 - `papers/1991_Sidle_RootCohesionVegetationManagement.md`
 - `papers/1992_Hairsine_Rose_OverlandFlowErosion.md`
+- `papers/1992_Hairsine_Rose_RillFlow.md`
+- `papers/1992_Hairsine_Rose_SheetFlow.md`
 - `papers/1992_Howard_FluvialLandsculpting.md`
 - `papers/1992_Kirkby_ErosionLimitedHillslope.md`
 - `papers/1993_Elliot_Laflen_RillErosion.md`
@@ -95,6 +98,7 @@
 - `papers/1995_Foster_WEPP_Hillslope_Erosion_Component.md`
 - `papers/1995_Kirkby_Cox_ClimaticErosionIndex.md`
 - `papers/1995_Kirkby_VegetationLandformLinks.md`
+- `papers/1995_Misra_Rose_Erodibility_SoilStrength_GUEST.md`
 - `papers/1995_Stott_WEPP_Residue_Component.md`
 - `papers/1995_Thiery_BandedVegetationNiger.md`
 - `papers/1995_WEPP_FullPlantGrowth.md`
@@ -111,64 +115,91 @@
 - `papers/1998_Kirkby_MEDALUS_GlobalChange.md`
 - `papers/1998_Mitas_Mitasova_DistributedErosion.md`
 - `papers/1998_Moglen_DrainageDensityClimate.md`
+- `papers/1998_Morgan_EUROSEM.md`
 - `papers/1998_Tucker_Bras_HillslopeDrainageDensity.md`
 - `papers/1998_Vining_FluvialSystemsEvolution.md`
-- `papers/1999_CHILD_UsersGuide.md`
 - `papers/1999_Cammeraat_Imeson_PostfirePatterns.md`
+- `papers/1999_CHILD_UsersGuide.md`
 - `papers/1999_Coulthard_CA_HoloceneCatchment.md`
 - `papers/1999_DeJong_SEMMED.md`
 - `papers/1999_Ludwig_Tongway_Marsden_Patterns.md`
 - `papers/1999_Puigdefabregas_WaterSedimentRedistribution.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
 - `papers/2003_Gabet_BioturbationSedimentTransport.md`
+- `papers/2003_Pannkuk_Robichaud_Postfire_NeedleCast.md`
 - `papers/2004_Istanbulluoglu_ForestDisturbanceSediment.md`
+- `papers/2004_Leonard_Richard_CriticalShear_SoilStrength.md`
 - `papers/2004_Roering_VegetationTransportEfficiency.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
 - `papers/2005_Nord_Esteves_PSEM_2D.md`
 - `papers/2005_Roering_Gerber_PostfireHillslopeTransport.md`
 - `papers/2006_DeBaets_GrassRootsErodibility.md`
+- `papers/2006_Doten_DHSVM_MountainForestSediment.md`
 - `papers/2006_Istanbulluoglu_Bras_SoilMoistureVegetationErosion.md`
+- `papers/2006_Rouhipour_Rainfall_Flow_Interaction.md`
 - `papers/2007_DeBaets_RootArchitecture.md`
+- `papers/2008_DeBaets_RootCohesion_EUROSEM.md`
+- `papers/2008_Ivanov_tRIBS_VEGGIE_Part1.md`
+- `papers/2008_Ivanov_tRIBS_VEGGIE_Part2.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
+- `papers/2010_Wagenbrenner_RillErosion_DisturbedForests_Modeling.md`
 - `papers/2010_Waldmann_PROMET_Large_Scale_Erosion.md`
 - `papers/2011_Lamb_Dry_Ravel_Postfire.md`
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
+- `papers/2012_Francipane_tRIBS_Erosion.md`
 - `papers/2012_Taylor_DGVMWeathering.md`
 - `papers/2013_Hurst_Vegetation_SedimentTransport.md`
+- `papers/2013_Kim_tRIBS_OFM_HairsineRose_2D.md`
 - `papers/2013_McGuire_Rill_Network_Spacing_Geometry.md`
 - `papers/2013_Pelletier_Coevolution_Vegetation_Soils_Topography.md`
 - `papers/2013_Saco_MorenoDeLasHeras_EcogeomorphicCoevolution.md`
+- `papers/2014_Kim_Nonuniqueness_SurfaceShield.md`
+- `papers/2014_Li_LeafLitter_SurfaceRunoff_Erosion.md`
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Gould_VIC_WEPP_Wildfire_Mountain_Watershed.md`
+- `papers/2016_Kim_EnvironmentalStochasticity_tRIBS_VEGGIE_FEaST.md`
+- `papers/2016_Kim_MindTheGap_tRIBS_VEGGIE_FEaST.md`
 - `papers/2016_McGuire_SWEHR_Postwildfire_2D.md`
 - `papers/2016_Pelak_BistablePlantSoil.md`
+- `papers/2016_Sun_IncorporatedLitter_RillResistance.md`
+- `papers/2016_Sun_Temporal_IncorporatedLitter_RillResistance.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
+- `papers/2017_Guan_2D_River_Morphology_Vegetation.md`
+- `papers/2017_McGuire_Postfire_DebrisFlow_Initiation.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
+- `papers/2018_Juez_2D_HEM_MediterraneanWatershed.md`
 - `papers/2018_Pelletier_Biomass_Diffusivity.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
+- `papers/2019_Xia_ForestLitter_HydrologicalResponse.md`
+- `papers/2020_Caponi_AboveBelowground_Biomass_Ecomorphodynamics.md`
+- `papers/2020_DeBaets_RootHairs_Mechanistic_Erosion.md`
 - `papers/2020_Ding_PineLitterTransportCapacity.md`
 - `papers/2020_Hao_FineRootsSoilDetachment.md`
+- `papers/2020_Liu_Litter_LSAD_Detachment.md`
 - `papers/2020_Liu_LitterSoilDetachment.md`
 - `papers/2020_Millares_WiMMed_Long_Term_Mountain_Erosion.md`
 - `papers/2020_Oeser_LPJGUESS_WeatheringProductivity.md`
+- `papers/2020_vanDerMeij_HydroLorica.md`
 - `papers/2020_Wu_Chen_Modeling_Soil_Erosion_With_Evolving_Rills.md`
 - `papers/2020_Wu_Two_Dimensional_Rainfall_Runoff_Soil_Erosion.md`
-- `papers/2020_vanDerMeij_HydroLorica.md`
+- `papers/2021_Abrantes_2D_Rill_Interrill_Model.md`
 - `papers/2021_Doane_TreeThrowFlux.md`
 - `papers/2021_Gabet_HillslopeTransportEfficiency.md`
 - `papers/2021_Greenwood_TreeThrowSedimentGeneration.md`
+- `papers/2021_Kang_GPU_2D_Soil_Erosion.md`
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
 - `papers/2021_Parhizkar_NaturalPlantedForests.md`
+- `papers/2021_Schweiger_XBeach_BelowgroundBiomass_DuneErosion.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part1.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part2.md`
 - `papers/2022_Ding_Fu_StemLitterTransportCapacity.md`
@@ -180,12 +211,18 @@
 - `papers/2022_RoqueMalo_REWTCrunch.md`
 - `papers/2022_Srivastava_CHILD_BGM.md`
 - `papers/2022_Tan_ELM_Erosion.md`
+- `papers/2022_Wang_ExposedBuriedLitter_Interrill.md`
 - `papers/2022_Wang_HerbaceousRootSystems.md`
+- `papers/2022_Zhu_LitterDecomposition_Erosion.md`
 - `papers/2023_Adams_FireCWD_SedimentStorage.md`
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
 - `papers/2023_Godziek_PitMoundDetection.md`
+- `papers/2023_Kim_Microtopography_HairsineRose.md`
+- `papers/2023_Li_AnisotropicPorosity_VegetatedMorphodynamics.md`
 - `papers/2023_Ma_RootDetachmentGrassShrub.md`
+- `papers/2023_Ouyang_Postfire_HairsineRose_DebrisFlow.md`
 - `papers/2023_Pawlik_SandstoneRootsSoilProduction.md`
+- `papers/2023_Wang_2D_Slope_Soil_Erosion.md`
 - `papers/2023_Wang_GrassShrubDetachment.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
 - `papers/2024_Cea_Iber_GPU_Multiclass_Erosion.md`
@@ -212,6 +249,7 @@
 - `papers/2025_Geyman_RockStrengthSoilProduction.md`
 - `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md`
 - `papers/2025_MartinezAranda_SERGHEI_SE.md`
+- `papers/2025_NguyenTran_tRIBS_VEGGIE_FEaST_Uncertainty.md`
 - `papers/2025_OsorioLeon_DeepRootsSilicateWeathering.md`
 - `papers/2025_Rogger_BiomassWeathering.md`
 - `papers/2025_Wang_SeasonalRootErosionResistance.md`
@@ -220,6 +258,7 @@
 - `papers/2026_Braga_SERGHEI_SE_Finite_Volume_Evaluation.md`
 - `papers/2026_FireLands_Preprint.md`
 - `papers/2026_Gutierrez_ATYS_VegetationMorphodynamics.md`
+- `papers/2026_Parhizkar_RootSystem_Detachment_Review.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
@@ -229,21 +268,23 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 
-## Models (24)
+## Models (26)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
 - `models/Doane_TreeThrow_Roughness.md`
 - `models/ELM_Erosion.md`
+- `models/EUROSEM_RootCohesion.md`
 - `models/Forest_Disturbance_2004.md`
+- `models/Hairsine_Rose_2D_Postfire.md`
 - `models/Iber.md`
 - `models/LAPSUS.md`
 - `models/LPJ_GUESS_Weathering.md`
 - `models/McGuire_RillNetwork.md`
 - `models/OpenLISEM.md`
+- `models/Postfire_Dry_Ravel.md`
 - `models/PROMET_DANUBIA.md`
 - `models/PSEM_2D.md`
-- `models/Postfire_Dry_Ravel.md`
 - `models/REWTCrunch.md`
 - `models/RillGrow.md`
 - `models/Root_Reinforcement.md`
@@ -256,7 +297,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (8)
+## Decisions (9)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -266,6 +307,7 @@
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
+- `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
 ## Sessions (2)
 
@@ -289,4 +331,4 @@
 3. 판정 변화는 `decisions/`에 남긴다.
 4. 확정된 전체 결론만 `MASTER.md`에 병합한다.
 5. 채팅 종료 전 `sessions/`에 인계서를 남긴다.
-6. 마지막으로 INDEX를 갱신한다.
+6. 마지막으로 INDEX를 실제 트리 기준으로 갱신한다.
