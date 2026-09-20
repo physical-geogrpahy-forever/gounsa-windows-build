@@ -272,3 +272,227 @@ Final engine selection remains pending:
 1. final root-resistance mapping
 2. final exposed-litter mapping
 3. decide whether SWEHR's process match outweighs SERGHEI-SE's modern software architecture
+
+
+---
+
+## 2026-09-21 quantitative vegetation interface and long-term wrapper
+
+### 1. roots: use J as the baseline quantitative resistance receiver
+
+Direct literature review still did **not** verify a universal:
+
+```
+cohesion -> J
+```
+
+equation.
+
+Hairsine-Rose literature treats `J` as an experimentally determined specific entrainment energy.
+
+Gyssels et al. (2005), however, gives a published relative erosion response:
+
+```
+SEP_root = exp(-b RP)
+```
+
+For rill erosion, the review-average coefficients are:
+- root density: `b = 0.5930`
+- RLD: `b = 0.0460` when RLD is in km m^-3
+
+Because SWEHR original-soil flow entrainment is, all else equal:
+
+```
+E3 ∝ 1 / JSMASK
+```
+
+the same published relative erosion multiplier can be embedded algebraically as:
+
+```
+J_eff
+= J_bare / SEP_root
+= J_bare * exp(b RP)
+```
+
+This is explicitly a **새로운 coupling**, not an existing Hairsine-Rose or Gyssels implementation.
+
+Preferred baseline pathway:
+
+```
+LPJ-GUESS FineRootC
+ -> PFT-specific RLD
+ -> SEP_root
+ -> JSMASK
+```
+
+Do **not** also apply the same root multiplier to `UC` in the baseline implementation. That would risk double counting unless an independent mechanism and calibration justify it.
+
+### 2. alternative root pathway: RLD -> soil strength -> critical shear
+
+De Baets + Léonard & Richard + Waldmann/PROMET establish a published structural pathway:
+
+```
+RLD
+ -> erosion-specific cohesion / soil strength
+ -> critical shear stress tau_c
+```
+
+Waldmann uses the Léonard & Richard lineage:
+
+```
+tau_c = beta * sigma_s
+```
+
+with `beta = 2.6e-4`, but subsequently requires a model-specific additional scaling. Therefore this is a strong structural precedent but not a transferable Gounsa coefficient.
+
+This pathway is useful for:
+- validation
+- sensitivity analysis
+- a `tau_c`-native alternative erosion closure
+
+It does **not** directly close:
+
+```
+tau_c -> SWEHR UC
+```
+
+because critical stream power also depends on hydraulic velocity/state.
+
+### 3. exposed surface litter: mass -> cover -> rainfall protection
+
+The previous exposed-litter gap is substantially reduced.
+
+Gregory (1982), WEPP residue documentation and Pannkuk & Robichaud (2003) support:
+
+```
+C_lit = 1 - exp(-b_m M_lit)
+```
+
+where:
+- `M_lit`: exposed dry litter mass per unit area
+- `C_lit`: fractional surface cover
+- `b_m`: litter-type-specific mass-to-cover coefficient
+
+Pannkuk & Robichaud (2003) is directly relevant to postfire steep forest and gives conifer needle mass-cover calibration plus exponential interrill and rill protection responses.
+
+A defensible new SWEHR coupling is therefore:
+
+```
+f_lit,rain = exp(-k_lit C_lit)
+
+ASMASK_eff
+= ASMASK_bare * f_lit,rain
+```
+
+For their experiment:
+- Douglas-fir interrill cover exponent: about `3.2`
+- ponderosa pine: about `1.8`
+
+These values are **not universal Gounsa parameters**. They demonstrate a published functional form and calibration scale.
+
+### 4. surface litter, incorporated litter and loose sediment remain separate
+
+```
+SurfaceLitter
+ -> dry mass
+ -> surface cover
+ -> rainfall shielding / interception / roughness
+
+IncorporatedLitter
+ -> soil structure
+ -> Kr / tau_c type effects
+
+DepositedLooseSediment
+ -> M[k]
+ -> H shielding / armoring
+```
+
+These states must not be collapsed into one litter or cover coefficient.
+
+### 5. 100-year use is event driven, with hourly precipitation forcing
+
+The available Gounsa precipitation forcing is hourly.
+
+That is compatible with SWEHR.
+
+The external forcing clock should use hourly precipitation:
+
+```
+P_1h(t)
+```
+
+For each hour, the observed hourly rainfall depth/intensity is held piecewise constant over that forcing interval.
+
+SWEHR itself must **not** use a 1-hour numerical time step. Its internal hydraulic/sediment time step remains adaptive or sufficiently small to satisfy the Courant stability condition.
+
+Therefore:
+
+```
+hourly rainfall data
+ -> identify erosive storm events
+ -> piecewise-constant hourly rainfall forcing within each event
+ -> SWEHR sub-hourly internal integration
+```
+
+Between hydrologically separate events:
+- surface water depth can reset/drain
+- suspended sediment can clear according to the event boundary treatment
+- topography persists
+- `M[k]` deposited sediment persists
+- `H` shielding persists
+- particle-size/surface-state memory persists
+- LPJ-GUESS updates vegetation/root/litter states on its own ecological time step
+
+Long-term architecture:
+
+```
+LPJ-GUESS long-term ecological state
+        |
+        +-> FineRootC / litter / soil state
+        |
+hourly rainfall series
+        |
+        +-> storm-event segmentation
+        |
+        v
+SWEHR event simulation
+        |
+        +-> updated topography
+        +-> M[k]
+        +-> H
+        +-> surface PSD
+        |
+        v
+persist state to next event
+```
+
+The exact dry-gap rule separating storm events must be defined from hydrologic response and tested as a sensitivity parameter rather than chosen arbitrarily.
+
+This event-manager workflow is a **new coupling/workflow**, but it is consistent with:
+- SWEHR's event-scale design
+- FEaST event-to-event surface memory
+- tRIBS long-term hydro-geomorphic precedents
+
+### 6. present engine judgment
+
+```
+Primary process engine:
+SWEHR / 2D Hairsine-Rose
+
+Modern HPC fallback / possible later port:
+SERGHEI-SE
+
+Not primary implementation base under current public-source access:
+Iber+
+
+Long-term structural precedent:
+tRIBS-FEaST / tRIBS-Erosion
+```
+
+SWEHR is preferred because it minimizes **conceptual coupling invention**, not because it is the newest or fastest code.
+
+Before production lock:
+1. benchmark SWEHR runtime on the actual Gounsa DEM
+2. verify hourly forcing ingestion/event segmentation
+3. calibrate `J_bare`, litter mass-cover/protection, and root-RLD conversion
+4. compare a subset of events against SERGHEI-SE if feasible
