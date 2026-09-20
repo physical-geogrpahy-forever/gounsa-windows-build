@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (278)
+## Papers (279)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -146,6 +146,7 @@
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
+- `papers/2009_Jackson_Roering_Postfire_Oregon.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
 - `papers/2010_Wagenbrenner_RillErosion_DisturbedForests_Modeling.md`
@@ -183,7 +184,7 @@
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
 - `papers/2018_Juez_2D_HEM_MediterraneanWatershed.md`
-- `papers/2018_Pelletier_Biomass_Diffusivity.md`
+- `papers/2018_Pelletier_SlopeAspect_CriticalZone.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
 - `papers/2019_Welivitiya_SSSPAM_CoupledSoilscapeLandform.md`
@@ -201,7 +202,7 @@
 - `papers/2020_Wu_Two_Dimensional_Rainfall_Runoff_Soil_Erosion.md`
 - `papers/2021_Abrantes_2D_Rill_Interrill_Model.md`
 - `papers/2021_Doane_TreeThrowFlux.md`
-- `papers/2021_Gabet_HillslopeTransportEfficiency.md`
+- `papers/2021_Gabet_HilltopCurvature_ErosionRate.md`
 - `papers/2021_Greenwood_TreeThrowSedimentGeneration.md`
 - `papers/2021_Kang_GPU_2D_Soil_Erosion.md`
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
@@ -319,7 +320,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (10)
+## Decisions (11)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -330,13 +331,15 @@
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
+- `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 
-## Sessions (4)
+## Sessions (5)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0147_SESSION_HANDOFF.md`
+- `sessions/2026-09-21_0251_SECOND_PASS_HANDOFF.md`
 - `sessions/2026-09-21_0300_SESSION_HANDOFF.md`
 
 ## Core files
@@ -349,6 +352,11 @@
 - 동일 DOI 또는 동일 서지의 중복 파일은 canonical paper file 하나로 병합한다.
 - 같은 저자와 연도라는 이유만으로는 합치지 않는다.
 - 최신 중복통합 감사: `decisions/2026-09-21_DUPLICATE_PAPER_CONSOLIDATION.md`
+
+## 2026-09-21 source-audit corrections
+- `papers/2018_Pelletier_Biomass_Diffusivity.md` 삭제, 실제 DOI 내용에 맞춰 `papers/2018_Pelletier_SlopeAspect_CriticalZone.md`로 교체
+- `papers/2021_Gabet_HillslopeTransportEfficiency.md` 삭제, 실제 DOI 내용에 맞춰 `papers/2021_Gabet_HilltopCurvature_ErosionRate.md`로 교체
+- `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md` 삭제, 정확한 서지 복구 후 `papers/2025_DantasDePaula_LPJGUESS_CNP_Weathering.md`로 교체
 
 ## 유지 규칙
 1. 새 논문은 먼저 `papers/`에 저장한다.
