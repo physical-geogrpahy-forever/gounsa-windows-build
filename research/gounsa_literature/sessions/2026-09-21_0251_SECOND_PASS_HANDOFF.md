@@ -156,3 +156,26 @@ Supports separate dry-ravel/root-decay/landslide processes.
 6. quantify actual weathering magnitude over 100 years
 7. coarse-fragment/armour reconciliation with SWEHR
 8. fire-spall production module
+
+
+## 최종 INDEX 상태
+2차 감사 및 canonical 정정 완료 후:
+- Papers: 279
+- Models: 31
+- Decisions: 11
+- Sessions: 5
+
+INDEX commit:
+`5e5d87ab1cc936aade0d71250e532998e8dc446e`
+
+## 최종 외부 서지 재검증
+- DOI `10.1029/2020JF005858` = Gabet et al. 2021, *Hilltop Curvature Increases With the Square Root of Erosion Rate*
+- DOI `10.1002/esp.4306` = Pelletier et al. 2018, *Which way do you lean? Using slope aspect variations to understand Critical Zone processes and feedbacks*
+- 따라서 기존 biomass-transport / biomass-diffusivity 오기록은 철회 상태가 맞음
+
+## 다음 연구 시작점
+풍화/사면수송 모델을 더 넓게 검색하기 전에 다음 구현 gap을 해결한다:
+1. chemical-weathering flux -> regolith mass/thickness conversion
+2. residual background creep calibration
+3. LPJ-GUESS woody cohort -> root fracture / rootwad / tree-throw geometry
+4. 100년 동안 실제 weathering magnitude가 지형변화에 의미 있는지 order-of-magnitude 검증
