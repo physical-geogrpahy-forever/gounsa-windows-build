@@ -668,3 +668,66 @@ fire
 5. 동일하지 않으면 conversion을 별도 coupling으로 문서화한다.
 
 이 MASTER는 방향과 판정을 보존하기 위한 통합본이지, 원 논문의 식/표를 대체하지 않는다.
+
+
+---
+
+## 2026-09-21 LPJ-GUESS biomass-geomorph 복구
+
+이번 채팅에서 유수침식, 사면확산/biogenic transport, 풍화/soil production을 LPJ-GUESS의 동적 PFT/cohort biomass와 연결하는 문헌을 복구했다.
+
+### 현재 확정 원칙
+- COPLAS는 최종 고운사 모델 근거에서 제외한다. 비교대상으로만 보존한다.
+- MUSLE는 최종 산지 유수침식식에서 제외한다.
+- 단일 vegetation cover 대신 PFT/cohort별 quantitative vegetation state를 우선한다.
+- root-access depth는 AB soil thickness와 동일시하지 않는다. C/Cr까지 root access를 허용한다.
+- 현장실험 회귀식과 실제 수치모델을 구분한다.
+- 서로 다른 published model의 결합은 모두 `새로운 coupling`으로 표시한다.
+
+### 유수침식
+핵심 모델근거:
+- Saco & Moreno-de las Heras 2013: biomass -> SIBERIA erodibility의 직접 선례
+- Tan et al. 2022 ELM-Erosion: PFT별 topsoil root biomass effect
+- Wang et al. 2024 VED: detachment capacity와 transport capacity에 vegetation effect를 별도 적용
+
+최신 실험근거의 방향:
+- FineRootC 자체보다 RMD, RLD, RSAD, SRL, root architecture가 Dc/Kr/tau_c 설명에 더 직접적
+- grass, shrub, forest 또는 fibrous/tap root를 동일 계수로 처리하지 않는다
+- forest biomass 증가가 erosion resistance의 단조증가를 의미하지 않는다
+
+### 사면확산 및 biogenic transport
+현재 작업구조:
+`q_hill = q_creep + q_rootgrowth + q_treethrow`
+
+근거:
+- Gabet et al. 2003: root mass, turnover, rooting-depth distribution
+- Gabet & Mudd 2010: root fracture와 tree throw
+- Doane et al. 2021/2023/2024: tree throw와 hillslope roughness 계보
+- Adams et al. 2023: post-fire CWD sediment storage/connectivity
+
+산불 후 dead wood는 SurfaceLitC로만 보내지 않고 CWD 상태를 별도 검토한다.
+
+### 풍화 및 soil/regolith production
+현재 작업구조:
+`W_total = W_hydroclimatic + W_deep_root_chemical + W_woody_mechanical`
+
+근거:
+- Pelak et al. 2016: biomass-driven soil production의 최소모델
+- Gabet & Mudd 2010: woody mechanical weathering
+- REWTCrunch 2022: root biomass/exudation -> reactive weathering
+- Pawlik et al. 2023/2024: living tree roots와 soil formation의 최근 현장근거
+- Osorio-Leon et al. 2025: deep roots가 bedrock-vadose-zone silicate weathering을 정량적으로 강화
+- Billings et al. 2025: deep root-regolith interaction의 biome-scale 근거
+- Bemis et al. 2026: bare rock -> moss -> grass -> shrub -> tree succession과 Critical Zone 생성
+
+### 최신 결정 파일
+- [COPLAS/MUSLE 제외](decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md)
+- [LPJ-GUESS quantitative biomass coupling](decisions/2026-09-21_LPJGUESS_BIOMASS_COUPLING.md)
+- [세 지형과정 구조](decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md)
+
+### 남은 핵심 gap
+1. FineRootC -> RMD/RLD/RSAD/SRL의 PFT별 변환
+2. genuine 2D 산지 flow solver와 biomass-dependent detachment 식의 최종 결합
+3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
+4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
+5. 2025 LPJ-GUESS P-weathering 논문의 정확한 서지정보 재복구
