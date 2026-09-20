@@ -17,13 +17,15 @@
 산불
  -> 식생 소실 및 회복
  -> 유수침식 변화
- -> 사면 토사이동
- -> shallow landslide
- -> tree throw / root bioturbation
- -> soil production / weathering
+ -> 사면 creep / root-growth transport / dry ravel
+ -> soil-regolith weathering / production
  -> fire-spall 및 coarse-fragment supply
  -> 지형 변화
  -> 다시 식생에 feedback
+
+현재 production baseline에서 제외:
+- tree throw / uprooting
+- shallow landslide
 ```
 
 식생 동태는 LPJ-GUESS를 중심으로 하고, 지형과정에는 가능한 한 기존 published equations를 그대로 사용한다.
@@ -53,6 +55,7 @@
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
+- `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
 
 ---
 
@@ -765,9 +768,8 @@ storm separation dry-gap은 임의값으로 고정하지 않고 hydrologic respo
 5. actual Gounsa DEM에서 SWEHR runtime / CFL / event count benchmark
 6. dead-root mechanical-integrity decay와 fire severity/depth별 root mortality transfer
 7. coarse-fragment supply vs armour dynamics
-8. shallow-landslide root architecture conversion
 9. fire-spall production의 정량식/수치모델
-10. chemical front advance, dissolved mass loss, woody mechanical production의 100년 규모 비교와 front-model calibration
+10. chemical front advance와 dissolved mass loss의 100년 규모 비교 및 front-model calibration
 
 유수침식 엔진 자체의 우선순위는 현재:
 
@@ -846,13 +848,14 @@ Iber+ = source access 확보 시 재평가
 
 ### 사면확산 및 biogenic transport
 현재 작업구조:
-`q_hill = q_creep + q_rootgrowth + q_treethrow`
+`q_hill = q_bg + q_rootgrowth + q_dryravel`
 
 근거:
 - Gabet et al. 2003: root mass, turnover, rooting-depth distribution
-- Gabet & Mudd 2010: root fracture와 tree throw
-- Doane et al. 2021/2023/2024: tree throw와 hillslope roughness 계보
-- Adams et al. 2023: post-fire CWD sediment storage/connectivity
+- Gabet et al. 2003: root growth/decay transport
+- Furbish et al. 2009: active-soil-depth dependent residual creep
+- Lamb / Roering-Gerber / Jackson-Roering: postfire dry-ravel pathway
+- tree throw/uprooting literature is retained as optional archive only
 
 산불 후 dead wood는 SurfaceLitC로만 보내지 않고 CWD 상태를 별도 검토한다.
 
@@ -863,16 +866,15 @@ Iber+ = source access 확보 시 재평가
 ```
 Delta H_prod
 =
-Delta H_chem
+Delta H_chem_front
 +
-Delta H_woody_mech
-+
-Delta H_other_phys
+Delta H_other_phys_if_supported
 ```
+
+tree throw/rootwad 기반 woody mechanical production은 현재 production baseline에서 제외한다.
 
 핵심 모델:
 - **LPJ-GUESS-CNP 2025**: patch별 daily runoff + soil temperature -> daily empirical chemical-weathering/P-release forcing, geomorphic soil-production engine 자체는 아님
-- **Gabet & Mudd 2010**: annual root fracture + tree throw -> woody mechanical bedrock erosion
 - REWTCrunch 2022: deep-root chemical-weathering validation/advanced option
 - SoilGen 2022: daily-hydrology 1D chemical-weathering benchmark
 - SSSPAM 2019/2021: physical weathering/profile/armour + 100-year feasibility benchmark
@@ -889,7 +891,6 @@ LPJ-GUESS-CNP weathering output을 geomorphic soil/regolith thickness로 바꾸�
 ### 남은 핵심 gap
 1. LPJ-GUESS native root-state output을 geomorphic modules에 전달하는 interface mapping
 2. genuine 2D 산지 flow solver와 biomass-dependent detachment 식의 최종 결합
-3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
 4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
 5. LPJ-GUESS-CNP chemical-weathering flux를 geomorphic solid-mass/thickness 변화로 바꾸는 mass-balance coupling
 
@@ -1319,3 +1320,54 @@ D*_bg != 0
 Fire multiplier를 임의로 곱하지 않는다. 산불효과는 `H_active`, dry ravel, roots, tree throw, landslide의 explicit states로 우선 전달한다.
 
 Freeze-thaw가 고운사에서 중요하다고 판명되면 Anderson 2002 frost-creep model을 별도 explicit process로 승격한다.
+
+
+---
+
+## 2026-09-21 production scope correction
+
+최신 범위 결정:
+`decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
+
+현재 100년 production baseline에서는 다음을 제외한다.
+
+```
+tree throw / uprooting
+shallow landslide
+```
+
+관련 문헌은 archive/reference로 유지하되 구현 우선순위에서 제거한다.
+
+현재 핵심 지형과정:
+
+```
+water erosion
++ residual background creep
++ root-growth/decay transport
++ postfire dry ravel
++ soil/regolith weathering and production
++ fire spall / coarse fragments
+```
+
+사면수송:
+
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_dryravel
+```
+
+풍화/생산에서는 rootwad/tree-throw 기반 production을 기본항에서 제거한다.
+
+따라서 현재 다음 구현을 진행하지 않는다.
+- windthrow probability
+- DBH -> root plate volume
+- pit/mound transport
+- landslide factor of safety
+- shallow-landslide root cohesion
+
+필요성이 후속 자료에서 확인될 때만 optional module로 재검토한다.
