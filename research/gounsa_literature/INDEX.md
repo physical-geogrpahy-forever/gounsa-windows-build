@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (228)
+## Papers (222)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -71,7 +71,6 @@
 - `papers/1987_Unknown_MiningErosionBiomass.md`
 - `papers/1988_Hanson_Skiles_Parton_SPURMultiSpecies.md`
 - `papers/1988_Thornes_DynamicErosionVegetation.md`
-- `papers/1989_Kirkby_HillslopeRegolithBiomass.md`
 - `papers/1989_Kirkby_HillslopeRegolithModel.md`
 - `papers/1989_Koons_CollisionalMountainBelts.md`
 - `papers/1989_Littleboy_PERFECT.md`
@@ -122,7 +121,6 @@
 - `papers/1999_Puigdefabregas_WaterSedimentRedistribution.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
 - `papers/2003_Gabet_BioturbationSedimentTransport.md`
-- `papers/2003_Gabet_RootBioturbation.md`
 - `papers/2004_Istanbulluoglu_ForestDisturbanceSediment.md`
 - `papers/2004_Roering_VegetationTransportEfficiency.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
@@ -139,7 +137,6 @@
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
 - `papers/2010_Waldmann_PROMET_Large_Scale_Erosion.md`
 - `papers/2011_Lamb_Dry_Ravel_Postfire.md`
-- `papers/2011_Lamb_PostfireDryRavel.md`
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
 - `papers/2012_Taylor_DGVMWeathering.md`
@@ -148,7 +145,6 @@
 - `papers/2013_Pelletier_Coevolution_Vegetation_Soils_Topography.md`
 - `papers/2013_Saco_MorenoDeLasHeras_EcogeomorphicCoevolution.md`
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
-- `papers/2015_Hwang_RootBiomass.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Gould_VIC_WEPP_Wildfire_Mountain_Watershed.md`
@@ -157,8 +153,6 @@
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
-- `papers/2018_Hales_RootBiomass.md`
-- `papers/2018_Hales_RootReinforcementSlopeStability.md`
 - `papers/2018_Pelletier_Biomass_Diffusivity.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
@@ -262,10 +256,11 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (7)
+## Decisions (8)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
+- `decisions/2026-09-21_DUPLICATE_PAPER_CONSOLIDATION.md`
 - `decisions/2026-09-21_EXCLUSIONS.md`
 - `decisions/2026-09-21_LPJGUESS_BIOMASS_COUPLING.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
@@ -282,6 +277,11 @@
 - `MASTER.md`
 - `README.md`
 - `INDEX.md`
+
+## 중복관리
+- 동일 DOI 또는 동일 서지의 중복 파일은 canonical paper file 하나로 병합한다.
+- 같은 저자와 연도라는 이유만으로는 합치지 않는다.
+- 최신 중복통합 감사: `decisions/2026-09-21_DUPLICATE_PAPER_CONSOLIDATION.md`
 
 ## 유지 규칙
 1. 새 논문은 먼저 `papers/`에 저장한다.
