@@ -29,17 +29,32 @@ q_bg != natural-landscape total diffusivity
 ```
 이다.
 
-Preferred baseline:
+Preferred production baseline:
 
 ```
 q_bg
 =
--D*_bg H_active grad(z)
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
 ```
 
-with optional geometric correction from Furbish et al. 2009.
+This is the Johnstone-Hilley / Landlab `DepthDependentDiffuser` depth-limited transport form.
 
-- `D*_bg`: residual local-creep coefficient [L T^-1]
+For:
+
+```
+H_active << H_*
+```
+
+```
+q_bg
+approx
+-K_bg H_active grad(z)
+```
+
+The former `-D*_bg H_active grad(z)` expression is retained only as the shallow-soil approximation.
+
+- `K_bg`: residual local-creep transport coefficient [L T^-1]
+- `H_*`: transport decay depth [L]
 - `H_active`: active mobile-soil thickness [L]
 - `q_bg`: volumetric flux per contour width [L2 T^-1]
 
@@ -283,10 +298,19 @@ Therefore:
 
 **Production baseline:**
 ```
-q_bg = -D*_bg H_active grad(z)
+q_bg
+=
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
 ```
 
-**D*_bg is nonzero but residual/calibrated.**
+**Shallow-soil limit:**
+```
+q_bg
+approx
+-K_bg H_active grad(z)
+```
+
+`K_bg` is nonzero but residual/calibrated.
 
 Do not:
 - set it equal to total forest diffusivity
@@ -337,3 +361,21 @@ q_dryravel
 ```
 
 Tree throw/uprooting and shallow landslide are outside the current production scope.
+
+
+## Johnstone-Hilley / Landlab production override
+
+The 2026-09-21 shallow-sandstone implementation decision supersedes the earlier linear-in-depth baseline as the full production form.
+
+Use:
+```
+q_bg
+=
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+through Landlab `DepthDependentDiffuser`.
+
+The Furbish-style linear-in-`H` expression remains the thin-soil asymptote and mechanistic interpretation, not the full production equation.
+
+Because Gounsa has shallow mobile soil, the two forms will be numerically close where `H_active << H_*`, but the saturating full form is retained for robustness when local soil thickens.
