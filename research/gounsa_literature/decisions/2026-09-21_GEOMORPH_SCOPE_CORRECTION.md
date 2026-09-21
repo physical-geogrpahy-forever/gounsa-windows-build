@@ -43,7 +43,17 @@ Baseline background creep:
 ```
 q_bg
 =
--D*_bg H_active grad(z)
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+Landlab `DepthDependentDiffuser`를 사용한다.
+
+얕은 토양에서는:
+
+```
+q_bg
+approx
+-K_bg H_active grad(z)
 ```
 
 Root-growth/decay transport:
@@ -104,3 +114,18 @@ shallow landslide      = archive only, production baseline excluded
 ```
 
 이 결정은 이후 MASTER와 short-timescale architecture의 현재 상태를 덮어쓴다.
+
+
+## implementation scaffold
+
+Weathering/creep production implementation is now anchored to Landlab:
+
+```
+Landlab
+ + custom shallow-sandstone production Mode A/B
+ + DepthDependentDiffuser
+ + separate Gabet root-growth flux
+ + separate dry-ravel flux
+```
+
+Tree throw/uprooting and shallow landslide remain archive-only and must not be reintroduced by later model-lineage files unless the scope decision is explicitly reopened.
