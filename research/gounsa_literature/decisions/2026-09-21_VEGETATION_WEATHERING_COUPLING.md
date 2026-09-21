@@ -73,14 +73,18 @@ root biomass
 을 daily reactive transport로 구현한다.
 
 ### biological proton cycle
-Banwart 2009 및 Taylor 2011/2012은:
+Banwart 2009의 비균근 process 계보를 참고한다.
+
+고운사에서 유지:
 ```
-NPP / root-mycorrhizal nutrient uptake
- -> proton balance / organic ligands
+biological productivity
+ -> root respiration / soil CO2
+ -> DOC / proton balance
  -> pH
  -> mineral dissolution
 ```
-을 process-based model로 계산한다.
+
+Taylor 2011/2012의 mycorrhizal functional-type 및 fungal weathering 항은 최신 결정 `2026-09-21_MYCORRHIZA_EXCLUSION.md`에 따라 production/sensitivity에서 제외한다. Taylor 2012는 DGVM -> process-based weathering이라는 상위 구조만 참고한다.
 
 ## 결정 1: Hartmann-only 구조를 complete weathering representation으로 사용하지 않는다
 
@@ -355,3 +359,21 @@ Physical root fracture:
 not zero conceptually
 but no hard-coded production coefficient yet
 ```
+
+
+## mycorrhiza scope override
+
+최신 결정:
+`decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+
+균근 관련 state/coupling은 현재 production 및 sensitivity에서 제외한다.
+
+```
+mycorrhizal_type
+AM / EcM
+fungal hypha weathering
+fungal oxalate allocation
+PFT -> mycorrhiza mapping
+```
+
+관련 논문은 archive/reference only로 유지한다.
