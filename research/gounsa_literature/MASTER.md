@@ -422,27 +422,27 @@ McGuire output을 단순 Wu rill-mask generator로 사용하는 것은 **새로�
 
 # 11. shallow landslide
 
-유수침식 erodibility와 별도 모듈로 둔다.
+**현재 production baseline에서 제외한다. Archive-only이다.**
 
-권장 architecture:
+Hales 2018, Istanbulluoglu 계열 등 기존 검토 문헌은 향후 범위 재개 시 참고하기 위해 보존한다.
+
+현재 구현에는 다음을 넣지 않는다.
 
 ```
-LPJ-GUESS FineRootC
- -> root vertical distribution / architecture
- -> RAR / diameter / tensile properties
- -> root reinforcement or c_r
- -> factor of safety
- -> shallow landslide
+root cohesion for landslide
+factor of safety
+failure probability
+landslide event routing
 ```
 
-Hales 2018은 biome-scale root reinforcement의 주요 근거이다.
+유수침식의 root effect와 shallow-landslide root cohesion은 서로 다른 과정이라는 기존 문헌 판정은 유지한다.
 
-Istanbulluoglu 계열은 postfire vegetation loss/recovery와 slope stability/sediment response를 함께 생각하는 구조적 근거이다.
-
-중요:
 ```
 erosion Ki/Kr root effect != shallow-landslide root cohesion
 ```
+
+관련 최우선 결정:
+`decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
 
 ---
 
@@ -451,16 +451,16 @@ erosion Ki/Kr root effect != shallow-landslide root cohesion
 다음 과정은 서로 합치지 않는다.
 
 ## lateral transport
+현재 production:
 - root growth/decay disturbance
-- tree throw
-- organismal soil displacement
+
+Archive-only:
+- tree throw / uprooting
+- 관련 organismal displacement 계보 중 tree-throw 기반 항
 
 관련 계보:
-- Gabet
-- Gabet & Mudd
-- Constantine
-- Doane
-- Kirwan/Shugart
+- Gabet: 현재 root-growth/decay transport 근거
+- Gabet & Mudd, Constantine, Doane, Kirwan/Shugart: archive/reference only where tree throw or uprooting is involved
 
 ## vertical/profile mixing
 - LORICA
@@ -487,9 +487,9 @@ q_dryravel
 - `q_bg`: residual background creep, Furbish 2009 depth-slope structure
 - `q_rootgrowth`: Gabet et al. 2003, annual root turnover
 - `q_dryravel`: Lamb 2011 postfire disturbance pathway
-- shallow landslide는 별도 discrete module
+- shallow landslide는 현재 production에서 제외하며 archive-only로 유지
 
-Roering 2001 nonlinear transport는 steep-slope sensitivity/alternative로 유지한다. 자연산림에서 보정된 total diffusivity를 그대로 쓰면서 root growth, tree throw, landslide를 별도로 더하면 double counting 위험이 있으므로 `K` 또는 `D`는 residual background coefficient로 보정해야 한다.
+Roering 2001 nonlinear transport는 steep-slope sensitivity/alternative로 유지한다. 자연산림에서 보정된 total diffusivity를 현재 production의 root-growth transport와 별도로 사용할 경우 double counting 위험이 있으므로 `K` 또는 `D`는 residual background coefficient로 보정해야 한다. Tree throw/uprooting과 shallow landslide는 현재 production에서 제외한다.
 
 Pelletier 2013은 long-term consistency benchmark로만 유지한다.
 
@@ -561,7 +561,7 @@ WEPP와 EUROSEM lineage에 coarse-fragment treatment 선례가 있으나 최종 
 
 ---
 
-# 16. 현재 잠정 전체 architecture
+# 16. 현재 production 전체 architecture
 
 ```
 LPJ-GUESS
@@ -573,32 +573,40 @@ LPJ-GUESS
  └─ root depth/distribution
        |
        +--> water erosion interface
-       |      ├─ interrill / rainfall-driven
-       |      └─ rill / flow-driven
+       |      ├─ rainfall-driven
+       |      └─ flow-driven
        |               |
        |               v
-       |        genuine 2D hydro-erosion engine
+       |             SWEHR
        |
-       +--> root mechanics
-       |      -> c_r / reinforcement
-       |      -> shallow landslide
+       +--> root state + turnover
+       |      -> Gabet root-growth/decay transport
        |
-       +--> biogenic transport
-       |      -> root disturbance / tree throw
-       |
-       +--> soil production / weathering
-       |
-fire --+--> spall production [UNRESOLVED]
-              |
-              v
-       coarse-fragment state
-              |
-              +--> mobile supply
-              +--> armour
+       +--> climate / hydrology / soil state
+              -> Hartmann chemical dissolved weathering
+
+Landlab grid
+ ├─ shallow-sandstone production
+ |      ├─ Mode A exponential
+ |      └─ Mode B shallow finite-depth hump sensitivity
+ ├─ residual background creep
+ |      -> DepthDependentDiffuser
+ ├─ Gabet root-growth/decay flux
+ └─ dry-ravel coupling
 
 fire
- -> vegetation storage loss
- -> dry ravel (Lamb)
+ ├─ vegetation storage loss
+ |      -> dry ravel
+ └─ spall production [UNRESOLVED]
+        |
+        v
+ coarse-fragment state
+        ├─ mobile supply
+        └─ armour
+
+ARCHIVE ONLY
+ ├─ tree throw / uprooting
+ └─ shallow landslide
 ```
 
 ---
