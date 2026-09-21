@@ -359,7 +359,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (16)
+## Decisions (17)
 
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -370,6 +370,7 @@
 - `decisions/2026-09-21_LPJGUESS_BIOMASS_COUPLING.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
 - `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
+- `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_TREE_THROW_COUPLING.md`
