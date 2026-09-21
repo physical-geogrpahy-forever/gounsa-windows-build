@@ -118,7 +118,22 @@ LPJ-GUESS root state/turnover
 ```
 
 ### chemical weathering
-Use LPJ-GUESS/Hartmann as a separate chemical dissolved-loss forcing in the mobile-soil mass balance.
+Use a separate vegetation-aware chemical-weathering module in the mobile-soil mass balance.
+
+Current production target:
+
+```
+LPJ-GUESS
+ -> B-WITCH-style vegetation interface
+ -> WITCH/PROFILE-style mineral kinetics
+ -> W_chem + nutrient release
+```
+
+Hartmann/LPJ-GUESS-CNP is retained as a low-cost benchmark, not the complete vegetation-weathering representation.
+
+REWTCrunch remains an advanced sensitivity for explicit root-exudation chemistry.
+
+Landlab does not itself supply this chemistry; it receives the accumulated chemical mass-balance update.
 
 ### production
 Sandstone `P(h)` remains a parent-material production law, not a direct biomass multiplier.
