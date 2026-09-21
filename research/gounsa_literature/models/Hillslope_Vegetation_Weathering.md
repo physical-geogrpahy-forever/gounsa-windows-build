@@ -1229,3 +1229,52 @@ Current production interpretation:
     root-water hydrologic forcing
 
 이 네 경로는 각각 독립 interface로 유지한다.
+
+## 12.13 model-only vegetation-weathering screen
+
+Field evidence가 아니라 실제 numerical model만 비교한 소묶음.
+
+| 모델 | dynamic vegetation/root | hydrology | chemical weathering | spatial soil/terrain | 고운사 역할 |
+|---|---|---|---|---|---|
+| ForSAFE | forest growth, uptake, litter | dynamic profile hydrology | PROFILE/SAFE dynamic weathering | vertical stand/profile | vegetation-weathering feedback |
+| LORICA | vegetation protection only | simplified landscape water context | O | raster DEM + multi-layer soil + erosion/deposition | soil-landscape-weathering coevolution |
+| SoilGen | vegetation as boundary driver | Richards + heat/gas/solute | O | 1D profile, catena pedons independent | vertical pedogenesis/weathering |
+| MIN3P-ArchiSimple | dynamic root architecture | RT framework, 2017 application은 water uptake 중심 아님 | mineral dissolution / full RT | 2D rhizosphere | root-chemistry interface |
+
+### ForSAFE
+ForSAFE가 현재 vegetation-weathering feedback의 가장 직접적인 forest numerical model이다.
+
+tree growth -> water/nutrient demand -> uptake
+weathering/decomposition/deposition -> nutrient availability -> tree growth
+tree growth -> litter return -> soil chemistry
+
+따라서 LPJ-GUESS와 chemical engine 사이의 ecosystem coupling은 ForSAFE architecture를 최우선 precedent로 둔다.
+
+### LORICA
+LORICA는 현재 soil-landscape-weathering spatial coupling에 가장 직접적이다.
+
+soil/profile state -> erosion/transport
+erosion/deposition -> mineral redistribution/profile state
+profile/mineral state -> chemical weathering
+
+단 vegetation은 dynamic ecology가 아니라 erosion protection feedback이므로 LPJ-GUESS를 대체하지 못한다.
+
+### SoilGen
+SoilGen은 vertical water + gas + solute + pedogenesis + chemical weathering을 강하게 구현하지만 independent 1D pedons이다.
+따라서 lateral connected hillslope chemistry를 별도로 붙여야 한다.
+
+### MIN3P-ArchiSimple
+Root architecture를 control-volume별 root surface density로 바꿔 reactive transport와 mineral dissolution에 연결한다.
+이는 LPJ-GUESS root state를 chemistry에 넘길 때 biomass scalar 대신 depth/spatial root state를 유지해야 한다는 mechanistic precedent다.
+
+### current synthesis
+
+LPJ-GUESS -> vegetation state
+ForSAFE lineage -> vegetation-weathering feedback architecture
+MIN3P lineage -> root-process interface
+SoilGen -> vertical pedogenesis/weathering structure
+LORICA -> geomorphic redistribution + weathering spatial coupling
+Flux-PIHM/WITCH, BioRT, PFLOTRAN/Crunch -> hillslope hydrology/reactive transport
+SWEHR/Landlab -> postfire geomorphology
+
+전체 결합은 NEW COUPLING이다.
