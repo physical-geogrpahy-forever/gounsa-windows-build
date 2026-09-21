@@ -405,6 +405,28 @@ LPJ-GUESS
 Vegetation can accelerate or impede weathering depending on the balance among water use, reaction time, mineral supply and nutrient recycling.
 
 
+## hillslope integration refinement
+
+Sullivan et al. 2019 is now a top-tier direct coupling precedent because it combines:
+- distributed hillslope hydrology
+- WITCH weathering
+- vegetation nutrient uptake and litter return
+
+The model response confirms that vegetation cycling can decrease net weathering.
+
+Hasenmueller 2015 and Kopp 2023 add an important distinction:
+
+```
+respiration source
+!=
+soil pCO2 state
+```
+
+Thus LPJ-GUESS supplies biological CO2 production, while terrain/hydrology/gas transport determines retained pCO2.
+
+Tang et al. 2020 adds a sandstone-specific hydrologic constraint: preferential flow depends jointly on lithology, profile structure, antecedent moisture and hillslope position.
+
+
 ## current judgment
 - vegetation effect on chemical weathering: **explicitly required**
 - vegetation effect on physical sandstone production: **mechanistically supported but quantitatively unresolved**
