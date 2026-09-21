@@ -64,6 +64,7 @@
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 - `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
 - `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+- `decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
 
 ---
 
@@ -722,82 +723,284 @@ P_sand(H)
 remains unchanged.
 
 
-# 16. 현재 production 전체 architecture
+# 15.3 hillslope-connected vegetation-weathering correction
+
+최신 결정:
+`decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
+
+최신 모델:
+`models/Hillslope_Vegetation_Weathering.md`
+
+Chemical weathering은 더 이상 cell-local vegetation sink로만 취급하지 않는다.
+
+### vertical profile
 
 ```
-LPJ-GUESS
- ├─ PFT / cohorts / AGB
- ├─ FineRootC / root depth / turnover
- ├─ litter / SOM state
- ├─ NPP / nutrient demand
- ├─ soil temperature
- ├─ soil water / runoff / drainage
- └─ vegetation recovery
-       |
-       +--> water-erosion resistance
-       |      ├─ roots / litter
-       |      └─ surface state
-       |               |
-       |               v
-       |             SWEHR
-       |
-       +--> root state + turnover
-       |      -> Gabet root-growth/decay transport
-       |
-       +--> vegetation-weathering interface
-              ├─ hydrology / drainage
-              ├─ soil CO2 / belowground respiration
-              ├─ nutrient uptake / return
-              └─ litter / decomposition
-                       |
-                       v
-              WITCH / PROFILE-style
-              mineral weathering
-                       |
-                       ├─ W_chem dissolved mass loss
-                       └─ nutrient release
-                              |
-                              v
-                    LPJ-GUESS-CNP nutrient pools
-                              |
-                              └--> vegetation growth feedback
+PDZ / mobile soil
+~ A/B mobile soil, H_AB
 
-Hartmann + LPJ-GUESS-CNP
- └─ low-cost hydroclimatic benchmark only
+CAZ / chemically altered but relatively immobile zone
+~ C/Cr / weathered regolith
 
-REWTCrunch
- └─ advanced root-exudation sensitivity / validation
-
-Landlab grid
- ├─ shallow-sandstone production P_sand(H)
- |      ├─ Mode A exponential
- |      └─ Mode B shallow finite-depth hump sensitivity
- ├─ residual background creep
- |      -> DepthDependentDiffuser
- ├─ Gabet root-growth/decay flux
- └─ dry-ravel coupling
-
-P_sand(H)
- └─ no arbitrary root-biomass multiplier
-    direct biomechanical root weathering remains unresolved/optional
-
-fire
- ├─ vegetation storage loss
- |      -> dry ravel
- └─ spall production [UNRESOLVED]
-        |
-        v
- coarse-fragment state
-        ├─ mobile supply
-        └─ armour
-
-ARCHIVE ONLY
- ├─ tree throw / uprooting
- └─ shallow landslide
+fresh parent
+~ sandstone below weathering front
 ```
+
+Therefore:
+
+```
+H_AB
+!=
+Z_weathered
+```
+
+and:
+
+```
+Z_water_table
+!=
+Z_weathering_front
+```
+
+in general.
+
+Current vegetation does not reset the inherited weathering profile.
+
+Initialize:
+- `H_AB(t0)`
+- `Z_weathered(t0)` or CAZ thickness
+- fracture/permeability state
+- rock-moisture state
+- mineral inventory
+- optional groundwater/deep-flow state
+
+and simulate only incremental 100-year change.
+
+### four weathering pathways
+
+```
+1. root water uptake
+   -> drainage / residence time
+   -> W_chem
+
+2. root / belowground respiration
+   -> CO2 / acidity
+   -> W_chem
+
+3. nutrient uptake + litter return
+   -> solution chemistry / nutrient recycling
+   -> W_chem
+
+4. erosion / deposition
+   -> fresh-mineral supply / mineral residence
+   -> W_chem
+```
+
+No biomass multiplier combines these pathways.
+
+### hillslope hydrology
+
+Weathering state now requires, at minimum as production or mandatory sensitivity:
+
+```
+infiltration / recharge
+shallow/deep flow partition
+vertical connectivity
+water residence time
+saturation state
+rock-moisture storage
+```
+
+Relevant lineages:
+- Anderson et al. 2018
+- Maher 2010
+- Xiao et al. 2021
+- Wen et al. 2022
+- Rempe & Dietrich 2014
+- Wang et al. 2021
+- Stolze et al. 2026
+
+No direct aspect or hillslope-position multiplier.
+
+### transport-weathering feedback
+
+SWEHR/Landlab outputs must feed chemistry through at least:
+
+```
+erosional/depositional status
+fresh-mineral fraction
+imported-sediment fraction
+effective mineral-residence proxy
+```
+
+because:
+```
+soil age
+!=
+mineral residence time
+```
+
+and weathering substrate at a hillslope position can include upslope-imported sediment.
+
+Primary lineage:
+- Yoo et al. 2007
+- Yoo & Mudd 2008
+- Yoo et al. 2009 sandstone
+- Larsen et al. 2023
+- Ferrier & Perron 2020
+
+### chemistry engines
+
+First production candidate remains:
+```
+WITCH / PROFILE
+```
+
+Advanced spatial alternatives/validation:
+```
+BioRT
+PFLOTRAN / Stolze 2026
+```
+
+Stolze 2026 is currently the strongest advanced 2D transient mountain-hillslope reactive-transport precedent found.
+
+### soil production
+
+```
+Mode A
+= exponential baseline
+
+Mode B
+= mandatory humped finite-depth sensitivity
+
+Mode C
+= optional vegetation-sensitive sensitivity
+```
+
+Mode C is supported structurally by Pelak 2016, Schaller & Ehlers 2022 and Rossi 2026, but is a NEW COUPLING and has no transferable sandstone coefficient.
+
+### hillslope scale
+
+Ferrier & Perron 2020 shows chemical-erosion response time can depend strongly on:
+
+```
+hillslope length
+soil transport timescale
+```
+
+Therefore local slope/cell chemistry alone is not sufficient context.
+
+The 100-year model should be interpreted as a transient incremental response, not a new equilibrium landscape.
 
 ---
 
+# 16. 현재 production 전체 architecture
+
+```
+INHERITED SUBSURFACE STATE
+├─ mobile soil H_AB / PDZ
+├─ weathered C/Cr / CAZ / Z_weathered
+├─ fresh sandstone boundary
+├─ fracture / permeability state
+├─ rock-moisture state
+└─ optional groundwater / deep-flow state
+            |
+            v
+LPJ-GUESS
+├─ PFT / cohorts / AGB
+├─ FineRootC(z) / root depth / turnover
+├─ root water uptake by layer
+├─ root / belowground respiration
+├─ litter / SOM
+├─ NPP / nutrient demand / uptake
+├─ soil temperature
+└─ soil water / runoff / drainage
+       |
+       +--> water-erosion resistance
+       |        |
+       |        v
+       |      SWEHR
+       |        |
+       |        +--> erosion / deposition
+       |                    |
+       |                    v
+       |          fresh/imported mineral state
+       |          mineral-residence proxy
+       |                    |
+       |                    +--------------------+
+       |                                         |
+       +--> root state + turnover                |
+       |      -> Gabet q_root                    |
+       |                                         |
+       +--> root water uptake                    |
+       |      -> drainage / residence time       |
+       |                                         |
+       +--> root respiration                     |
+       |      -> pCO2 / acidity                  |
+       |                                         |
+       +--> nutrient uptake / litter return      |
+              -> solution chemistry              |
+                                                 v
+HILLSLOPE HYDROLOGY --------------------> CHEMICAL WEATHERING
+├─ infiltration / recharge                 ├─ WITCH / PROFILE first candidate
+├─ shallow/deep flow                       ├─ BioRT spatial alternative
+├─ vertical connectivity                   └─ PFLOTRAN advanced validation
+├─ saturation                                      |
+├─ residence time                                  ├─ W_chem
+└─ rock moisture                                   └─ nutrient release
+                                                        |
+                                                        v
+                                               LPJ-GUESS-CNP
+                                                        |
+                                                        └--> vegetation feedback
+
+Landlab / shared geomorphic state
+├─ H_AB / PDZ
+├─ Z_weathered / CAZ state
+├─ topographic__elevation
+├─ fresh-parent boundary
+├─ fracture/coarse-fragment states
+├─ residual creep -> DepthDependentDiffuser
+├─ Gabet root-growth/decay flux
+└─ dry-ravel coupling
+
+Sandstone production
+├─ Mode A: exponential baseline
+├─ Mode B: humped finite-depth mandatory sensitivity
+└─ Mode C: optional vegetation-sensitive sensitivity [NEW COUPLING]
+
+fire
+├─ vegetation storage loss -> dry ravel
+└─ spall production [UNRESOLVED]
+       |
+       v
+coarse-fragment state
+├─ mobile supply
+└─ armour
+
+ARCHIVE / EXCLUDED
+├─ mycorrhiza
+├─ tree throw / uprooting
+└─ shallow landslide
+```
+
+Critical rules:
+
+```
+H_AB != Z_weathered
+Z_water_table != Z_weathering_front
+W_chem != P_sand
+soil age != mineral residence time
+```
+
+Do not use:
+- direct aspect weathering multiplier
+- direct hillslope-position multiplier
+- biomass/NPP chemical-weathering multiplier
+- vegetation-modified residual `K_bg`
+- current vegetation to reset inherited weathering depth
+
+---
 # 17. 현재 유수침식 implementation 선택
 
 최신 결정:
@@ -1771,7 +1974,7 @@ Dry ravel remains a separate postfire transport process.
 
 ### sandstone production
 
-Current mandatory sensitivity modes:
+Current modes:
 
 ```
 Mode A:
@@ -1784,6 +1987,16 @@ P0 exp(-H/gamma)
 Mode B:
 shallow-soil finite-depth hump / zero-depth suppression sensitivity
 ```
+
+```
+Mode C:
+optional vegetation-sensitive production sensitivity
+P_C(H,V)
+```
+
+Mode B is mandatory. Mode C is optional and is a **NEW COUPLING** based structurally on Pelak 2016 + Schaller & Ehlers 2022 + Rossi 2026.
+
+No Pelak biomass coefficient is transferred to Gounsa sandstone.
 
 Mode B functional form/coefficients are **not invented** before suitable local/regional evidence.
 
@@ -1814,11 +2027,16 @@ W_chem
 
 Use:
 - slow sandstone parent-material production: `P_sand(H)`
-- vegetation-aware chemical dissolved weathering:
-  `LPJ-GUESS -> B-WITCH-style interface -> WITCH/PROFILE -> W_chem`
-- Hartmann/LPJ-GUESS-CNP: low-cost benchmark
+- inherited PDZ/CAZ/weathering-front state
+- LPJ-GUESS root water uptake -> drainage/residence
+- LPJ-GUESS root respiration -> CO2/acidity
+- nutrient uptake/litter return -> solution chemistry
+- erosion/deposition -> fresh-mineral supply/mineral residence
+- WITCH/PROFILE as first chemistry candidate
+- BioRT/PFLOTRAN as spatial advanced alternatives
+- Hartmann/LPJ-GUESS-CNP as low-cost benchmark
 
-Do not apply arbitrary climate, biomass, NPP or fire multipliers to `P_sand` without separate evidence.
+Do not apply arbitrary climate, biomass, NPP, aspect, hillslope-position or fire multipliers to `P_sand` or `W_chem`.
 
 ### Landlab numerical scaffold
 
