@@ -1,0 +1,474 @@
+# Gounsa hillslope vegetation-weathering handoff
+
+날짜: 2026-09-21
+브랜치: `gounsa-water-erosion-deep-review-2026-09-21`
+
+## 이번 세션의 질문
+
+고운사 100년 postfire model에서:
+
+```
+사면 위치
++
+식생
++
+수문
++
+화학풍화
++
+토양생산
++
+침식/퇴적
+```
+
+을 어떻게 완전한 feedback으로 연결할 것인가?
+
+---
+
+## 핵심 결론
+
+Chemical weathering은 더 이상 cell-local sink가 아니다.
+
+현재 authoritative structure:
+
+```
+vegetation
+ -> root water uptake / respiration / nutrient cycling
+ -> hillslope hydrology / residence time / CO2
+ -> chemical weathering
+ -> nutrient release / mass loss
+ -> soil-regolith state
+ -> erosion/deposition / fresh-mineral supply
+ -> chemical weathering
+ -> vegetation
+```
+
+Topography is active through:
+- slope
+- hillslope length
+- divide/channel position
+- shallow/deep flow
+- vertical connectivity
+- saturation
+- water table / deep drainage
+- erosional vs depositional state
+
+No direct aspect or hillslope-position multiplier is used.
+
+---
+
+## vertical profile architecture
+
+Yoo & Mudd 2008 lineage:
+
+```
+PDZ
+~ mobile A/B soil
+
+CAZ
+~ chemically altered but relatively immobile C/Cr
+
+fresh parent
+~ sandstone
+```
+
+Therefore:
+
+```
+H_AB != Z_weathered
+```
+
+and generally:
+
+```
+Z_water_table != Z_weathering_front
+```
+
+Initial subsurface weathering architecture is inherited.
+
+The 100-year model simulates incremental change only.
+
+---
+
+## vegetation-weathering core pathways
+
+### 1. root water uptake
+
+Druhan & Bouchez 2024:
+
+```
+root water uptake
+ -> lower drainage
+ -> altered residence/reaction time
+ -> weathering
+```
+
+### 2. root respiration
+
+Tune 2020/2023, Osorio-Leon 2025, Stolze 2026:
+
+```
+root/belowground respiration
+ -> pCO2
+ -> carbonic-acid chemistry
+ -> W_chem
+```
+
+Stolze 2026 provides an explicit intermediate structure:
+
+```
+R_root = k f(T) f(S_w)
+```
+
+but its original 0.2 m root zone is meadow-specific and not transferable.
+
+Gounsa candidate:
+```
+LPJ-GUESS FineRootC(z)
+ -> spatial root-respiration source
+```
+as NEW COUPLING.
+
+### 3. nutrient uptake / litter return
+
+Druhan & Bouchez 2024:
+
+```
+mineral weathering
+ -> dissolved nutrient
+ -> root uptake
+ -> vegetation pool
+ -> litter return
+ -> upper-soil solution chemistry
+```
+
+This supports the intended return:
+```
+W_chem nutrient release
+ -> LPJ-GUESS-CNP
+```
+
+### 4. geomorphic fresh-mineral supply
+
+Yoo 2007/2009, Larsen 2023:
+
+```
+erosion/deposition
+ -> fresh-mineral supply
+ -> mineral residence
+ -> W_chem
+```
+
+This pathway can dominate or mask vegetation effects.
+
+---
+
+## hillslope hydrology
+
+Mandatory production/sensitivity states:
+
+```
+infiltration/recharge
+shallow/deep flow partition
+vertical connectivity
+water residence time
+saturation state
+rock-moisture storage
+optional groundwater/deep-flow state
+```
+
+Key papers:
+- Maher 2010
+- Anderson et al. 2018
+- Xiao et al. 2021
+- Wen et al. 2022
+- Rempe & Dietrich 2018
+- Hahm et al. 2022
+- Barling et al. 2025
+- Stolze et al. 2026
+
+---
+
+## weathering-front controls
+
+### top-down
+
+```
+infiltration / O2 / reactive water
+ -> downward weathering
+```
+
+Vegetation affects this through:
+- root water uptake
+- infiltration/permeability
+- root respiration/CO2
+
+### bottom-up
+
+Rempe & Dietrich 2014:
+
+```
+channel incision
+ -> fresh-bedrock drainage
+ -> access by reactive fluids/gases
+ -> weathering
+```
+
+### coevolution
+
+Wang et al. 2021:
+
+```
+weathering front
+!=
+water table
+```
+
+in general.
+
+Therefore:
+- keep separate states
+- do not hard-code one universal front-control mechanism
+
+---
+
+## hillslope response time
+
+Ferrier & Perron 2020:
+
+```
+tau_diffusion ~ L^2 / D
+```
+
+Hillslope length can dominate chemical-erosion transient response time.
+
+Thus:
+- local slope is not enough
+- divide/channel distance matters
+- 100-year postfire weathering response is transient incremental change, not equilibrium
+
+---
+
+## sandstone/sedimentary hillslope evidence
+
+### Yoo et al. 2009
+Re-audited as a **sedimentary sandstone hillslope** study.
+
+Key:
+```
+upper eroding slope
+ -> colluvial mineral supply
+ -> higher weathering
+
+lower depositional slope
+ -> thicker soil / longer residence
+ -> equilibrium limitation
+ -> lower weathering
+```
+
+### Donaldson et al. 2026
+Metagreywacke sandstone with shale interbeds.
+
+Current oak vs grass contrasts did not produce major differences in shallow cumulative chemical weathering.
+
+Interpretation:
+- inherited/paleo weathering matters
+- deeper weathering differences track fracture density
+- weathering base relates to water-table/stream elevation
+
+Therefore current vegetation must not reset inherited weathering depth.
+
+### Cooper et al. 2023
+Sandstone plantation:
+- deep roots use saprolite/saprock
+- thicker lower-slope regolith can reflect colluvial deposition rather than deeper in-situ weathering
+
+### Jo et al. 2007
+Korean Jinju sandstone:
+- root pressure
+- joints
+- infiltration
+- physical and chemical weathering
+co-occur.
+
+### Potysz & Bartz 2024
+Biotic chemical weathering sensitivity depends strongly on sandstone cement/mineralogy.
+
+---
+
+## vegetation-sensitive soil production
+
+### Mode A
+```
+P_A(H)=P0 exp(-H/gamma)
+```
+
+baseline.
+
+### Mode B
+finite-depth hump / zero-depth suppression.
+
+mandatory sensitivity.
+
+Support:
+- Heimsath 2009
+- Rossi 2026
+- SSSPAM 2025
+
+### Mode C
+optional vegetation-sensitive sensitivity.
+
+Pelak 2016 structural precedent:
+
+```
+P(h,b)
+=
+[P0 + Pv b] exp(-ks h)
+```
+
+Schaller & Ehlers 2022 found broad soil-production variation was most consistent with soil-thickness + biomass formulations.
+
+Rossi 2026 adds forested-mountain humped-production support.
+
+Gounsa rule:
+- no Pelak coefficient transfer
+- no direct FineRootC multiplier
+- Mode C is NEW COUPLING only
+
+---
+
+## strongest advanced spatial chemistry engine found
+
+### Stolze et al. 2026 / PFLOTRAN
+
+Published 2D mountain hillslope:
+- 92,880 active cells
+- 1 m horizontal
+- 0.2 m vertical
+- variably saturated flow
+- gas-water exchange
+- root respiration
+- root exudates
+- soil respiration
+- transient climate
+- multiple mineral kinetics
+- slope/topography sensitivity
+
+Current role:
+- strongest advanced validation/alternative engine
+- not immediately replacing WITCH/PROFILE first candidate due computational cost
+
+Model file:
+`models/PFLOTRAN_Mountain_Hillslope_Weathering.md`
+
+---
+
+## transport-weathering state
+
+At minimum chemistry receives from SWEHR/Landlab:
+
+```
+erosional/depositional state
+fresh-mineral fraction
+imported-sediment fraction
+effective mineral-residence proxy
+```
+
+Important:
+
+```
+soil age != mineral residence time
+```
+
+from Yoo & Mudd 2008.
+
+---
+
+## strongest new papers added in this pass
+
+- 2000 Moulton et al.
+- 2004 Mudd & Furbish
+- 2007 Yoo et al.
+- 2008 Yoo & Mudd geochemical soil formation
+- 2008 Yoo & Mudd mineral residence
+- 2009 Heimsath humped production
+- 2010 Roering et al. biotic controls
+- 2011 Anderson et al. Gordon Gulch
+- 2014 Anderson et al. aspect CZ
+- 2014 Hahm et al.
+- 2014 Rempe & Dietrich
+- 2015 Amundson et al.
+- 2015 Milodowski et al.
+- 2016 Chadwick & Asner
+- 2016 Erlandsson et al.
+- 2018 Anderson et al.
+- 2018 Rempe & Dietrich
+- 2019 Molina et al.
+- 2020 Ferrier & Perron
+- 2021 Anderson et al. Gordon Gulch
+- 2021 Nielson et al.
+- 2021 Smith & Bookhagen
+- 2021 Wang et al.
+- 2021 Xiao et al.
+- 2022 Hahm et al.
+- 2022 Meng et al.
+- 2022 Schaller & Ehlers
+- 2023 Cooper et al.
+- 2023 Larsen et al.
+- 2023 Rasmussen et al.
+- 2024 Druhan & Bouchez
+- 2024 Luo et al.
+- 2025 Barling et al.
+- 2025 Welivitiya et al.
+- 2026 Donaldson et al.
+- 2026 Rossi et al.
+- 2026 Stolze et al.
+
+---
+
+## authoritative files
+
+### decisions
+- `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+- `decisions/2026-09-21_SOIL_WEATHERING_FOURTH_PASS_NON_MYCORRHIZAL.md`
+- `decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
+
+### models
+- `models/Hillslope_Vegetation_Weathering.md`
+- `models/Vegetation_Weathering_Coupling.md`
+- `models/PFLOTRAN_Mountain_Hillslope_Weathering.md`
+- `models/BioRT.md`
+- `models/Sandstone_Soil_Production.md`
+- `models/Landlab_ShallowSoil_Weathering_Creep.md`
+
+---
+
+## next work
+
+1. LPJ-GUESS source/output audit:
+   - root respiration
+   - layer-wise root water uptake
+   - FineRootC vertical profile
+   - nutrient uptake / litter return
+
+2. Gounsa site characterization:
+   - sandstone petrography
+   - cement type
+   - fracture density
+   - actual H_AB distribution
+   - C/Cr/weathered-zone depth if data exist
+
+3. hillslope hydrology implementation:
+   - residence time
+   - shallow/deep flow
+   - rock moisture
+   - optional groundwater/deep flow
+
+4. chemical engine practicality:
+   - WITCH/PROFILE
+   - BioRT
+   - reduced PFLOTRAN/Stolze
+
+5. Mode C vegetation-sensitive soil-production sensitivity design
+
+6. fire-spall + coarse-fragment supply/armour
