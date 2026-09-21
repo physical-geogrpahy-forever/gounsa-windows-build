@@ -285,6 +285,94 @@ P_sand(H)
 until a mass-conserved sandstone-specific front model is adopted.
 
 
+## fourth-pass non-mycorrhizal production core
+
+Authoritative decisions:
+- `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+- `decisions/2026-09-21_SOIL_WEATHERING_FOURTH_PASS_NON_MYCORRHIZAL.md`
+
+### production-required vegetation states
+
+```
+PFT / NPP
+FineRootC(z)
+root fraction by layer
+root access depth
+root water uptake by layer
+root / belowground respiration
+litter / SOM state
+nutrient uptake / return
+soil temperature
+soil water / runoff / drainage
+```
+
+### production-required reaction/hydrologic states
+
+```
+pCO2 / CO2 source by depth
+pH / H+
+mineralogy
+reactive surface area
+soil water
+flow-path depth
+water residence time
+saturation state / reaction affinity
+secondary-mineral state
+```
+
+### optional sensitivity only
+
+```
+root-derived DOC / organic ligand source
+```
+
+Root-exudate sensitivity is optional because:
+- Calvaruso 2013 verifies a strong living-root dissolution pathway
+- Chibesa 2025 shows compound/mineral-specific response
+- Lawrence 2014 shows profile-scale net response can differ from local dissolution enhancement
+- Garcia-Arredondo 2023 shows root-derived C partitions to sorption and microbial consumption
+
+Do not require explicit exudate speciation in first production.
+
+### hydrologic control
+
+Maher 2010 makes fluid residence time a central weathering control.
+
+Therefore:
+```
+runoff only
+!= sufficient hydrologic weathering state
+```
+
+At minimum test:
+- drainage
+- subsurface flow-path depth
+- water residence time
+
+### deep-root CO2
+
+Tune 2020, Tune 2023, and Osorio-Leon 2025 support:
+
+```
+deep rooting
+ -> below-soil respiration / CO2
+ -> bedrock-zone acidity
+ -> chemical weathering
+```
+
+Thus root access depth may exceed mobile-soil thickness and CO2 source may occur in C/Cr or fractured bedrock.
+
+### no mycorrhiza
+
+Current production and sensitivity contain no:
+```
+AM / EcM
+mycorrhizal_type
+fungal weathering multiplier
+fungal oxalate allocation
+```
+
+
 ## current judgment
 - vegetation effect on chemical weathering: **explicitly required**
 - vegetation effect on physical sandstone production: **mechanistically supported but quantitatively unresolved**
