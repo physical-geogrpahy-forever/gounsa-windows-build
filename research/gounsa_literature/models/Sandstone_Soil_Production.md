@@ -298,10 +298,20 @@ The Evans 2021 exponential form remains a required sensitivity case, but it is n
 
 ### transport consequence
 
-Residual creep already uses:
+Residual creep production baseline uses:
 
 ```
-q_bg = -D*_bg H_active grad(z)
+q_bg
+=
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+For shallow soil:
+
+```
+q_bg
+approx
+-K_bg H_active grad(z)
 ```
 
 so shallow soil automatically reduces the available creep flux.
@@ -317,3 +327,28 @@ For Gounsa, prioritize:
 4. fire-spall supply
 
 over deep-regolith mineral-age complexity.
+
+
+## Landlab implementation status
+
+Current production scaffold:
+
+```
+Landlab grid
+├─ soil__depth
+├─ bedrock__elevation
+├─ topographic__elevation
+├─ custom sandstone production
+│  ├─ Mode A: P0 exp(-H/gamma)
+│  └─ Mode B: shallow finite-depth hump / zero-depth suppression sensitivity
+└─ DepthDependentDiffuser
+   └─ q_bg
+```
+
+The Landlab numerical scaffold is adopted for implementation convenience and mass-conserved state handling.
+
+It is **not** the source of final Gounsa sandstone parameter values.
+
+Root-growth/decay transport and dry ravel remain separate fluxes outside the residual-diffusion coefficient.
+
+Tree throw/uprooting and shallow landslide remain outside the production baseline.
