@@ -351,3 +351,16 @@ Next research/implementation priorities:
 4. fire-spall production on sandstone
 5. coarse-fragment supply versus armour
 6. implementation integration in Landlab + SWEHR + LPJ-GUESS
+
+
+---
+
+## post-handoff consistency audit
+
+2026-09-21 KST 추가 확인:
+
+- `MASTER.md`의 예전 shallow-landslide 및 tree-throw architecture 문구가 최신 scope decision과 충돌하는 것을 확인했다.
+- `MASTER.md`를 수정하여 현재 production에서 두 과정 모두 archive-only임을 명시했다.
+- 현재 production architecture는 Landlab shallow-sandstone production + DepthDependentDiffuser + Gabet root-growth/decay transport + dry ravel + SWEHR + LPJ-GUESS/Hartmann으로 통일했다.
+- 수정 커밋: `80396cf2f5edc66f9459456a87ace4d82ffb8e62`
+- `main`은 변경하지 않았다.
