@@ -167,3 +167,75 @@ LPJ-GUESS respiration
 
 # 참고 링크 / DOI
 https://doi.org/10.1029/2025WR041597
+
+
+## 2026-09-21 full-text equation audit
+
+원 PDF를 직접 재검토하여 다음을 확인했다.
+
+### grid
+```
+92,880 active cells
+dx = 1 m
+dz = 0.2 m
+```
+
+### root respiration / exudation
+Root-derived CO2 and DOM source is explicitly modeled:
+
+```
+R_root
+=
+k * Arrhenius(T) * f(S_w)
+```
+
+- root-respiration activation energy: 75 kJ mol^-1
+- corresponding Q10 reported about 3.1
+- separate rate constants for CO2 and exudate release
+- original rooting depth: 0.2 m
+
+Original root depth is meadow-specific and not transferable.
+
+For Gounsa:
+```
+fixed 0.2 m source domain
+->
+LPJ-GUESS FineRootC(z) / root distribution
+```
+is a NEW COUPLING candidate.
+
+### mineral rate law
+The paper uses a TST-style parallel-rate formulation including:
+- neutral water pathway
+- H+ pathway
+- OH- pathway
+- aqueous CO2 pathway
+- Arrhenius temperature dependence
+- `(1-IAP/K_eq)` saturation term
+- mineral exposed surface area
+
+### hillslope sensitivity
+Synthetic average slope:
+```
+14% -> 55%
+```
+
+caused substantial changes in:
+- drainage
+- saturation
+- deep O2/CO2 delivery
+- mineral reaction rates
+
+The response occurs through hydrology and gas transport, not a direct slope multiplier.
+
+### reproducibility
+Confirmed:
+- ESS-DIVE model inputs/results
+- augmented PFLOTRAN code on Zenodo
+- depth-dependent temperature modification
+- Reaction Sandboxes
+
+### updated verdict
+This paper is now the strongest **advanced 2D transient hillslope reactive-transport engine** in the Gounsa archive.
+
+It does not replace LPJ-GUESS vegetation or Landlab geomorphology.
