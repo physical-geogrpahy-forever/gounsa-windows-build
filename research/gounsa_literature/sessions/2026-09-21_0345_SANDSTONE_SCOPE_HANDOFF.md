@@ -243,3 +243,39 @@ Best next tasks:
 3. fire-spall production on sandstone
 4. coarse-fragment supply versus armour
 5. after that, implementation integration
+
+
+## shallow-soil correction
+
+User clarified:
+```
+sandstone + shallow soil
+```
+
+Required sandstone-production sensitivity:
+```
+mode A = Evans exponential
+mode B = finite-depth shallow-soil peak / zero-depth suppression
+```
+
+Oregon sandstone evidence permits peak production around roughly 15-30 cm and lower production nearer exposed bedrock.
+
+For Evans et al. 2021 site-specific exponential fits and H_AB = 0.05-0.30 m, simple 100-year analogue production is approximately:
+- Comer: 7.2-7.6 mm
+- Hilton: 15.7-17.2 mm
+- Rufford: 6.2-6.9 mm
+- Woburn: 18.8-25.7 mm
+
+These are sensitivity values, not Gounsa predictions.
+
+Shallow soil also directly limits:
+```
+q_bg = -D*_bg H_active grad(z)
+```
+
+Current hillslope production baseline remains:
+```
+q_hill = q_bg + q_rootgrowth + q_dryravel
+```
+
+Tree throw/uprooting and shallow landslide remain excluded.
