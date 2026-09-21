@@ -714,6 +714,102 @@ VEGETATION-SENSITIVE PRODUCTION
 
 ---
 
+## 12.1 hillslope length and response-time constraint
+
+Ferrier & Perron 2020 couples:
+- 3D topography
+- soil thickness
+- soil mineral abundance
+- soil production
+- soil transport
+- mineral dissolution
+
+and shows that transient chemical-erosion response time can be controlled primarily by hillslope length.
+
+Characteristic transport context:
+
+```
+tau_diffusion
+=
+L^2 / D
+```
+
+Therefore:
+```
+local reaction rate
+!=
+landscape chemical-weathering response time
+```
+
+Gounsa implication:
+- preserve divide-to-channel distance/hillslope length as spatial context
+- do not interpret a 100-year run as new weathering equilibrium
+- treat postfire change as incremental transient response
+
+Vegetation can influence this response indirectly through hydrology, production and transport, but Ferrier & Perron does not provide a vegetation coefficient.
+
+## 12.2 top-down and bottom-up weathering-front controls
+
+### top-down
+```
+infiltration / O2 / reactive water
+ -> downward reaction
+ -> weathering-front advance
+```
+
+Vegetation can modify this through:
+- ET/root water uptake
+- infiltration
+- root respiration/CO2
+- root-zone permeability
+
+### bottom-up
+Rempe & Dietrich 2014:
+
+```
+channel incision
+ -> fresh-bedrock drainage
+ -> loss of stagnant equilibrated water
+ -> access of reactive fluids/gases
+ -> weathering
+```
+
+The groundwater/drainage geometry can therefore constrain the lower weathering boundary.
+
+### coevolution
+Wang et al. 2021 shows:
+
+```
+Z_water_table
+!=
+Z_weathering_front
+```
+
+in general, especially during transient evolution.
+
+Weathering-induced porosity/permeability can feed back on infiltration and hydrology.
+
+### Gounsa rule
+
+Maintain separate states:
+```
+Z_weathered
+Z_water_table or deep-flow state
+fracture/permeability state
+```
+
+Do not hard-code either:
+```
+weathering front = water table
+```
+or:
+```
+weathering front = top-down infiltration depth
+```
+
+Use both as end-member/sensitivity controls until site hydrology is constrained.
+
+
 ## 13. strongest papers for Gounsa
 
 ### direct sandstone/sedimentary hillslope relevance
