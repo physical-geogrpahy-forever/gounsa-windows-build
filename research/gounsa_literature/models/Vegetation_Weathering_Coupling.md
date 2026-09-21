@@ -373,6 +373,38 @@ fungal oxalate allocation
 ```
 
 
+## direct ecological-regulation precedent
+
+Druhan & Bouchez 2024 is now a core non-mycorrhizal interface reference.
+
+It explicitly links:
+
+```
+root water uptake
+ -> drainage / reaction timescale
+
+root nutrient uptake
+ -> solution chemistry
+
+plant nutrient pool
+ -> litter return / recycling
+```
+
+to an advection-reaction weathering framework.
+
+This strengthens the current design:
+
+```
+LPJ-GUESS
+ -> root water uptake
+ -> root respiration
+ -> nutrient uptake/return
+ -> WITCH/PROFILE or spatial RTM
+```
+
+Vegetation can accelerate or impede weathering depending on the balance among water use, reaction time, mineral supply and nutrient recycling.
+
+
 ## current judgment
 - vegetation effect on chemical weathering: **explicitly required**
 - vegetation effect on physical sandstone production: **mechanistically supported but quantitatively unresolved**
