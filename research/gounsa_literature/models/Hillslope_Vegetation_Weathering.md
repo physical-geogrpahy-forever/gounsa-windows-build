@@ -929,6 +929,95 @@ f(TWI or aspect alone)
 For Gounsa, shallow/deep flow partition should include sandstone profile/horizon and permeability/fracture information.
 
 
+## 12.6 vegetation-fracture preferential flow
+
+Uhlemann et al. 2024 provides direct mountain-hillslope evidence that:
+
+```
+tree locations
++ fractures
+ -> vertical preferential flow
+ -> deeper rock-moisture recharge
+```
+
+while adjacent steep shallow-bedrock zones can otherwise be dominated by shallow lateral flow.
+
+Gounsa implication:
+
+```
+vertical connectivity
+!= function of slope alone
+```
+
+It may require:
+- root presence/depth
+- fracture/permeability state
+- vegetation cover
+
+as joint controls.
+
+This is a NEW COUPLING if LPJ-GUESS root state modifies deep-flow partition.
+
+## 12.7 lateral forest-soil weathering
+
+Bower et al. 2023 shows strong hillslope-scale chemical-weathering gradients in temperate forested podzols.
+
+Reported plagioclase loss:
+- lateral eluvial: ~74%
+- lateral illuvial: ~39%
+- vertical podzol: ~23%
+
+Thus:
+```
+lateral flushing
+ -> substantially greater mineral depletion
+```
+
+can occur over short hillslope distances.
+
+This strengthens the requirement to preserve:
+- upslope water delivery
+- lateral throughflow
+- depth to bedrock
+- flow-path history
+
+in spatial weathering sensitivity.
+
+## 12.8 hillslope hydrology evolves with soil and vegetation
+
+Hartmann & Blume 2024 shows in glacial chronosequences that:
+
+```
+soil formation + vegetation succession
+ -> changing preferential/lateral flow
+ -> changing water storage
+```
+
+and that geology strongly controls this trajectory.
+
+For Gounsa:
+- first implementation may hold hydraulic structure mostly prescribed
+- sensitivity should allow gradual postfire/recovery modification of infiltration partition and organic-layer effects
+
+## 12.9 hillslope length to weathering-depth field evidence
+
+Pedrazas et al. 2021 confirms that deeper weathering fronts can scale with ridge-valley spacing.
+
+Observed:
+- shallow weathering front near ~7 m under ridges
+- deeper front ~11 m under similar ridges
+- ~17.5 m under a ridge with nearly twice the ridge-valley spacing
+
+This field evidence supports:
+```
+hillslope length / relief
+ -> inherited weathering depth
+ -> rock-moisture storage
+```
+
+and complements Ferrier & Perron 2020.
+
+
 ## 13. strongest papers for Gounsa
 
 ### direct sandstone/sedimentary hillslope relevance
