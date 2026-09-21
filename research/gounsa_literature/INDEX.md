@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (346)
+## Papers (397)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -128,6 +128,7 @@
 - `papers/1999_Ludwig_Tongway_Marsden_Patterns.md`
 - `papers/1999_Puigdefabregas_WaterSedimentRedistribution.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
+- `papers/2000_Moulton_PlantEffects_SilicateWeathering.md`
 - `papers/2001_Heimsath_OregonCoast_Sandstone_SoilProduction.md`
 - `papers/2001_Roering_NonlinearHillslopeTransport.md`
 - `papers/2002_Anderson_FrostCreep_WindRiver.md`
@@ -135,6 +136,7 @@
 - `papers/2003_Pannkuk_Robichaud_Postfire_NeedleCast.md`
 - `papers/2004_Istanbulluoglu_ForestDisturbanceSediment.md`
 - `papers/2004_Leonard_Richard_CriticalShear_SoilStrength.md`
+- `papers/2004_Mudd_Furbish_ChemicalDenudation_Hillslope.md`
 - `papers/2004_Roering_VegetationTransportEfficiency.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
@@ -144,30 +146,39 @@
 - `papers/2006_DeBaets_GrassRootsErodibility.md`
 - `papers/2006_Doten_DHSVM_MountainForestSediment.md`
 - `papers/2006_Godderis_WITCH_ForestWeathering.md`
+- `papers/2006_Green_ActivelyErodingHillslopeWeathering.md`
 - `papers/2006_Istanbulluoglu_Bras_SoilMoistureVegetationErosion.md`
 - `papers/2006_Rouhipour_Rainfall_Flow_Interaction.md`
 - `papers/2007_DeBaets_RootArchitecture.md`
+- `papers/2007_Jo_JinjuSandstone_RootWeathering.md`
 - `papers/2007_Yoo_GeochemicalMassBalance_HillslopeWeathering.md`
+- `papers/2007_Yoo_HillslopeGeochemicalMassBalance.md`
 - `papers/2008_Baars_RootCO2_ChemicalWeathering.md`
 - `papers/2008_DeBaets_RootCohesion_EUROSEM.md`
 - `papers/2008_Ivanov_tRIBS_VEGGIE_Part1.md`
 - `papers/2008_Ivanov_tRIBS_VEGGIE_Part2.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
+- `papers/2008_Yoo_Mudd_GeochemicalSoilFormation.md`
+- `papers/2008_Yoo_Mudd_MineralResidence_SoilAge.md`
 - `papers/2009_Banwart_BiologicalProtonWeathering.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Furbish_SlopeDependentTransport.md`
 - `papers/2009_Gabet_Mudd_ChemicalWeathering_Denudation.md`
 - `papers/2009_Gallaway_TreeRootThrow_Wildfire.md`
+- `papers/2009_Heimsath_HumpedSoilProduction_Arnhem.md`
 - `papers/2009_Jackson_Roering_Postfire_Oregon.md`
+- `papers/2009_Yoo_TransientHillslope_ChemicalWeathering.md`
 - `papers/2010_Furbish_Haff_NonlocalTransport.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Maher_FluidResidence_Weathering.md`
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
 - `papers/2010_Roelandt_BWITCH_LPJ_Weathering.md`
+- `papers/2010_Roering_BioticControls_TopographySoilProduction.md`
 - `papers/2010_Shiroya_Abukuma_Granite_ErosionRate.md`
 - `papers/2010_Wagenbrenner_RillErosion_DisturbedForests_Modeling.md`
 - `papers/2010_Waldmann_PROMET_Large_Scale_Erosion.md`
+- `papers/2011_Anderson_GordonGulch_WeatheringRegolith.md`
 - `papers/2011_Bonneville_Mycorrhiza_BiotiteWeathering.md`
 - `papers/2011_Hartmann_Moosdorf_Weathering_PRelease.md`
 - `papers/2011_Lamb_Dry_Ravel_Postfire.md`
@@ -187,6 +198,9 @@
 - `papers/2013_McGuire_Rill_Network_Spacing_Geometry.md`
 - `papers/2013_Pelletier_Coevolution_Vegetation_Soils_Topography.md`
 - `papers/2013_Saco_MorenoDeLasHeras_EcogeomorphicCoevolution.md`
+- `papers/2013_Vanwalleghem_MILESD_SoilLandscape.md`
+- `papers/2014_Anderson_SlopeAspect_CriticalZone.md`
+- `papers/2014_Hahm_BedrockForest_LandscapeEvolution.md`
 - `papers/2014_Hartmann_GlobalChemicalWeathering_PRelease.md`
 - `papers/2014_Kim_Korea_WindUprooted_RootPlate.md`
 - `papers/2014_Kim_Nonuniqueness_SurfaceShield.md`
@@ -195,15 +209,21 @@
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
 - `papers/2014_Marshall_OregonSandstone_RockStrength_SoilProduction.md`
 - `papers/2014_Norton_ClimateWeathering_SoilProduction.md`
+- `papers/2014_Rempe_Dietrich_BottomUpWeatheringFront.md`
 - `papers/2014_Wang_DeadLiveRoots_Detachment.md`
+- `papers/2015_Amundson_HillslopeSoils_Vegetation.md`
 - `papers/2015_Byun_Daegwanryeong_SoilProduction.md`
 - `papers/2015_Hale_ForestGALES_Validation.md`
+- `papers/2015_Hasenmueller_Topographic_SoilCO2.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Johnstone_Hilley_LithologicHillslopes.md`
 - `papers/2015_Lee_Uiseong_Cretaceous_Sandstone_Petrography.md`
+- `papers/2015_Milodowski_Erosion_ForestStructure.md`
 - `papers/2015_Schmalenberger_Oxalate_MineralSpecificWeathering.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Braun_RegolithFormation_ChemicalWeathering.md`
+- `papers/2016_Chadwick_Asner_HillslopeNutrients_Vegetation.md`
+- `papers/2016_Erlandsson_HillslopeChemicalWeathering.md`
 - `papers/2016_Gould_VIC_WEPP_Wildfire_Mountain_Watershed.md`
 - `papers/2016_Kim_EnvironmentalStochasticity_tRIBS_VEGGIE_FEaST.md`
 - `papers/2016_Kim_MindTheGap_tRIBS_VEGGIE_FEaST.md`
@@ -214,26 +234,32 @@
 - `papers/2016_Sun_IncorporatedLitter_RillResistance.md`
 - `papers/2016_Sun_Temporal_IncorporatedLitter_RillResistance.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
+- `papers/2017_Brantley_Trees_CriticalZone.md`
 - `papers/2017_Guan_2D_River_Morphology_Vegetation.md`
+- `papers/2017_Hasenmueller_DeepRoots_BedrockFractures.md`
 - `papers/2017_Kim_PinusDensiflora_SRL_Korea.md`
 - `papers/2017_McGuire_Postfire_DebrisFlow_Initiation.md`
 - `papers/2017_Sonoda_Kurashige_ForestSoilCreep_Japan.md`
 - `papers/2017_Vergani_Postfire_RootReinforcementDecay.md`
 - `papers/2017_Wang_BindingBonding_Roots.md`
+- `papers/2018_Anderson_ClimateWeathering_HillslopeCoevolution.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Bock_SaLEM_RegolithDepth.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
 - `papers/2018_Juez_2D_HEM_MediterraneanWatershed.md`
 - `papers/2018_Pawlik_Samonil_SoilCreep_Review.md`
 - `papers/2018_Pelletier_SlopeAspect_CriticalZone.md`
+- `papers/2018_Rempe_Dietrich_RockMoisture.md`
 - `papers/2018_Yu_Hunt_TransportLimited_SoilFormation.md`
 - `papers/2019_Evans_Sandstone_SoilFormation_UK.md`
 - `papers/2019_Kronnas_ForSAFE_Weathering.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Malik_RootCrackBiomechanicalWeathering.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
+- `papers/2019_Molina_TopographyVegetation_Weathering.md`
 - `papers/2019_PerezFodich_SoilCO2_OrganicAcids_Weathering.md`
 - `papers/2019_Richardson_ClimateLife_HillslopeTransport.md`
+- `papers/2019_Sullivan_Aspect_FluxPIHM_WITCH_Vegetation.md`
 - `papers/2019_Welivitiya_SSSPAM_CoupledSoilscapeLandform.md`
 - `papers/2019_Xia_ForestLitter_HydrologicalResponse.md`
 - `papers/2020_Brosens_Be2D_SoilThicknessWeathering.md`
@@ -241,38 +267,50 @@
 - `papers/2020_Caponi_AboveBelowground_Biomass_Ecomorphodynamics.md`
 - `papers/2020_DeBaets_RootHairs_Mechanistic_Erosion.md`
 - `papers/2020_Ding_PineLitterTransportCapacity.md`
+- `papers/2020_Ferrier_Perron_HillslopeScale_ChemicalErosion.md`
 - `papers/2020_Hao_FineRootsSoilDetachment.md`
 - `papers/2020_Liu_Litter_LSAD_Detachment.md`
 - `papers/2020_Liu_LitterSoilDetachment.md`
 - `papers/2020_Millares_WiMMed_Long_Term_Mountain_Erosion.md`
 - `papers/2020_Oeser_LPJGUESS_WeatheringProductivity.md`
+- `papers/2020_Tang_Sandstone_PreferentialFlow_Hillslope.md`
 - `papers/2020_Tune_Bedrock_CO2_ForestCarbon.md`
 - `papers/2020_vanDerMeij_HydroLorica.md`
 - `papers/2020_Wu_Chen_Modeling_Soil_Erosion_With_Evolving_Rills.md`
 - `papers/2020_Wu_Two_Dimensional_Rainfall_Runoff_Soil_Erosion.md`
 - `papers/2021_Abrantes_2D_Rill_Interrill_Model.md`
+- `papers/2021_Anderson_GordonGulch_SteadyState_CriticalZone.md`
 - `papers/2021_Deshpande_CreepingHillslopes.md`
 - `papers/2021_Doane_TreeThrowFlux.md`
 - `papers/2021_Evans_Sandstone_Matrix_SoilFormation.md`
 - `papers/2021_Gabet_HilltopCurvature_ErosionRate.md`
 - `papers/2021_Greenwood_TreeThrowSedimentGeneration.md`
 - `papers/2021_Kang_GPU_2D_Soil_Erosion.md`
+- `papers/2021_Nielson_AspectElevation_CriticalZone.md`
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
 - `papers/2021_Parhizkar_NaturalPlantedForests.md`
 - `papers/2021_Schweiger_XBeach_BelowgroundBiomass_DuneErosion.md`
+- `papers/2021_Smith_Bookhagen_TopographicAsymmetry.md`
+- `papers/2021_Wang_3DClimateTopography_Weathering.md`
+- `papers/2021_Wang_WeatheringFront_WaterTable_Coevolution.md`
 - `papers/2021_Welivitiya_SSSPAM_100yr.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part1.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part2.md`
+- `papers/2021_Xiao_VerticalConnectivity_HillslopeWeathering.md`
 - `papers/2022_Ding_Fu_StemLitterTransportCapacity.md`
 - `papers/2022_GarciaGamero_SoilGen_ChemicalWeathering.md`
 - `papers/2022_GatzMiller_Iroko_OxalateCarbonate_RT.md`
+- `papers/2022_Hahm_BedrockVadose_Drought.md`
 - `papers/2022_Lee_WEPP_Erodibility_Critical_Shear.md`
 - `papers/2022_Lei_Postfire_SoilRoot_Hydromechanics.md`
 - `papers/2022_Liu_UnderstoryShadingErosion.md`
 - `papers/2022_Ma_LandUseDetachment.md`
 - `papers/2022_Ma_RootEffectsDetachment.md`
+- `papers/2022_Meng_Biota_SoilLandscapeEvolutionModels.md`
+- `papers/2022_Primka_Hillslope_RootDynamics.md`
 - `papers/2022_QuijanoBaron_COPLAS.md`
 - `papers/2022_RoqueMalo_REWTCrunch.md`
+- `papers/2022_Schaller_Ehlers_VegetationClimate_SoilProduction.md`
 - `papers/2022_Srivastava_CHILD_BGM.md`
 - `papers/2022_Tan_ELM_Erosion.md`
 - `papers/2022_Wang_ExposedBuriedLitter_Interrill.md`
@@ -281,16 +319,22 @@
 - `papers/2022_Zhi_BioRT_Flux_PIHM.md`
 - `papers/2022_Zhu_LitterDecomposition_Erosion.md`
 - `papers/2023_Adams_FireCWD_SedimentStorage.md`
+- `papers/2023_Cooper_SandstonePlantation_Regolith.md`
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
+- `papers/2023_Donaldson_Aspect_Saprolite_Symmetry.md`
 - `papers/2023_GarciaArredondo_Rhizosphere_ReactiveTransport.md`
 - `papers/2023_GatzMiller_2D_DynamicRoot_ReactiveTransport.md`
 - `papers/2023_Godziek_PitMoundDetection.md`
 - `papers/2023_Kim_Microtopography_HairsineRose.md`
+- `papers/2023_Kopp_Topography_SoilCO2_Efflux.md`
+- `papers/2023_Larsen_ErosionVegetation_Weathering_SouthernAlps.md`
 - `papers/2023_Li_AnisotropicPorosity_VegetatedMorphodynamics.md`
 - `papers/2023_Ma_RootDetachmentGrassShrub.md`
 - `papers/2023_Montagnoli_Postfire_FineRoots.md`
+- `papers/2023_Nudurupati_Landlab_TransientVegetationTopography.md`
 - `papers/2023_Ouyang_Postfire_HairsineRose_DebrisFlow.md`
 - `papers/2023_Pawlik_SandstoneRootsSoilProduction.md`
+- `papers/2023_Rasmussen_SedimentaryAspect_Weathering.md`
 - `papers/2023_Tune_DeepRoot_PetrogenicCarbonWeathering.md`
 - `papers/2023_Wang_2D_Slope_Soil_Erosion.md`
 - `papers/2023_Wang_GrassShrubDetachment.md`
@@ -300,9 +344,11 @@
 - `papers/2024_Cunico_BiomassMorphodynamics.md`
 - `papers/2024_Dahanayake_EcoEvidencePlantsReduceErosion.md`
 - `papers/2024_Doane_TopographicRoughnessEmergent.md`
+- `papers/2024_Druhan_Bouchez_EcologicalRegulation_Weathering.md`
 - `papers/2024_Gurung_SCION_FLORA.md`
 - `papers/2024_Lapides_BedrockVadoseDGVM.md`
 - `papers/2024_Liu_RootTraitsAbandonment.md`
+- `papers/2024_Luo_Mudstone_Microtopography_Pedogenesis.md`
 - `papers/2024_Parhizkar_RootsRillShallowInstability.md`
 - `papers/2024_Parhizkar_TreeShrubSedimentDetachment.md`
 - `papers/2024_Pawlik_GraniteBioweatheringSoilFormation.md`
@@ -316,6 +362,7 @@
 - `papers/2024_Zhou_LPJGUESS_Hydrology_RootLayers.md`
 - `papers/2024_Zhou_NaturalSuccessionRunoffErosion.md`
 - `papers/2024_Zuo_VegetationErosionWeathering.md`
+- `papers/2025_Barling_AspectVegetation_RockMoisture.md`
 - `papers/2025_Billings_DeepRootsRegolith.md`
 - `papers/2025_Chaibva_RootTraitsParentMaterial.md`
 - `papers/2025_Chibesa_RootExudates_SiliconSolubilisation.md`
@@ -331,9 +378,11 @@
 - `papers/2025_Rogger_BiomassWeathering.md`
 - `papers/2025_Verbruggen_LPJGUESS_RE_RootDistribution.md`
 - `papers/2025_Wang_SeasonalRootErosionResistance.md`
+- `papers/2025_Welivitiya_SSSPAM_HillslopeSoilProfiles.md`
 - `papers/2025_Zhou_SedimentSourceSinkSuccession.md`
 - `papers/2026_Bemis_CriticalZoneSuccession.md`
 - `papers/2026_Braga_SERGHEI_SE_Finite_Volume_Evaluation.md`
+- `papers/2026_Donaldson_SandstoneAspect_ChemicalWeathering.md`
 - `papers/2026_FireLands_Preprint.md`
 - `papers/2026_Gutierrez_ATYS_VegetationMorphodynamics.md`
 - `papers/2026_Ouyang_Granite_SoilProduction_Chronometer.md`
@@ -342,8 +391,10 @@
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Roberge_Landlab_ConcentrationTracker.md`
 - `papers/2026_Rombouts_Ectomycorrhiza_SilicateWeathering_Perspective.md`
+- `papers/2026_Rossi_ForestStructure_HumpedSoilProduction.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Sousa_Postfire_RootStrength_Decay.md`
+- `papers/2026_Stolze_MountainHillslope_ReactiveTransport.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
 - `papers/2026_Wang_DeconstructingSoilDetachment.md`
 - `papers/2026_Wright_RootFracture_FE_Conference.md`
@@ -353,7 +404,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zhao_MErSiM.md`
 
-## Models (41)
+## Models (43)
 
 - `models/B_WITCH.md`
 - `models/BioRT.md`
@@ -366,6 +417,7 @@
 - `models/Forest_Disturbance_2004.md`
 - `models/ForestGALES_fgr.md`
 - `models/Hairsine_Rose_2D_Postfire.md`
+- `models/Hillslope_Vegetation_Weathering.md`
 - `models/Iber.md`
 - `models/Landlab_ShallowSoil_Weathering_Creep.md`
 - `models/LAPSUS.md`
@@ -374,6 +426,7 @@
 - `models/LPJ_GUESS_Weathering.md`
 - `models/McGuire_RillNetwork.md`
 - `models/OpenLISEM.md`
+- `models/PFLOTRAN_Mountain_Hillslope_Weathering.md`
 - `models/Postfire_Dry_Ravel.md`
 - `models/Postfire_Root_Persistence_Erosion.md`
 - `models/PROMET_DANUBIA.md`
@@ -397,7 +450,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (22)
+## Decisions (23)
 
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -405,6 +458,7 @@
 - `decisions/2026-09-21_DUPLICATE_PAPER_CONSOLIDATION.md`
 - `decisions/2026-09-21_EXCLUSIONS.md`
 - `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
+- `decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
 - `decisions/2026-09-21_LPJGUESS_BIOMASS_COUPLING.md`
 - `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
 - `decisions/2026-09-21_PROCESS_ARCHITECTURE.md`
@@ -422,7 +476,7 @@
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 
-## Sessions (9)
+## Sessions (10)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
@@ -433,6 +487,7 @@
 - `sessions/2026-09-21_0942_SHALLOW_SANDSTONE_LANDLAB_HANDOFF.md`
 - `sessions/2026-09-21_1005_VEGETATION_WEATHERING_HANDOFF.md`
 - `sessions/2026-09-21_1020_SOIL_WEATHERING_NON_MYCORRHIZAL_HANDOFF.md`
+- `sessions/2026-09-21_1115_HILLSLOPE_VEGETATION_WEATHERING_HANDOFF.md`
 
 ## Current authoritative decisions
 
@@ -441,66 +496,60 @@
 - `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 - `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
-- `decisions/2026-09-21_SOIL_WEATHERING_THIRD_PASS.md`
 - `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
 - `decisions/2026-09-21_SOIL_WEATHERING_FOURTH_PASS_NON_MYCORRHIZAL.md`
+- `decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
 ## Current authoritative handoff
 
-- `sessions/2026-09-21_1020_SOIL_WEATHERING_NON_MYCORRHIZAL_HANDOFF.md`
+- `sessions/2026-09-21_1115_HILLSLOPE_VEGETATION_WEATHERING_HANDOFF.md`
 
-## Current production summary
+## Current weathering summary
 
 ```
-water erosion
-= SWEHR
+vertical profile
+= mobile A/B soil (PDZ)
++ chemically altered C/Cr zone (CAZ)
++ fresh sandstone
 
-hillslope transport
-= q_bg + q_root + q_dryravel
+H_AB != Z_weathered
+Z_water_table != Z_weathering_front
 
-chemical weathering
-= LPJ-GUESS non-mycorrhizal vegetation/hydrology state
-  -> WITCH/PROFILE primary candidate
-  or BioRT spatial alternative
-  -> W_chem + nutrient release
-
-chemical-weathering core vegetation inputs
-= FineRootC(z)
-+ root access depth
-+ root water uptake by layer
+vegetation-weathering core
+= root water uptake
 + root/belowground respiration
-+ litter/SOM
-+ nutrient uptake/return
-+ soil temperature
-+ soil water/runoff/drainage
++ nutrient uptake/litter return
 
-mandatory hydrologic control
-= flow path + residence time + saturation state
+geomorphic weathering feedback
+= erosion/deposition
+-> fresh-mineral supply / mineral residence
+-> W_chem
 
-root-derived DOC / organic ligands
-= optional sensitivity only
+hillslope hydrology
+= infiltration/recharge
++ shallow/deep flow
++ vertical connectivity
++ residence time
++ saturation
++ rock moisture
+
+chemistry
+= WITCH/PROFILE first candidate
++ BioRT spatial alternative
++ PFLOTRAN/Stolze advanced validation
+
+soil production
+= Mode A exponential baseline
++ Mode B humped mandatory sensitivity
++ Mode C optional vegetation-sensitive sensitivity
 
 mycorrhiza
-= excluded from production and sensitivity
-= archive/reference only
-
-Hartmann/LPJ-GUESS-CNP
-= low-cost benchmark
-
-sandstone soil production
-= Mode A exponential
-+ Mode B shallow finite-depth hump sensitivity
-
-living-root biomechanical sandstone production
-= optional / unresolved
+= excluded
 
 tree throw / uprooting
 = archive only
 
 shallow landslide
 = archive only
-
-Pelletier
-= long-term comparison only
 ```
