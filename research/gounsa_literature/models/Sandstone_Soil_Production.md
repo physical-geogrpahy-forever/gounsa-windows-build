@@ -267,8 +267,91 @@ Do not transfer artificial-root-exudate concentrations from Potysz & Bartz direc
 Use the paper to constrain process direction and mineralogical dependence only.
 
 
+## vegetation-sensitive Mode C sensitivity
+
+The baseline remains vegetation-independent Mode A, with Mode B mandatory.
+
+However, the literature now supports a third **optional sensitivity** in which vegetation state affects the effective soil-production potential.
+
+### published structural precedent
+
+Pelak et al. 2016:
+
+```
+P(h,b)
+=
+[P0 + Pv b(h)] exp(-ks h)
+```
+
+with an equilibrium vegetation response of the form:
+
+```
+b(h)
+=
+(r/m)[1-exp(-kg h)]
+```
+
+Schaller & Ehlers 2022 found that broad observed soil-production-rate variation most closely resembled formulations including both:
+- soil thickness
+- biomass
+
+Rossi et al. 2026 provides a forested-mountain Landlab precedent linking forest structure, bedrock exposure, and humped soil production.
+
+Amundson et al. 2015 and Roering et al. 2010 provide additional hillslope field support for strong biotic controls on soil production.
+
+### Gounsa Mode C
+
+Candidate only:
+
+```
+P_C(H,V)
+```
+
+where `V` is a vegetation/root state that is **not yet defined**.
+
+Possible candidates:
+- root-zone biomass
+- FineRootC in weathering-accessible layers
+- root-access weighted biomass
+
+Do not use AGB by default.
+
+Do not use:
+```
+P_sand = P_A(H) * (1 + k * FineRootC)
+```
+without a defensible site-specific mapping.
+
+### scope
+
+Mode C is:
+- optional sensitivity
+- a NEW COUPLING
+- not baseline
+- not a claim that Pelak coefficients apply to sandstone
+
+Mode C exists to test whether the 100-year result is sensitive to a plausible biogenic soil-production response while preserving uncertainty.
+
+### inherited-profile constraint
+
+Current vegetation does not reset the full weathered profile.
+
+```
+P_C(H,V)
+```
+may affect **incremental production during the simulation** only.
+
+Initial:
+```
+Z_weathered(t0)
+```
+is inherited from prior climate, lithology, fractures and geomorphic history.
+
+Donaldson et al. 2026 and Rasmussen et al. 2023 are the primary constraints for this rule.
+
+
 ## final judgment
-**Shallow-soil sandstone baseline adopted with two mandatory sensitivity modes.**
+**Shallow-soil sandstone baseline adopted with Mode A baseline, Mode B mandatory sensitivity, and Mode C optional vegetation-sensitive sensitivity.**
 
 ```text
 mode A: exponential
@@ -276,9 +359,14 @@ P_A(h) = P0_sand exp(-h/gamma_sand)
 
 mode B: shallow-soil hump / zero-depth suppression
 P_B(h) = published-constrained sensitivity form
+
+mode C: optional vegetation-sensitive production sensitivity
+P_C(H,V) = NEW COUPLING; no sandstone coefficient transfer
 ```
 
 Mode B is required because Oregon sandstone data permit a production peak at finite shallow soil thickness rather than forcing maximum production at bare bedrock.
+
+Mode C is not mandatory and does not replace Mode A/B.
 
 This replaces:
 - granite-based century-scale magnitude reasoning
