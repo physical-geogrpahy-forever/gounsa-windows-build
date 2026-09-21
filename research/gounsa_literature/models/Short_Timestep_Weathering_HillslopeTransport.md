@@ -188,7 +188,7 @@ Production baseline:
 ```
 q_bg
 =
--D*_bg H_active grad(z)
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
 ```
 
 근거:
@@ -475,3 +475,28 @@ Postfire soil thinning can therefore alter production naturally through `h`, wit
 Sandstone matrix/cementation controls are critical, so final values require site petrography.
 
 DynSoil/MErSiM is now optional sensitivity/advanced chemistry only.
+
+
+---
+
+## Landlab production scaffold
+
+Current numerical scaffold:
+
+```
+Landlab grid
+├─ soil__depth
+├─ bedrock__elevation
+├─ topographic__elevation
+├─ custom sandstone production
+│  ├─ Mode A: exponential
+│  └─ Mode B: shallow-soil hump sensitivity
+├─ DepthDependentDiffuser
+│  └─ q_bg
+├─ Gabet root-growth/decay flux
+└─ dry-ravel module
+```
+
+Tree throw/uprooting and shallow landslide are not connected to the production scaffold.
+
+The optional `DepthDependentTaylorDiffuser` is sensitivity-only for steep-slope nonlinear transport.
