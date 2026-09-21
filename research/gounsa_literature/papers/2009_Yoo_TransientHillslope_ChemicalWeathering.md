@@ -16,6 +16,7 @@ Yoo, K., Mudd, S. M., Sanderman, J., Amundson, R., & Blum, A. (2009). Spatial pa
 
 # 적용 환경
 - coastal California
+- **sedimentary sandstone hillslope**
 - transient hillslope following channel-incision history
 
 # 핵심 과정
@@ -79,12 +80,47 @@ SWEHR/Landlab의 annual net erosion/deposition와 particle provenance/age를 W_c
 # 한계
 - grassland
 - no dynamic vegetation
-- coastal California parent material
+- sedimentary sandstone이지만 고운사와 동일 mineralogy/cement는 아님
 - direct root/weathering relation 없음
 
 # 최종 판정
-- **채택: transient hillslope transport-weathering coupling 핵심 precedent**
+- **핵심 채택: sandstone transient hillslope transport-weathering coupling precedent**
+- 기존 granite-focused hillslope weathering framework를 sedimentary sandstone으로 확장한 직접 사례
 - local H만으로 weathering을 결정하지 말아야 한다는 근거
 
 # 참고 링크 / DOI
 https://doi.org/10.1016/j.epsl.2009.09.021
+
+
+## 2026-09-21 lithology re-audit
+
+원문 ScienceDirect section을 다시 확인한 결과, 이 논문은 이전 granitic hillslope 연구를 **sedimentary sandstone hillslope**로 확장한 연구임을 명시한다.
+
+따라서 고운사와의 관련성은 기존 md 판정보다 높다.
+
+핵심 sandstone result:
+```
+upper eroding sandstone hillslope
+ -> weathering controlled largely by colluvial mineral supply
+
+lower depositional sandstone hillslope
+ -> thicker soil
+ -> longer residence
+ -> geochemical equilibrium limitation
+ -> lower weathering rate
+```
+
+reported inverse-model weathering:
+- lower eroding section peak: 약 5 g m^-2 yr^-1
+- depositional section: 약 1.5 g m^-2 yr^-1
+
+이 값은 고운사 coefficient로 직접 사용하지 않는다.
+
+이 논문은:
+```
+sandstone
++ transient hillslope morphology
++ sediment transport
++ chemical weathering
+```
+를 직접 연결한 핵심 spatial analogue로 승격한다.
