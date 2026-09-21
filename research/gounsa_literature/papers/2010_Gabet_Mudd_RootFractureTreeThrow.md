@@ -227,12 +227,31 @@ This exact combined system is new.
 5. clast-size distribution created by root disturbance
 
 # final judgment
-**채택: annual geometric physical-weathering architecture.**
+**Archive/reference only under the current production scope.**
+
+이 논문은 root fracture가 soil production에 미칠 수 있음을 보여주는 중요한 numerical precedent이지만, numerical root-fracture term이 rootwad/tree-throw geometry와 분리되어 있지 않다.
+
+현재 고운사 production에서는 tree throw/uprooting을 제외했으므로 이 모델을 그대로 physical-weathering core로 사용하지 않는다.
 
 Important limitation:
 do not describe it as a mechanistic root-force fracture model.
 
-Use Gallaway/other root-plate allometry to improve geometry, and retain rock-fracture efficiency as a calibration/uncertainty term.
+현재 역할:
+- humped soil-production mechanism 해석
+- root-fracture sensitivity 근거
+- 향후 독립적인 root-fracture law가 확보될 때 구조 참고
 
 # 참고 링크 / DOI
 https://doi.org/10.1029/2009JF001526
+
+
+## 2026-09-21 production-scope override
+
+최신 결정 `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md` 및 `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`이 이전 채택 판정을 덮어쓴다.
+
+```
+tree throw / uprooting = archive only
+Gabet-Mudd root-fracture geometry = archive/reference only
+```
+
+Direct biomechanical root weathering 자체를 0이라고 가정하는 것은 아니지만, LPJ-GUESS FineRootC를 annual sandstone-production flux로 바꾸는 published transferable law는 아직 확인되지 않았다.
