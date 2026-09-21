@@ -269,6 +269,69 @@ living/deeper rooting
 
 ---
 
+## 9. mycorrhizal weathering을 advanced sensitivity state로 추가
+
+### Quirk et al. 2012
+mature-tree field experiment에서 tree lineage와 mycorrhizal type에 따라 silicate-mineral colonization과 Ca release가 달라졌다.
+
+### Bonneville et al. 2011
+living tree-root symbiosis의 hypha-mineral interface에서:
+- strong local acidification
+- elemental removal
+- quantitative biotite alteration kinetics
+
+가 확인되었다.
+
+### Schmalenberger et al. 2015
+fungal oxalate secretion은 constant하지 않고 mineral-specific했다.
+
+```
+local mineral nutrient status
+ -> photosynthate allocation
+ -> fungal oxalate secretion
+ -> mineral weathering
+```
+
+따라서 첫 production core에서 mycorrhizal community를 완전한 prognostic module로 넣지는 않더라도, 다음 state를 advanced sensitivity로 보존한다.
+
+```
+mycorrhizal_type
+= AM / EcM / mixed
+```
+
+고운사 PFT별 mapping은 별도 문헌검토가 필요하다.
+
+금지:
+
+```
+W_chem = W_base * constant_mycorrhiza_factor
+```
+
+광물별 response와 nutrient demand를 무시하는 보편 multiplier는 쓰지 않는다.
+
+## 10. sandstone petrography의 역할 강화
+
+Potysz & Bartz 2024 때문에 기존 petrography 우선순위를 더 강화한다.
+
+확인 필요:
+- cement mineralogy
+- Fe-bearing cement
+- goethite / hematite
+- matrix abundance
+- feldspar and other weatherable grains
+- fracture network
+
+이는:
+```
+P_sand(H)
+```
+보정뿐 아니라:
+```
+organic ligand / microbial weathering susceptibility
+```
+에도 필요하다.
+
+
 ## 최종 production correction
 
 Chemical weathering input state:
