@@ -435,6 +435,63 @@ erosion/deposition
 이 네 경로를 하나의 biomass multiplier로 합치지 않는다.
 
 
+## 결정 13. hillslope length를 chemical-weathering response context로 추가
+
+Ferrier & Perron 2020에 따라:
+
+```
+tau_hillslope
+~ L^2 / D
+```
+
+형태의 hillslope transport timescale이 chemical-erosion transient response를 강하게 제약할 수 있다.
+
+따라서 weathering state/sensitivity에는:
+- distance to divide/channel
+- characteristic hillslope length
+- transport timescale context
+
+를 포함한다.
+
+100년 postfire run은 전체 weathering system의 equilibrium run이 아니라 incremental transient run으로 해석한다.
+
+## 결정 14. weathering front와 water table을 분리
+
+Rempe & Dietrich 2014의 bottom-up model과 Wang et al. 2021의 coevolution evidence를 반영한다.
+
+상태:
+
+```
+Z_weathered
+!=
+Z_water_table
+```
+
+가능.
+
+Top-down:
+```
+infiltration / roots / CO2
+ -> weathering
+```
+
+Bottom-up:
+```
+channel incision / drainage
+ -> fresh-bedrock exposure to reactive fluids
+ -> weathering
+```
+
+둘 중 하나를 universal rule로 고정하지 않는다.
+
+첫 구현:
+- inherited `Z_weathered(t0)`
+- optional water-table/deep-flow state
+- fracture/permeability state
+
+를 분리하고 100년 증분만 갱신한다.
+
+
 ## excluded
 
 - mycorrhiza
