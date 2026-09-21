@@ -104,6 +104,72 @@ hourly rain
  -> sub-hourly SWEHR integration
 ```
 
+## inherited vertical profile extension
+
+The original minimum Landlab fields:
+
+```
+topographic__elevation
+bedrock__elevation
+soil__depth
+```
+
+are no longer sufficient to represent all weathering states conceptually.
+
+The current hillslope-weathering architecture distinguishes:
+
+```
+PDZ / mobile soil
+~ H_AB
+
+CAZ / weathered but relatively immobile C/Cr
+~ H_CAZ or Z_weathered - H_AB
+
+fresh sandstone
+```
+
+Therefore the implementation should add explicit fields or equivalent state variables such as:
+
+```
+mobile_soil__depth
+weathered_zone__depth
+weathering_front__elevation
+bedrock/fresh_parent__elevation
+fracture_or_permeability_state
+rock_moisture_state
+```
+
+Exact Landlab field names are custom implementation choices, not published Landlab standard names.
+
+### initialization rule
+
+```
+Z_weathered(t0)
+```
+is inherited and must not be reconstructed from current vegetation.
+
+The 100-year model updates only incremental change.
+
+### relation to chemical weathering
+
+```
+W_chem
+```
+can update:
+- mobile-soil dissolved mass
+- CAZ mineral state
+- nutrient pools
+
+but must not automatically become:
+```
+P_sand
+```
+
+until a mass-conserved weathering-front conversion is explicitly implemented.
+
+Yoo & Mudd 2008 provides the PDZ/CAZ framework; Donaldson 2026 and Rasmussen 2023 constrain inherited-profile initialization.
+
+
 ## coupling with LPJ-GUESS
 
 ### root-growth transport
@@ -136,7 +202,17 @@ REWTCrunch remains an advanced sensitivity for explicit root-exudation chemistry
 Landlab does not itself supply this chemistry; it receives the accumulated chemical mass-balance update.
 
 ### production
-Sandstone `P(h)` remains a parent-material production law, not a direct biomass multiplier.
+Sandstone Mode A/B remains the production baseline/sensitivity pair.
+
+Optional Mode C may test vegetation-sensitive soil production following the Pelak/Schaller/Rossi structural lineage:
+
+```
+P_C(H,V)
+```
+
+but this is a NEW COUPLING and no Pelak coefficient is transferred to Gounsa sandstone.
+
+Residual creep `K_bg` remains vegetation-independent.
 
 ## current total hillslope transport
 
