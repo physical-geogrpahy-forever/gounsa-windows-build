@@ -121,6 +121,76 @@ LPJ-GUESS
 
 The return arrow from weathering to LPJ-GUESS is a new coupling, although two-way forest-soil feedback has strong precedent in ForSAFE.
 
+## competing vegetation-weathering pathways
+
+Do not assume vegetation always increases weathering.
+
+### enhancement pathways
+
+```
+root / SOM respiration
+ -> soil and fracture CO2
+ -> acidity
+ -> mineral dissolution
+```
+
+```
+root exudation / organic ligands
+ -> local reaction kinetics
+ -> mineral dissolution
+```
+
+```
+nutrient uptake / return
+ -> proton and ion balance
+ -> soil solution chemistry
+ -> mineral dissolution
+```
+
+Osorio-Leon et al. 2025 provides direct deep-rhizosphere reactive-transport evidence that this pathway can be large at a specific site.
+
+### damping / supply-limitation pathways
+
+Oeser & von Blanckenburg 2020:
+```
+higher NPP
+does not imply
+higher weathering rate
+```
+
+because nutrient recycling and abiotic supply controls can dominate.
+
+Zuo et al. 2024:
+```
+vegetation
+ -> lower erosion
+ -> lower fresh-mineral supply
+ -> lower supply-limited weathering
+```
+
+Therefore no scalar vegetation enhancement factor is used in the production architecture.
+
+## biomechanical root-weathering mechanics status
+
+Mechanistic evidence is advancing:
+- Calusi et al. 2020: root as mechanical inclusion, stress and fracture-regrowth cycle in soil media
+- Wright et al. 2026: FE crack-propagation approach in high-strength environments, conference abstract
+- Pawlik et al. 2023: sandstone field evidence for root involvement in weathering
+- Malik et al. 2019: crack widening recorded by root anatomy, but root-pressure causation inconclusive
+
+Current boundary:
+
+```
+root mechanics
+ -> process support / future sensitivity
+
+NOT
+
+LPJ-GUESS FineRootC
+ -> calibrated annual sandstone production flux
+```
+
+
 ## current judgment
 - vegetation effect on chemical weathering: **explicitly required**
 - vegetation effect on physical sandstone production: **mechanistically supported but quantitatively unresolved**
