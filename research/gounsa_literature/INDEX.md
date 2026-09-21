@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (314)
+## Papers (325)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -90,6 +90,7 @@
 - `papers/1992_Kirkby_ErosionLimitedHillslope.md`
 - `papers/1993_Elliot_Laflen_RillErosion.md`
 - `papers/1993_Gallart_TerracettesVegetationSediment.md`
+- `papers/1993_Sverdrup_Warfvinge_PROFILE.md`
 - `papers/1994_Sanchez_Puigdefabregas_PlantSediment.md`
 - `papers/1994_Thornes_Brandt_StochasticErosionVegetation.md`
 - `papers/1995_Alberts_WEPP_Soil_Component.md`
@@ -138,8 +139,10 @@
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
 - `papers/2005_Nord_Esteves_PSEM_2D.md`
 - `papers/2005_Roering_Gerber_PostfireHillslopeTransport.md`
+- `papers/2005_Wallman_ForSAFE.md`
 - `papers/2006_DeBaets_GrassRootsErodibility.md`
 - `papers/2006_Doten_DHSVM_MountainForestSediment.md`
+- `papers/2006_Godderis_WITCH_ForestWeathering.md`
 - `papers/2006_Istanbulluoglu_Bras_SoilMoistureVegetationErosion.md`
 - `papers/2006_Rouhipour_Rainfall_Flow_Interaction.md`
 - `papers/2007_DeBaets_RootArchitecture.md`
@@ -148,6 +151,7 @@
 - `papers/2008_Ivanov_tRIBS_VEGGIE_Part1.md`
 - `papers/2008_Ivanov_tRIBS_VEGGIE_Part2.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
+- `papers/2009_Banwart_BiologicalProtonWeathering.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Furbish_SlopeDependentTransport.md`
@@ -157,6 +161,7 @@
 - `papers/2010_Furbish_Haff_NonlocalTransport.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
+- `papers/2010_Roelandt_BWITCH_LPJ_Weathering.md`
 - `papers/2010_Shiroya_Abukuma_Granite_ErosionRate.md`
 - `papers/2010_Wagenbrenner_RillErosion_DisturbedForests_Modeling.md`
 - `papers/2010_Waldmann_PROMET_Large_Scale_Erosion.md`
@@ -164,6 +169,7 @@
 - `papers/2011_Lamb_Dry_Ravel_Postfire.md`
 - `papers/2011_Richards_Bioturbation_Flux.md`
 - `papers/2011_Shin_SouthKorea_ChemicalWeathering.md`
+- `papers/2011_Taylor_Ectomycorrhiza_WeatheringModel.md`
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
 - `papers/2012_Francipane_tRIBS_Erosion.md`
@@ -195,6 +201,7 @@
 - `papers/2016_Kim_MindTheGap_tRIBS_VEGGIE_FEaST.md`
 - `papers/2016_Matsushi_Toyama_Granite_SoilProductionTransport.md`
 - `papers/2016_McGuire_SWEHR_Postwildfire_2D.md`
+- `papers/2016_Pawlik_RootsRockRegolithReview.md`
 - `papers/2016_Pelak_BistablePlantSoil.md`
 - `papers/2016_Sun_IncorporatedLitter_RillResistance.md`
 - `papers/2016_Sun_Temporal_IncorporatedLitter_RillResistance.md`
@@ -212,12 +219,15 @@
 - `papers/2018_Pawlik_Samonil_SoilCreep_Review.md`
 - `papers/2018_Pelletier_SlopeAspect_CriticalZone.md`
 - `papers/2019_Evans_Sandstone_SoilFormation_UK.md`
+- `papers/2019_Kronnas_ForSAFE_Weathering.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
+- `papers/2019_Malik_RootCrackBiomechanicalWeathering.md`
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
 - `papers/2019_Richardson_ClimateLife_HillslopeTransport.md`
 - `papers/2019_Welivitiya_SSSPAM_CoupledSoilscapeLandform.md`
 - `papers/2019_Xia_ForestLitter_HydrologicalResponse.md`
 - `papers/2020_Brosens_Be2D_SoilThicknessWeathering.md`
+- `papers/2020_Calusi_RootMechanicalInclusion.md`
 - `papers/2020_Caponi_AboveBelowground_Biomass_Ecomorphodynamics.md`
 - `papers/2020_DeBaets_RootHairs_Mechanistic_Erosion.md`
 - `papers/2020_Ding_PineLitterTransportCapacity.md`
@@ -315,14 +325,16 @@
 - `papers/2026_Sousa_Postfire_RootStrength_Decay.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
 - `papers/2026_Wang_DeconstructingSoilDetachment.md`
+- `papers/2026_Wright_RootFracture_FE_Conference.md`
 - `papers/2026_Yang_LPJGUESS_CSLE.md`
 - `papers/2026_Yao_StemLeafRootContribution.md`
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zhao_MErSiM.md`
 
-## Models (38)
+## Models (40)
 
+- `models/B_WITCH.md`
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
 - `models/Doane_TreeThrow_Roughness.md`
@@ -356,13 +368,14 @@
 - `models/SSSPAM.md`
 - `models/TreeThrow_Annual.md`
 - `models/VED.md`
+- `models/Vegetation_Weathering_Coupling.md`
 - `models/VIC_WEPP.md`
 - `models/Weathering_MassBalance_Regolith.md`
 - `models/WEPP.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (18)
+## Decisions (19)
 
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -377,13 +390,14 @@
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_TREE_THROW_COUPLING.md`
+- `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 
-## Sessions (7)
+## Sessions (8)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
@@ -392,74 +406,59 @@
 - `sessions/2026-09-21_0300_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0345_SANDSTONE_SCOPE_HANDOFF.md`
 - `sessions/2026-09-21_0942_SHALLOW_SANDSTONE_LANDLAB_HANDOFF.md`
+- `sessions/2026-09-21_1005_VEGETATION_WEATHERING_HANDOFF.md`
 
-## Core files
-- `SYSTEM.md`
-- `MASTER.md`
-- `README.md`
-- `INDEX.md`
+## Current authoritative decisions
 
-## 현재 production scope
-- water erosion: SWEHR baseline
-- hillslope transport: Landlab depth-dependent residual creep + Gabet root-growth/decay transport + dry ravel
-- weathering/soil production: shallow-sandstone Mode A/B + Hartmann/LPJ-GUESS chemical dissolved-loss forcing
-- numerical scaffold: Landlab
-- fire spall/coarse fragments: unresolved
-- tree throw/uprooting: archive only, production baseline 제외
-- shallow landslide: archive only, production baseline 제외
-
-## current key equations
-
-Residual creep:
-```
-q_bg
-=
--K_bg H_* [1-exp(-H_active/H_*)] grad(z)
-```
-
-Shallow-soil limit:
-```
-q_bg
-approx
--K_bg H_active grad(z)
-```
-
-Root transport:
-```
-q_root
-=
-x r tau / rho_r
-```
-
-Sandstone production Mode A:
-```
-P_A(H)
-=
-P0 exp(-H/gamma)
-```
-
-Mode B:
-finite-depth shallow-soil hump / zero-depth suppression sensitivity, final form not yet hard-locked.
-
-## authoritative current files
 - `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
-- `models/Landlab_ShallowSoil_Weathering_Creep.md`
-- `models/Sandstone_Soil_Production.md`
-- `models/Residual_Background_Creep.md`
-- `sessions/2026-09-21_0942_SHALLOW_SANDSTONE_LANDLAB_HANDOFF.md`
+- `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
+- `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
 
-## 중복관리
-- 동일 DOI 또는 동일 서지는 canonical paper file 하나로 병합한다.
-- 같은 저자와 연도만으로 합치지 않는다.
-- 최신 중복통합 감사: `decisions/2026-09-21_DUPLICATE_PAPER_CONSOLIDATION.md`
+## Current authoritative handoff
 
-## 유지 규칙
-1. 새 논문은 먼저 `papers/`에 저장한다.
-2. 여러 논문에 걸친 모델은 `models/`에 누적한다.
-3. 판정 변화는 `decisions/`에 남긴다.
-4. 확정된 전체 결론만 `MASTER.md`에 병합한다.
-5. 채팅 종료 전 `sessions/`에 인계서를 남긴다.
-6. 마지막으로 INDEX를 실제 트리 기준으로 갱신한다.
+- `sessions/2026-09-21_1005_VEGETATION_WEATHERING_HANDOFF.md`
+
+## Current production summary
+
+```
+water erosion
+= SWEHR
+
+hillslope transport
+= q_bg + q_root + q_dryravel
+
+q_bg
+= Landlab DepthDependentDiffuser
+
+q_root
+= Gabet root-growth/decay transport from LPJ-GUESS root state
+
+chemical weathering
+= LPJ-GUESS
+  -> B-WITCH-style vegetation interface
+  -> WITCH/PROFILE-style mineral kinetics
+  -> W_chem + nutrient release
+
+Hartmann/LPJ-GUESS-CNP
+= low-cost hydroclimatic benchmark
+
+sandstone soil production
+= Mode A exponential
++ Mode B shallow finite-depth hump sensitivity
+
+living-root biomechanical sandstone production
+= optional / unresolved
+= no arbitrary biomass multiplier
+
+tree throw / uprooting
+= archive only
+
+shallow landslide
+= archive only
+
+Pelletier
+= long-term comparison only
+```
