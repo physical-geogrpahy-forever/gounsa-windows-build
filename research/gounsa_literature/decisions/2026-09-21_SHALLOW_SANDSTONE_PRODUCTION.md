@@ -212,3 +212,46 @@ DynSoil/MErSiM remains optional.
 **고운사는 shallow-soil sandstone regime으로 취급한다.**
 
 The monotonic Evans exponential remains one required sensitivity case, but very shallow soil must also be tested against a humped/zero-depth-suppressed production scenario based on the Oregon sandstone literature.
+
+
+---
+
+## 8. simple 100-year magnitude check
+
+Using the site-specific Evans et al. 2021 `P0,gamma` pairs and the exponential sensitivity mode:
+
+For shallow soils of about:
+```
+H_AB = 0.05-0.30 m
+```
+
+the corresponding 100-year production is approximately:
+
+- Comer: about 7.2-7.6 mm / 100 yr
+- Hilton: about 15.7-17.2 mm / 100 yr
+- Rufford: about 6.2-6.9 mm / 100 yr
+- Woburn: about 18.8-25.7 mm / 100 yr
+
+These are **analogue sensitivity values only**, not Gounsa predictions.
+
+The key implication is:
+
+```
+shallow sandstone production
+can readily be O(1 cm / 100 yr)
+```
+
+and therefore should not be omitted before comparing it against erosion/export.
+
+Oregon sandstone thin-soil evidence further suggests:
+- < about 15 cm: rates around 0.15 mm yr^-1 in the reviewed synthesis
+- about 15-30 cm: roughly 0.25-0.35 mm yr^-1 in some pits
+
+equivalent to order:
+```
+15-35 mm / 100 yr
+```
+
+under a simple constant-rate comparison.
+
+Because these values come from different sandstone systems and long-term cosmogenic averages, they define a sensitivity envelope rather than an annual transient forecast.
