@@ -1018,6 +1018,79 @@ hillslope length / relief
 and complements Ferrier & Perron 2020.
 
 
+## 12.10 sandstone hydrologic architecture after Xiao 2019 and Hoagland 2017
+
+Xiao et al. 2019 shows that the forested sandstone Garner Run catchment differs from neighboring shale not only in mineralogy but in:
+- hillslope length
+- drainage density
+- bouldery/macroporous soils
+- riparian-zone fraction
+- water-storage capacity
+- subsurface connectivity
+
+Thus sandstone enters the weathering model through two distinct pathways:
+
+```
+sandstone mineralogy
+ -> reaction kinetics
+
+sandstone-derived geomorphic / soil architecture
+ -> infiltration / storage / flow paths
+ -> residence time
+ -> W_chem
+```
+
+Do not collapse these into a single lithology factor.
+
+Hoagland et al. 2017 further shows that sandstone headwater chemistry mixes distinct contributions from:
+- shallow/interflow water
+- spring water
+- groundwater
+- hyporheic/lateral exchange
+
+For the Gounsa hillslope core, use the reduced distinction:
+
+```
+shallow flow
+deep flow
+lateral residence / mixing
+```
+
+rather than one bulk drainage flux.
+
+The hyporheic-zone module itself is optional.
+
+## 12.11 decadal sandstone vegetation-pedogenesis feedback
+
+Phillips et al. 2008 observed rapid soil-cover development on newly exposed resistant sandstone over less than three decades.
+
+The important sequence is:
+
+```
+fracture weathering
++ debris/moisture trapping
+ -> pedogenic preparation
+ -> vegetation establishment
+ -> organic/root effects
+ -> faster local soil development
+```
+
+This demonstrates that vegetation-soil feedback can operate on decadal timescales relevant to the 100-year Gounsa simulation.
+
+However the reported soil-cover thickening:
+```
+~5-10 mm yr^-1
+```
+is NOT a pure bedrock-to-soil production rate because it includes accumulation, organic material, fracture infill and local trapping.
+
+Therefore it cannot parameterize `P_sand`.
+
+Use it only as:
+- timescale evidence
+- qualitative support for Mode B/Mode C sensitivity
+- support for explicit debris/organic accumulation separation
+
+
 ## 13. strongest papers for Gounsa
 
 ### direct sandstone/sedimentary hillslope relevance
