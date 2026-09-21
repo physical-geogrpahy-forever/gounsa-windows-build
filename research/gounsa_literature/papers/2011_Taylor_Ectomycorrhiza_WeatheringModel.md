@@ -71,3 +71,16 @@ LPJ-GUESS PFT를 실제 고운사 수종의 mycorrhizal functional type과 연�
 
 # 참고 링크 / DOI
 https://doi.org/10.2475/05.2011.01
+
+
+## 2026-09-21 mycorrhiza scope override
+
+이 논문의 mycorrhizal-specific mechanism은 current Gounsa production/sensitivity에서 사용하지 않는다.
+
+Archive/reference only:
+- mycorrhizal functional type
+- fungal nutrient uptake term
+- fungal organic-acid term
+- mycorrhizosphere-specific parameterization
+
+필요하면 이 논문에서 일반적인 biological proton-cycle 개념만 역사적 참고로 본다. Production equation 또는 parameter source로 사용하지 않는다.
