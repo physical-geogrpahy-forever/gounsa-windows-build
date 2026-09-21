@@ -492,6 +492,116 @@ channel incision / drainage
 를 분리하고 100년 증분만 갱신한다.
 
 
+## 결정 15. Flux-PIHM + WITCH + vegetation cycling 선례를 최상위 integration evidence로 추가
+
+Sullivan et al. 2019은 opposing forested hillslopes에서:
+
+```
+Flux-PIHM
++
+WITCH
++
+vegetation nutrient uptake / litter return
+```
+
+을 실제로 결합했다.
+
+따라서 고운사:
+```
+LPJ-GUESS
+ -> hydrology
+ -> nutrient uptake
+ -> litter return
+
+WITCH/PROFILE
+ -> mineral weathering
+```
+
+구조는 단순 개념조합이 아니라 published integration precedent를 가진다.
+
+중요:
+vegetation cycling을 넣은 경우 shale weathering이 약 10% 감소했다.
+
+따라서:
+```
+vegetation
+!= positive weathering multiplier
+```
+금지를 다시 확인한다.
+
+## 결정 16. respiration source와 soil pCO2를 분리
+
+Hasenmueller 2015:
+
+```
+topographic position
+ -> soil depth/moisture/gas diffusion
+ -> pCO2
+```
+
+Kopp 2023:
+
+```
+dry ridge
+ -> water-limited respiration
+
+wet valley
+ -> oxygen-limited respiration
+```
+
+따라서 first implementation에서도 개념적으로:
+
+```
+R_CO2
+!=
+pCO2
+```
+
+로 둔다.
+
+가능한 reduced formulation:
+
+```
+R_CO2
+=
+f(T, moisture, saturation, vegetation state)
+
+pCO2
+=
+g(R_CO2, porosity, gas diffusivity, soil depth, saturation)
+```
+
+full gas transport는 PFLOTRAN advanced model에서 검증한다.
+
+## 결정 17. sandstone preferential flow를 lithology/horizon-dependent하게 본다
+
+Tang et al. 2020 temperate-forest sandstone catchment:
+
+```
+preferential-flow frequency
+=
+f(hillslope position, antecedent moisture, soil profile, lithology)
+```
+
+따라서 Gounsa에서:
+
+```
+deep-flow fraction
+=
+f(TWI)
+```
+
+같은 단일 topographic rule은 사용하지 않는다.
+
+최소:
+- antecedent moisture
+- profile/horizon state
+- fracture/permeability proxy
+- hillslope position
+
+를 함께 고려한다.
+
+
 ## excluded
 
 - mycorrhiza
