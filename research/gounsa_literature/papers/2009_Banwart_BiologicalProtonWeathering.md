@@ -85,3 +85,21 @@ LPJ-GUESS의 실제 root/litter pools를 이 모델의 productivity, respiration
 
 # 참고 링크 / DOI
 https://doi.org/10.1029/2008GB003243
+
+
+## 2026-09-21 mycorrhiza scope override
+
+고운사에서 이 논문을 사용할 때 균근-specific interpretation은 제외한다.
+
+사용 가능한 비균근 process reference:
+- biological productivity
+- root respiration / soil CO2
+- DOC production/decomposition
+- proton balance / pH
+- hydrology
+- mineral dissolution kinetics
+
+사용하지 않는 항:
+- mycorrhizal state
+- fungal functional type
+- fungal weathering multiplier
