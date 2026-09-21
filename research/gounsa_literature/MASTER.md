@@ -657,6 +657,71 @@ Living-root biomechanical weathering은 Calusi et al. 2020과 Wright et al. 2026
 
 ---
 
+# 15.2 soil-weathering fourth-pass correction
+
+Latest decisions:
+- `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+- `decisions/2026-09-21_SOIL_WEATHERING_FOURTH_PASS_NON_MYCORRHIZAL.md`
+
+Current chemical-weathering production core excludes mycorrhiza.
+
+```
+LPJ-GUESS
+├─ FineRootC(z)
+├─ root access depth
+├─ root water uptake by layer
+├─ root / belowground respiration
+├─ litter / SOM
+├─ nutrient uptake / return
+├─ soil T
+└─ hydrology / drainage
+      |
+      v
+chemical-weathering engine
+      |
+      ├─ pCO2 / pH
+      ├─ mineral kinetics
+      ├─ saturation state
+      ├─ residence time
+      ├─ secondary minerals
+      ├─ W_chem
+      └─ nutrient release
+```
+
+Core:
+- root/deep respiration CO2
+- root vertical distribution
+- hydrology and residence time
+- mineralogy/cement
+- nutrient uptake/return
+- litter/SOM chemistry
+
+Optional only:
+- non-mycorrhizal root-derived DOC / organic-ligand sensitivity
+
+Excluded:
+- AM/EcM
+- fungal hypha weathering
+- fungal weathering multiplier
+- PFT -> mycorrhiza mapping
+
+Key new constraints:
+- Drever 1994: plant effect is mineral/pH/process dependent, not universal positive
+- Maher 2010: fluid residence time and flow can dominate weathering-rate variation
+- Calvaruso 2013: living Scots pine roots can strongly enhance apatite dissolution without requiring mycorrhiza
+- Chibesa 2025: root-exudate effects are compound-specific and mineral/soil-specific
+- Tune 2020/2023: deep-root-associated carbon cycling creates major below-soil CO2 sources
+- Osorio-Leon 2025: deep CO2 must be included to reproduce bedrock-zone chemistry; site is mainly argillite with sandstone interbeds, not a direct Gounsa sandstone coefficient source
+
+```
+W_chem
+!=
+P_sand(H)
+```
+
+remains unchanged.
+
+
 # 16. 현재 production 전체 architecture
 
 ```
