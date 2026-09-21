@@ -4,10 +4,10 @@
 고운사에서 다음을 이미 별도 계산한 뒤에도 남는 continuous/local hillslope transport를 정의한다.
 
 - root growth/decay transport
-- tree throw
 - postfire dry ravel
-- shallow landslide
 - SWEHR water erosion
+
+현재 production baseline에서 tree throw/uprooting과 shallow landslide는 제외되어 있다. 따라서 residual calibration에서도 이 둘을 현재 explicit flux로 빼지 않는다.
 
 질문:
 ```
@@ -212,8 +212,6 @@ q_total,obs
 -
 q_rootgrowth
 -
-q_treethrow
--
 q_dryravel
 -
 q_other_explicit
@@ -278,7 +276,7 @@ On steep slopes, long-distance motions become increasingly nonlocal.
 
 Therefore:
 - keep `q_bg` as the local residual
-- let dry ravel/tree throw/landslide carry long-distance motion
+- let dry ravel and any future explicitly activated nonlocal modules carry long-distance motion
 - use Roering nonlinear total transport only as a sensitivity comparison, not automatically in addition
 
 ## current judgment
@@ -306,3 +304,36 @@ Do not:
 - Richardson et al. 2019
 - Deshpande et al. 2021
 - Anderson 2002
+
+
+## shallow-soil project constraint
+
+Gounsa currently has shallow mobile soil.
+
+Therefore:
+```
+q_bg = -D*_bg H_active grad(z)
+```
+is especially appropriate because transport capacity collapses as `H_active` becomes small.
+
+All annual creep updates must impose:
+```
+exported mobile-soil volume
+<=
+available mobile-soil volume
+```
+
+The Gabet root-growth/decay flux is an explicit separate term and must not be reabsorbed into calibration of `D*_bg`.
+
+Current production hillslope flux:
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_dryravel
+```
+
+Tree throw/uprooting and shallow landslide are outside the current production scope.
