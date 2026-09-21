@@ -236,6 +236,37 @@ gamma_sand
 
 These are not a final prior distribution until Gounsa petrography is identified.
 
+## vegetation-chemistry implication from sandstone experiments
+
+Potysz & Bartz 2024 provides a sandstone-specific experimental constraint.
+
+Simulated rhizospheric organic conditions:
+- enhanced element release relative to comparable inorganic weathering conditions
+- preferentially affected sandstone cement
+- showed different susceptibility for Fe-bearing mineral/cement states
+
+Therefore:
+
+```
+sandstone lithology
+!= only a P0/gamma control
+```
+
+It also controls sensitivity to biotic chemical weathering.
+
+Required Gounsa characterization now includes:
+- cement type
+- Fe-oxide cement abundance
+- goethite vs hematite where relevant
+- matrix abundance
+- weatherable feldspar/lithic fraction
+- fracture density
+
+Do not transfer artificial-root-exudate concentrations from Potysz & Bartz directly to Gounsa.
+
+Use the paper to constrain process direction and mineralogical dependence only.
+
+
 ## final judgment
 **Shallow-soil sandstone baseline adopted with two mandatory sensitivity modes.**
 
