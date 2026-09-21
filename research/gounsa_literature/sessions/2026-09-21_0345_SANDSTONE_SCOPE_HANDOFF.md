@@ -279,3 +279,35 @@ q_hill = q_bg + q_rootgrowth + q_dryravel
 ```
 
 Tree throw/uprooting and shallow landslide remain excluded.
+
+
+---
+
+## 이후 정정: Landlab full depth-dependent creep
+
+이 인계서의:
+
+```
+q_bg = -D*_bg H_active grad(z)
+```
+
+표현은 현재 **shallow-soil approximation**으로만 해석한다.
+
+최종 production baseline:
+
+```
+q_bg
+=
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+Implementation:
+Landlab `DepthDependentDiffuser`.
+
+Current authoritative files:
+- `decisions/2026-09-21_BACKGROUND_CREEP.md`
+- `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
+- `models/Landlab_ShallowSoil_Weathering_Creep.md`
+- `MASTER.md`
+
+Tree throw/uprooting and shallow landslide remain excluded.
