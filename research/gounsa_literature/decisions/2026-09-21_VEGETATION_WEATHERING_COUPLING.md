@@ -237,6 +237,102 @@ q_dryravel
 
 으로 분리한다.
 
+## 추가 제약: vegetation effect의 부호와 크기를 단일 multiplier로 두지 않는다
+
+### Oeser & von Blanckenburg 2020
+
+LPJ-GUESS NPP를 포함한 기후-식생 구배 비교에서:
+- NPP와 강수량이 크게 증가해도 weathering rate가 체계적으로 증가하지 않았다.
+- 증가한 식물 양분수요는 더 빠른 nutrient recycling으로 충족되었다.
+
+따라서 금지:
+
+```
+W_chem = W_abiotic * f(NPP)
+```
+
+형태의 단순 양의 biomass/NPP multiplier를 calibration 없이 사용하지 않는다.
+
+### Zuo et al. 2024
+
+식생은 erosion을 줄여 fresh-mineral supply를 낮출 수 있다.
+
+따라서 vegetation-weathering feedback에는 서로 반대 부호의 경로가 존재한다.
+
+```
+vegetation
+ -> respiration / CO2 / ligands
+ -> chemical weathering enhancement
+
+vegetation
+ -> erosion suppression
+ -> fresh-mineral supply reduction
+ -> weathering supply limitation
+```
+
+고운사에서는 두 효과를 하나의 empirical multiplier로 합치지 않는다.
+
+### Osorio-Leon et al. 2025
+
+깊은 뿌리와 연관된 CO2 production을 reactive transport에 명시적으로 넣어야 16 m bedrock vadose-zone chemistry가 재현되었다.
+
+해당 현장에서는:
+- deep-root-associated processes가 BVZ solute weathering flux의 약 43 ± 3%에 기여
+- deep-rhizosphere carbonic-acid effect를 포함할 때 chemical weathering이 background 대비 약 1.8 ± 0.1배
+
+였다.
+
+이 값은 **고운사 coefficient로 전이하지 않는다.**
+
+역할:
+- deep-root respiration을 weathering interface에 포함할 강한 process 근거
+- root-access depth가 H_AB보다 깊을 수 있음을 허용할 근거
+- site-specific sensitivity envelope 설계의 참고
+
+## 추가 제약: direct biomechanical root weathering
+
+새 mechanics 검색 결과:
+
+### Calusi et al. 2020
+```
+root growth
+ -> contact stress
+ -> fracturable matrix response
+ -> fracture-regrowth cycle
+```
+의 continuum-mechanics numerical precedent가 존재한다.
+
+하지만 검증 매질은 soil / artificial medium이며 sandstone bedrock production model이 아니다.
+
+### Wright et al. 2026
+FE + SRXCT preliminary work에서 root가 direct penetration limit를 crack propagation과 local exudate softening으로 극복할 수 있음을 보였다.
+
+하지만:
+- conference abstract
+- constitutive details 제한
+- sandstone annual-production flux 없음
+
+따라서 현재 판정:
+
+```
+living-root biomechanical weathering
+= physically plausible
+= emerging quantitative mechanics
+!= production-ready sandstone soil-production law
+```
+
+Production baseline에서는 여전히 임의:
+```
+P_root = k * FineRootC
+```
+또는:
+```
+P_sand = P_sand(H) * f(root biomass)
+```
+를 만들지 않는다.
+
+후속 peer-reviewed rock-fracture model 또는 고운사 사암의 fracture-strength/root-pressure 자료가 확보될 때 optional module로 재검토한다.
+
 ## 최종 판정
 
 기존:
