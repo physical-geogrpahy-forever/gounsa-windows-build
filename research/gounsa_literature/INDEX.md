@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 브랜치 상태를 기준으로 생성한 인덱스다.
 
-## Papers (312)
+## Papers (314)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -186,6 +186,7 @@
 - `papers/2015_Byun_Daegwanryeong_SoilProduction.md`
 - `papers/2015_Hale_ForestGALES_Validation.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
+- `papers/2015_Johnstone_Hilley_LithologicHillslopes.md`
 - `papers/2015_Lee_Uiseong_Cretaceous_Sandstone_Petrography.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Braun_RegolithFormation_ChemicalWeathering.md`
@@ -309,6 +310,7 @@
 - `papers/2026_Parhizkar_RootSystem_Detachment_Review.md`
 - `papers/2026_Park_KoreanRedPine_SnowUprooting.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
+- `papers/2026_Roberge_Landlab_ConcentrationTracker.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Sousa_Postfire_RootStrength_Decay.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
@@ -319,7 +321,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zhao_MErSiM.md`
 
-## Models (37)
+## Models (38)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
@@ -331,6 +333,7 @@
 - `models/ForestGALES_fgr.md`
 - `models/Hairsine_Rose_2D_Postfire.md`
 - `models/Iber.md`
+- `models/Landlab_ShallowSoil_Weathering_Creep.md`
 - `models/LAPSUS.md`
 - `models/LPJ_GUESS_Root_Erosion_Interface.md`
 - `models/LPJ_GUESS_TreeThrow.md`
@@ -359,7 +362,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (17)
+## Decisions (18)
 
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -375,11 +378,12 @@
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-21_TREE_THROW_COUPLING.md`
 - `decisions/2026-09-21_WATER_EROSION_ENGINE_REASSESSMENT.md`
+- `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_SECOND_PASS_AUDIT.md`
 - `decisions/2026-09-21_WEATHERING_HILLSLOPE_TIMESCALE.md`
 - `decisions/2026-09-21_WEATHERING_MASS_BALANCE.md`
 
-## Sessions (6)
+## Sessions (7)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
@@ -387,6 +391,7 @@
 - `sessions/2026-09-21_0251_SECOND_PASS_HANDOFF.md`
 - `sessions/2026-09-21_0300_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0345_SANDSTONE_SCOPE_HANDOFF.md`
+- `sessions/2026-09-21_0942_SHALLOW_SANDSTONE_LANDLAB_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
@@ -396,17 +401,55 @@
 
 ## 현재 production scope
 - water erosion: SWEHR baseline
-- hillslope transport: residual creep + root-growth/decay transport + dry ravel
-- weathering/soil production: sandstone-specific annual production + chemical dissolved-loss mass balance
+- hillslope transport: Landlab depth-dependent residual creep + Gabet root-growth/decay transport + dry ravel
+- weathering/soil production: shallow-sandstone Mode A/B + Hartmann/LPJ-GUESS chemical dissolved-loss forcing
+- numerical scaffold: Landlab
 - fire spall/coarse fragments: unresolved
-- tree throw/uprooting: production baseline 제외
-- shallow landslide: production baseline 제외
+- tree throw/uprooting: archive only, production baseline 제외
+- shallow landslide: archive only, production baseline 제외
 
-## sandstone correction
-- parent material: sandstone
-- production baseline: `P_sand(h) = P0_sand exp(-h/gamma_sand)`
-- granite papers: cross-lithology comparison only
-- DynSoil/MErSiM: optional advanced sensitivity
+## current key equations
+
+Residual creep:
+```
+q_bg
+=
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+Shallow-soil limit:
+```
+q_bg
+approx
+-K_bg H_active grad(z)
+```
+
+Root transport:
+```
+q_root
+=
+x r tau / rho_r
+```
+
+Sandstone production Mode A:
+```
+P_A(H)
+=
+P0 exp(-H/gamma)
+```
+
+Mode B:
+finite-depth shallow-soil hump / zero-depth suppression sensitivity, final form not yet hard-locked.
+
+## authoritative current files
+- `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
+- `decisions/2026-09-21_BACKGROUND_CREEP.md`
+- `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
+- `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
+- `models/Landlab_ShallowSoil_Weathering_Creep.md`
+- `models/Sandstone_Soil_Production.md`
+- `models/Residual_Background_Creep.md`
+- `sessions/2026-09-21_0942_SHALLOW_SANDSTONE_LANDLAB_HANDOFF.md`
 
 ## 중복관리
 - 동일 DOI 또는 동일 서지는 canonical paper file 하나로 병합한다.
