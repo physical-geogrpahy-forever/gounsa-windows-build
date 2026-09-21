@@ -170,7 +170,8 @@ W_chem
 
 Use:
 - `P_sand` for parent-material to mobile-soil production
-- Hartmann/LPJ-GUESS for bulk chemical dissolved loss
+- LPJ-GUESS -> B-WITCH-style interface -> WITCH/PROFILE-style chemistry for bulk dissolved chemical loss
+- Hartmann/LPJ-GUESS-CNP as low-cost benchmark
 - Yoo/Brosens mass balance for mobile-soil thickness
 
 ## mobile soil balance
@@ -265,8 +266,12 @@ Current division of roles:
 P_sand(h)
  -> slow background parent-material to soil production
 
-LPJ-GUESS/Hartmann
- -> daily climate/hydrology-sensitive chemical dissolved loss
+LPJ-GUESS
+ -> vegetation-aware WITCH/PROFILE chemistry
+ -> dynamic chemical dissolved loss
+
+Hartmann/LPJ-GUESS-CNP
+ -> low-cost hydroclimatic benchmark
 ```
 
 Do not add annual climate or biomass multipliers to `P_sand` without a separate published/local relation.
