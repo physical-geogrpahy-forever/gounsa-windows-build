@@ -58,6 +58,7 @@
 - `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
 - `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
 - `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
+- `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 
 ---
 
@@ -1278,7 +1279,7 @@ q_bg = -D_bg S
 ```
 q_bg
 =
--D*_bg H_active grad(z)
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
 ```
 
 근거:
@@ -1456,3 +1457,159 @@ with strict mobile-soil availability caps.
 5. compare 100-year production against erosion/export
 
 Deep-regolith DynSoil/MErSiM remains optional rather than the next priority.
+
+
+---
+
+## 2026-09-21 shallow-sandstone Landlab production baseline
+
+이 절은 풍화/사면 creep에 대한 현재 production 기준을 요약하며 이전 임시식보다 우선한다.
+
+### scope
+
+포함:
+```
+water erosion
+residual background creep
+root-growth/decay transport
+postfire dry ravel
+sandstone soil production
+chemical dissolved weathering
+fire spall / coarse-fragment supply
+```
+
+제외:
+```
+tree throw / uprooting
+shallow landslide
+```
+
+Tree-throw 관련 decision/model files는 archive-only다.
+
+### hillslope transport
+
+```
+q_hill
+=
+q_bg
++
+q_root
++
+q_dryravel
+```
+
+Residual creep:
+
+```
+q_bg
+=
+-K_bg H_* [1-exp(-H/H_*)] grad(z)
+```
+
+For shallow soil:
+
+```
+H << H_*
+```
+
+```
+q_bg
+approx
+-K_bg H grad(z)
+```
+
+Implementation:
+Landlab `DepthDependentDiffuser`.
+
+Root-growth/decay transport:
+
+```
+q_root
+=
+x r tau / rho_r
+```
+
+with the Gabet et al. 2003 geometry/turnover formulation and LPJ-GUESS native root state.
+
+Do not encode root effects again inside `K_bg`.
+
+Dry ravel remains a separate postfire transport process.
+
+### sandstone production
+
+Current mandatory sensitivity modes:
+
+```
+Mode A:
+P_A(H)
+=
+P0 exp(-H/gamma)
+```
+
+```
+Mode B:
+shallow-soil finite-depth hump / zero-depth suppression sensitivity
+```
+
+Mode B functional form/coefficients are **not invented** before suitable local/regional evidence.
+
+The reason for Mode B is that shallow Oregon sandstone evidence permits lower production toward very thin/exposed bedrock and a finite-depth high-production zone around roughly 0.15-0.30 m.
+
+### 100-year analogue envelope
+
+For Evans et al. 2021 sandstone `P0,gamma` pairs and shallow soils around 0.05-0.30 m, the simple exponential sensitivity gives approximately:
+
+- Comer: 7.2-7.6 mm / 100 yr
+- Hilton: 15.7-17.2 mm / 100 yr
+- Rufford: 6.2-6.9 mm / 100 yr
+- Woburn: 18.8-25.7 mm / 100 yr
+
+Oregon thin-soil sandstone evidence provides a broader order-of-magnitude sensitivity of roughly 15-35 mm / 100 yr in some shallow regimes.
+
+These are **analogue sensitivity values, not Gounsa predictions**.
+
+Therefore sandstone production is not omitted merely because the simulation horizon is 100 years.
+
+### chemical weathering
+
+```
+P_sand
+!=
+W_chem
+```
+
+Use:
+- slow sandstone parent-material production: `P_sand(H)`
+- daily LPJ-GUESS/Hartmann chemical dissolved-weathering forcing: `W_chem`
+
+Do not apply arbitrary climate, biomass or fire multipliers to `P_sand` without separate evidence.
+
+### Landlab numerical scaffold
+
+```
+LPJ-GUESS
+├─ root state + turnover
+│  └─ Gabet q_root
+├─ runoff + soil T
+│  └─ Hartmann chemical dissolved weathering
+└─ vegetation recovery
+
+Landlab grid
+├─ soil__depth
+├─ bedrock__elevation
+├─ topographic__elevation
+├─ custom sandstone weatherer
+│  ├─ Mode A
+│  └─ Mode B
+├─ DepthDependentDiffuser
+├─ Gabet root flux
+└─ dry-ravel coupling
+
+SWEHR
+└─ event-scale water erosion
+```
+
+Optional only:
+`DepthDependentTaylorDiffuser` for steep-slope sensitivity.
+
+Pelletier 2013 remains long-term comparison only and is not a production engine.
