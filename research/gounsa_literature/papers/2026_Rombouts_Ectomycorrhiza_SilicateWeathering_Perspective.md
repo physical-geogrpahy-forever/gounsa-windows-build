@@ -73,3 +73,20 @@ LPJ-GUESS PFT -> EcM functional state -> chemical-weathering source term은 새 
 
 # 참고 링크 / DOI
 https://doi.org/10.1038/s43247-026-03592-y
+
+
+## 2026-09-21 mycorrhiza scope override
+
+최신 결정 `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`에 따라 이 논문의 균근 관련 기작은 **archive/reference only**이다.
+
+현재 고운사 production 및 sensitivity에는 다음을 넣지 않는다.
+
+```
+mycorrhizal functional type
+AM / EcM state
+fungal hyphal weathering
+fungal oxalate allocation
+mycorrhizal weathering multiplier
+```
+
+이 논문은 식생-풍화 문헌계보를 보존하기 위한 참고자료로만 유지한다.
