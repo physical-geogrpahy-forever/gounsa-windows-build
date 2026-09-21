@@ -30,7 +30,6 @@ Published precedents:
 - WITCH-ASPECTS
 - ForSAFE
 - Banwart biological proton-cycle model
-- Taylor root/mycorrhizal weathering model
 
 ### B. explicit root-exudation chemistry: advanced option
 
@@ -231,36 +230,19 @@ root exudation source
 
 REWTCrunch sensitivity should include an exudate availability / partition term rather than treating all root C as chemically available.
 
-### mycorrhizal functional type is an advanced required sensitivity
+### mycorrhiza scope
 
-Quirk et al. 2012:
-- AM and EM tree systems differed in mineral colonization and Ca release
-- EM systems could show substantially greater silicate weathering in the tested basalt substrate
+Mycorrhizal functional type, fungal hypha weathering, and fungal oxalate allocation are **excluded from current production and sensitivity architecture**.
 
-Bonneville et al. 2011:
-- living tree-mycorrhiza caused localized acidification at the hypha-mineral interface
-- biotite alteration rate was quantified at the interface scale
+Relevant literature is archive/reference only.
 
-Schmalenberger et al. 2015:
+Do not create:
 ```
-mineral nutrient content
- -> fungal C allocation / oxalate secretion
- -> Ca weathering
+PFT -> AM/EcM -> weathering
 ```
+or any mycorrhizal multiplier.
 
-Thus exudation is not necessarily a fixed fraction of root C.
-
-Gounsa implication:
-
-```
-LPJ-GUESS PFT
- -> mycorrhizal functional type [AM / EcM / mixed]
- -> ligand / proton / microsite sensitivity
-```
-
-This mapping is a **new coupling**.
-
-Do not use a universal mycorrhizal enhancement multiplier.
+Vegetation-weathering production remains based on root state, respiration/CO2, hydrology, litter/SOM, nutrient uptake/return, and non-mycorrhizal DOC/organic-ligand sensitivity.
 
 ### sandstone-specific biogeochemical sensitivity
 
