@@ -141,11 +141,28 @@ Also, direct deep-root respiration enhancement from Osorio-Leon et al. 2025 is n
 - daily weathering calculation does not mean daily measurable geomorphic lowering; rates can be accumulated to annual mass balance
 
 # 최종 판정
-**채택: 100년 고운사 chemical-weathering forcing의 1차 후보.**
+**채택: low-cost hydroclimatic weathering benchmark 및 LPJ-GUESS-CNP P-cycle baseline.**
 
-Pelletier 2013보다 시간척도와 LPJ-GUESS coupling 면에서 우선한다.
+Pelletier 2013보다 시간척도와 LPJ-GUESS 내부 coupling 면에서 우선한다.
+
+그러나 2026-09-21 vegetation-weathering 재검토 후, 이 Hartmann 계열만으로 complete vegetation-weathering representation을 구성하지 않는다. 원 논문에서 식생의 weathering 영향은 주로 vegetation structure가 runoff를 바꾸는 경로이며, root respiration, litter chemistry, nutrient uptake/return, root exudation을 weathering kinetics에 직접 넣지 않는다.
+
+Production chemical-weathering target은 B-WITCH/WITCH 계보를 우선하고, 본 식은 benchmark 및 P-cycle consistency check로 유지한다.
 
 Geomorphic thickness production still requires a separate mass/volume conversion and mechanical-weathering module.
 
 # 참고 링크 / DOI
 https://doi.org/10.5194/gmd-18-2249-2025
+
+
+## 2026-09-21 vegetation-weathering role correction
+
+B-WITCH, WITCH-ASPECTS, ForSAFE, REWTCrunch를 재검토한 결과:
+
+```
+LPJ-GUESS-CNP Hartmann weathering
+= vegetation -> runoff -> weathering의 published internal link
+!= complete root/litter/respiration weathering model
+```
+
+따라서 본 논문의 역할은 low-cost benchmark로 조정한다.
