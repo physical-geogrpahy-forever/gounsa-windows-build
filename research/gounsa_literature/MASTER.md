@@ -615,6 +615,39 @@ FineRootC -> annual sandstone-production rate
 
 Pawlik et al. 2023은 sandstone root weathering의 현장근거이지만 universal rate law가 아니다. Malik et al. 2019도 root pressure 단독 fracture의 증거가 불확실함을 보여준다.
 
+추가 제약:
+
+```
+vegetation effect
+!=
+single positive biomass / NPP multiplier
+```
+
+Oeser & von Blanckenburg 2020은 큰 NPP 구배에서도 weathering rate가 체계적으로 증가하지 않음을 보여주며 nutrient recycling의 중요성을 강조한다.
+
+Zuo et al. 2024는:
+```
+vegetation
+ -> erosion suppression
+ -> lower fresh-mineral supply
+ -> weathering supply limitation
+```
+이라는 반대방향 경로를 제공한다.
+
+Osorio-Leon et al. 2025는 깊은 뿌리 호흡/CO2가 특정 bedrock vadose zone에서 chemical weathering을 크게 강화할 수 있음을 reactive-transport model로 정량화했다. 해당 site-specific multiplier는 고운사에 직접 전이하지 않는다.
+
+따라서 production에서는:
+- hydrology
+- soil/deep-root CO2
+- nutrient uptake/return
+- litter/decomposition
+- optional root exudation
+- erosion-controlled fresh-mineral supply
+
+를 가능한 한 별도 state/flux로 유지한다.
+
+Living-root biomechanical weathering은 Calusi et al. 2020과 Wright et al. 2026에서 mechanics 방향성이 확인되지만 아직 sandstone annual-production law로 채택하지 않는다.
+
 관련:
 - `models/B_WITCH.md`
 - `models/Vegetation_Weathering_Coupling.md`
