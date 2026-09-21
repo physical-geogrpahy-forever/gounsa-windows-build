@@ -44,6 +44,8 @@
 8. 논문에 없는 모델 간 연결은 반드시 **새로운 coupling**이라고 기록한다.
 9. 유수침식 root effect와 shallow-landslide root cohesion을 같은 parameter로 합치지 않는다.
 10. 이미 결정된 Wu-vs-WEPP 갈림길을 다시 열지 않는다. 둘은 역할이 다르다.
+11. chemical weathering에서 vegetation effect를 runoff 하나로 축소하지 않는다. hydrology, soil CO2/respiration, nutrient uptake/return, litter/decomposition의 published pathways를 분리한다.
+12. physical sandstone production에는 검증되지 않은 root-biomass multiplier를 임의로 추가하지 않는다.
 
 관련 결정:
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
@@ -59,6 +61,7 @@
 - `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
 - `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
+- `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
 
 ---
 
@@ -561,20 +564,79 @@ WEPP와 EUROSEM lineage에 coarse-fragment treatment 선례가 있으나 최종 
 
 ---
 
+# 15.1 vegetation-weathering correction
+
+2026-09-21 재검토 결과, 기존:
+
+```
+LPJ-GUESS -> Hartmann
+```
+
+만으로는 complete vegetation-weathering feedback을 표현하기에 부족하다.
+
+Published process precedents:
+
+- Goddéris et al. 2006: WITCH + forest water/carbon model
+- Roelandt et al. 2010: B-WITCH = LPJ-DGVM + WITCH
+- Wallman et al. 2005: ForSAFE
+- Kronnäs et al. 2019: dynamic ForSAFE weathering
+- Banwart et al. 2009: biological productivity, DOC, pH, mineral dissolution
+- Roque-Malo et al. 2022: root exudation -> reactive transport -> mineral weathering
+
+따라서 chemical weathering의 production target은:
+
+```
+LPJ-GUESS
+ -> hydrology
+ -> belowground respiration / soil CO2
+ -> nutrient uptake / return
+ -> litter / decomposition
+ -> WITCH / PROFILE-style mineral kinetics
+ -> W_chem + nutrient release
+```
+
+이다.
+
+Nutrient release를 LPJ-GUESS-CNP에 다시 넣는 것은 **새로운 coupling**이며, ForSAFE의 양방향 forest-soil feedback을 구조적 선례로 사용한다.
+
+반면 sandstone physical production:
+
+```
+P_sand(H)
+```
+
+에는 현재 transferable한:
+
+```
+FineRootC -> annual sandstone-production rate
+```
+
+식이 없으므로 임의 root multiplier를 추가하지 않는다.
+
+Pawlik et al. 2023은 sandstone root weathering의 현장근거이지만 universal rate law가 아니다. Malik et al. 2019도 root pressure 단독 fracture의 증거가 불확실함을 보여준다.
+
+관련:
+- `models/B_WITCH.md`
+- `models/Vegetation_Weathering_Coupling.md`
+- `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
+
+---
+
 # 16. 현재 production 전체 architecture
 
 ```
 LPJ-GUESS
- ├─ PFT
- ├─ AGB
- ├─ FineRootC
- ├─ dead-root state
- ├─ litter
- └─ root depth/distribution
+ ├─ PFT / cohorts / AGB
+ ├─ FineRootC / root depth / turnover
+ ├─ litter / SOM state
+ ├─ NPP / nutrient demand
+ ├─ soil temperature
+ ├─ soil water / runoff / drainage
+ └─ vegetation recovery
        |
-       +--> water erosion interface
-       |      ├─ rainfall-driven
-       |      └─ flow-driven
+       +--> water-erosion resistance
+       |      ├─ roots / litter
+       |      └─ surface state
        |               |
        |               v
        |             SWEHR
@@ -582,17 +644,42 @@ LPJ-GUESS
        +--> root state + turnover
        |      -> Gabet root-growth/decay transport
        |
-       +--> climate / hydrology / soil state
-              -> Hartmann chemical dissolved weathering
+       +--> vegetation-weathering interface
+              ├─ hydrology / drainage
+              ├─ soil CO2 / belowground respiration
+              ├─ nutrient uptake / return
+              └─ litter / decomposition
+                       |
+                       v
+              WITCH / PROFILE-style
+              mineral weathering
+                       |
+                       ├─ W_chem dissolved mass loss
+                       └─ nutrient release
+                              |
+                              v
+                    LPJ-GUESS-CNP nutrient pools
+                              |
+                              └--> vegetation growth feedback
+
+Hartmann + LPJ-GUESS-CNP
+ └─ low-cost hydroclimatic benchmark only
+
+REWTCrunch
+ └─ advanced root-exudation sensitivity / validation
 
 Landlab grid
- ├─ shallow-sandstone production
+ ├─ shallow-sandstone production P_sand(H)
  |      ├─ Mode A exponential
  |      └─ Mode B shallow finite-depth hump sensitivity
  ├─ residual background creep
  |      -> DepthDependentDiffuser
  ├─ Gabet root-growth/decay flux
  └─ dry-ravel coupling
+
+P_sand(H)
+ └─ no arbitrary root-biomass multiplier
+    direct biomechanical root weathering remains unresolved/optional
 
 fire
  ├─ vegetation storage loss
