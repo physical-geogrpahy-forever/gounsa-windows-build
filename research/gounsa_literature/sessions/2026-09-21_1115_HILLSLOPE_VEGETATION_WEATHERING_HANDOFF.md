@@ -607,3 +607,87 @@ Sessions     10
 
 Latest index commit:
 `f734285051f11f6099d8fde0993ba2911da21e40`
+
+
+---
+
+## targeted sandstone mini-pass after timeout reduction
+
+이번 패스는 전송시간 초과를 피하기 위해 3편만 확정했다.
+
+### Xiao et al. 2019
+파일:
+`papers/2019_Xiao_SandstoneCatchment_Hydrology.md`
+
+Garner Run sandstone forest catchment에서:
+- longer hillslopes
+- larger riparian zone
+- bouldery/macroporous soils
+- larger storage/connectivity
+
+가 확인된다.
+
+핵심:
+```
+sandstone mineralogy
+ -> kinetics
+
+sandstone-derived geomorphic/hydrologic architecture
+ -> flow/residence
+ -> W_chem
+```
+
+를 분리한다.
+
+### Hoagland et al. 2017
+파일:
+`papers/2017_Hoagland_Sandstone_Flowpath_Geochemistry.md`
+
+Garner Run stream chemistry는:
+- shallow interflow
+- spring
+- groundwater
+- hyporheic/lateral exchange
+
+의 서로 다른 geochemical signatures를 혼합한다.
+
+고운사 first production에서는 최소:
+```
+shallow
+deep
+lateral/mixed
+```
+weathering-water states로 축약한다.
+
+### Phillips et al. 2008
+파일:
+`papers/2008_Phillips_Sandstone_EarlySoilFormation_Vegetation.md`
+
+newly exposed resistant sandstone에서 <30 yr 동안 15-20 cm soil cover가 형성되었다.
+
+reported 5-10 mm yr^-1는:
+- in-situ weathering
+- debris accumulation
+- organic matter
+- fracture infill
+- microtopographic trapping
+
+을 합한 soil-cover thickening이며 `P_sand`로 사용하지 않는다.
+
+하지만:
+```
+thin sandstone/fracture state
+ -> pedogenic preparation
+ -> vegetation establishment
+ -> faster local soil development
+```
+
+feedback이 decadal timescale에 가능하다는 강한 근거다.
+
+### architecture updates
+
+반영:
+- `models/Hillslope_Vegetation_Weathering.md`
+- `decisions/2026-09-21_HILLSLOPE_VEGETATION_WEATHERING.md`
+
+이번 소묶음에서는 INDEX 전체 재생성을 하지 않았다. 다음 의미 있는 문헌묶음 종료 때만 재생성한다.
