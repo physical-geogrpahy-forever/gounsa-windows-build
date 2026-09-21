@@ -388,6 +388,53 @@ BioRT/PFLOTRAN/Stolze lineage is the main spatial validation/advanced alternativ
 
 ---
 
+## 결정 12. vegetation-weathering interface를 세 개의 직접 생태경로로 고정
+
+Druhan & Bouchez 2024와 Stolze 2026 원문 재검토를 반영한다.
+
+### root water uptake
+```
+LPJ-GUESS root water uptake
+ -> drainage / residence-time modification
+ -> W_chem
+```
+
+### root respiration
+```
+LPJ-GUESS root/belowground respiration
+ -> pCO2 / carbonic acid
+ -> W_chem
+```
+
+직접 출력 사용이 어려울 경우 Stolze 2026의:
+```
+R_root = k f(T) f(S_w)
+```
+형태를 intermediate process candidate로 검토한다.
+
+단, Stolze의 0.2 m root zone은 고운사에 전이하지 않는다.
+
+### nutrient uptake / litter recycling
+```
+weathering nutrient release
+ -> plant uptake
+ -> vegetation pool
+ -> litter return
+ -> upper-soil solution chemistry
+```
+
+이 순환을 mass-conserved coupling으로 구현한다.
+
+### geomorphic fourth pathway
+```
+erosion/deposition
+ -> fresh-mineral supply / mineral residence
+ -> W_chem
+```
+
+이 네 경로를 하나의 biomass multiplier로 합치지 않는다.
+
+
 ## excluded
 
 - mycorrhiza
