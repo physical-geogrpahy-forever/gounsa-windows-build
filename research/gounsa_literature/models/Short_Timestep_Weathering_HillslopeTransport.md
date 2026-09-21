@@ -31,6 +31,11 @@
 WEATHERING
 
 chemical-weathering forcing
+ = LPJ-GUESS
+   -> B-WITCH-style vegetation interface
+   -> WITCH/PROFILE-style mineral kinetics
+
+low-cost benchmark
  = Hartmann + LPJ-GUESS-CNP [daily forcing]
 
 sandstone soil production
@@ -91,27 +96,45 @@ Pelletier의 현재 역할:
 
 # 3. chemical weathering
 
-## 3.1 Hartmann + LPJ-GUESS-CNP
+## 3.1 vegetation-aware chemical weathering
 
-부모 Hartmann 계보는 먼저 bulk chemical-weathering flux를 계산하고, lithology-specific P content를 사용해 P release를 계산한다.
+2026-09-21 재검토 결과, Hartmann + LPJ-GUESS-CNP만을 complete vegetation-weathering representation으로 쓰지 않는다.
 
-따라서 고운사에서는:
+Production target:
 
 ```
-F_bulk_chem
-F_P_release
+LPJ-GUESS
+├─ PFT / NPP
+├─ soil water / runoff / drainage
+├─ soil temperature
+├─ root / litter / SOM respiration
+├─ nutrient uptake
+└─ litter / root turnover
+       |
+       v
+B-WITCH-style vegetation interface
+       |
+       v
+WITCH / PROFILE-style mineral kinetics
+       |
+       ├─ W_chem dissolved mass loss
+       └─ nutrient release
 ```
 
-를 분리한다.
+Published precedents:
+- Goddéris et al. 2006 WITCH + forest water/carbon model
+- Roelandt et al. 2010 B-WITCH = LPJ-DGVM + WITCH
+- Wallman et al. 2005 ForSAFE
+- Kronnäs et al. 2019 dynamic ForSAFE weathering
+- Roque-Malo et al. 2022 REWTCrunch
+- Banwart et al. 2009 biological weathering process model
 
-LPJ-GUESS-CNP는 daily:
-- soil temperature
-- runoff
-- patch state
+Hartmann/LPJ-GUESS-CNP remains:
+- low-cost benchmark
+- P-cycle consistency check
+- lithology/runoff/temperature sensitivity
 
-를 제공하므로 short-timescale chemical-weathering forcing에 적합하다.
-
-그러나:
+Chemical dissolved mass loss remains distinct from bedrock-to-regolith production:
 
 ```
 chemical dissolved mass loss
@@ -119,7 +142,7 @@ chemical dissolved mass loss
 bedrock-to-regolith production
 ```
 
-이다.
+LPJ-GUESS -> WITCH transient postfire forcing is a **new coupling**.
 
 ## 3.2 A/B mobile-soil mass balance
 
