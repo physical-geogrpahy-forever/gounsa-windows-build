@@ -1245,9 +1245,23 @@ peer-reviewed full paper가 아니라 AGU Fall Meeting abstract로 재분류했�
 
 ### chemical weathering의 최종 역할 구분
 
+최신 vegetation-weathering decision이 이 예전 Hartmann 중심 판정을 덮어쓴다.
+
+Production target:
+
 ```
-LPJ-GUESS-CNP
-= daily chemical-weathering/P-release forcing
+LPJ-GUESS
+ -> B-WITCH-style vegetation interface
+ -> WITCH / PROFILE-style mineral kinetics
+ -> W_chem + nutrient release
+ -> LPJ-GUESS-CNP nutrient pools [new return coupling]
+```
+
+Hartmann + LPJ-GUESS-CNP:
+
+```
+= daily hydroclimatic / P-cycle benchmark
+!= complete vegetation-weathering representation
 != geomorphic regolith-production engine
 ```
 
@@ -1262,7 +1276,7 @@ weathering flux
 
 는 여전히 새로운 coupling이다.
 
-Oeser & von Blanckenburg 2020에 따라 NPP를 보편적 weathering multiplier로 추가하지 않는다.
+Oeser & von Blanckenburg 2020에 따라 NPP를 보편적 weathering multiplier로 추가하지 않는다. Zuo et al. 2024의 erosion-supply limitation과 Osorio-Leon et al. 2025의 deep-root respiration enhancement를 서로 다른 process pathways로 유지한다.
 
 ### postfire hillslope process separation
 
@@ -1281,19 +1295,31 @@ background creep
 ### 최종 문헌 hierarchy
 
 Production process sources:
-- Dantas de Paula et al. 2025
-- Gabet & Mudd 2010
-- Gabet et al. 2003
-- Doane et al. 2021
-- Constantine et al. 2012
-- Lamb et al. 2011
+- McGuire et al. 2016 / SWEHR: event-scale 2D water erosion
+- Gabet et al. 2003: root-growth/decay hillslope transport
+- Lamb et al. 2011: postfire dry ravel
+- Johnstone & Hilley / Landlab depth-dependent residual creep
+- Heimsath / Evans sandstone soil-production lineage
+- Goddéris et al. 2006 WITCH and Roelandt et al. 2010 B-WITCH: vegetation-aware chemical weathering
+- Sverdrup & Warfvinge 1993 PROFILE and ForSAFE lineage: mineral kinetics and dynamic forest-soil feedback
+
+Low-cost benchmark:
+- Dantas de Paula et al. 2025 / Hartmann lineage
 
 Advanced validation/sensitivity:
 - REWTCrunch 2022
+- Banwart et al. 2009
+- Taylor et al. 2011/2012
+- Osorio-Leon et al. 2025
 - SoilGen 2022
 - Roering 2001
 - Roering & Gerber 2005
 - Jackson & Roering 2009
+
+Archive/reference only for current production:
+- Gabet & Mudd 2010 root-fracture/tree-throw architecture
+- Doane et al. 2021 tree throw
+- Constantine et al. 2012 windthrow
 
 Comparison/long-term consistency:
 - SSSPAM 2019/2021
@@ -1362,17 +1388,30 @@ gamma_sand = 0.80-4.50 m
 
 DynSoil/MErSiM은 optional advanced transient mineral/regolith state로 유지한다.
 
-### LPJ-GUESS/Hartmann weathering
-Hartmann 2011/2014 parent lineage는 bulk chemical weathering을 먼저 계산하고 lithology-specific P content를 사용해 P release를 얻는다.
+### vegetation-aware chemical weathering
+Hartmann 2011/2014 및 Dantas de Paula et al. 2025는 low-cost benchmark로 유지한다.
 
-따라서 고운사에서는:
+Complete production target은:
+
+```
+LPJ-GUESS
+ -> hydrology / drainage
+ -> belowground respiration / soil CO2
+ -> nutrient uptake / return
+ -> litter / decomposition
+ -> B-WITCH-style interface
+ -> WITCH / PROFILE-style mineral kinetics
+ -> F_bulk_chem + nutrient release
+```
+
+이다.
 
 ```
 F_bulk_chem
 F_P_release
 ```
 
-를 별도로 보존한다.
+를 별도로 보존하며, nutrient release를 LPJ-GUESS-CNP에 되돌리는 것은 새로운 coupling이다.
 
 LPJ-GUESS P-weathering output만을 역산해 geomorphic mass loss를 만드는 것이 기본안은 아니다.
 
@@ -1708,9 +1747,11 @@ W_chem
 
 Use:
 - slow sandstone parent-material production: `P_sand(H)`
-- daily LPJ-GUESS/Hartmann chemical dissolved-weathering forcing: `W_chem`
+- vegetation-aware chemical dissolved weathering:
+  `LPJ-GUESS -> B-WITCH-style interface -> WITCH/PROFILE -> W_chem`
+- Hartmann/LPJ-GUESS-CNP: low-cost benchmark
 
-Do not apply arbitrary climate, biomass or fire multipliers to `P_sand` without separate evidence.
+Do not apply arbitrary climate, biomass, NPP or fire multipliers to `P_sand` without separate evidence.
 
 ### Landlab numerical scaffold
 
@@ -1718,9 +1759,18 @@ Do not apply arbitrary climate, biomass or fire multipliers to `P_sand` without 
 LPJ-GUESS
 ├─ root state + turnover
 │  └─ Gabet q_root
-├─ runoff + soil T
-│  └─ Hartmann chemical dissolved weathering
-└─ vegetation recovery
+├─ hydrology / soil T
+├─ belowground respiration / soil CO2
+├─ nutrient uptake / return
+└─ litter / decomposition
+      |
+      v
+B-WITCH-style interface
+      |
+      v
+WITCH / PROFILE chemical weathering
+      ├─ W_chem
+      └─ nutrient release -> LPJ-GUESS-CNP [new coupling]
 
 Landlab grid
 ├─ soil__depth
