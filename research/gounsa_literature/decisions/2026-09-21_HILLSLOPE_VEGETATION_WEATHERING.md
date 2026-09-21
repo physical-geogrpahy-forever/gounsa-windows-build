@@ -677,6 +677,63 @@ ridge-valley spacing
 단 field-site-specific depth values를 고운사에 직접 전이하지 않는다.
 
 
+## 결정 22. sandstone을 reaction lithology와 hydrologic architecture로 분리
+
+Xiao et al. 2019의 forested sandstone catchment를 반영한다.
+
+고운사에서 sandstone effect는:
+
+```
+A. mineral/cement chemistry
+ -> reaction kinetics
+
+B. soil/regolith/boulder architecture
+ -> porosity/macropores
+ -> storage/connectivity
+ -> flow paths/residence time
+```
+
+두 갈래로 처리한다.
+
+따라서 단일:
+```
+sandstone weathering factor
+```
+를 사용하지 않는다.
+
+Hoagland et al. 2017에 따라 chemical-weathering water는 최소:
+```
+shallow
+deep
+lateral/mixed
+```
+reservoir로 구분할 수 있어야 한다.
+
+## 결정 23. decadal vegetation-pedogenesis feedback은 허용하되 soil-thickness accumulation을 P_sand로 쓰지 않는다
+
+Phillips et al. 2008은 newly exposed resistant sandstone에서 수십 년 내 vegetation-soil feedback이 나타날 수 있음을 보여준다.
+
+따라서 100년 simulation에서:
+```
+vegetation recovery
+<-> thin-soil / fracture state
+```
+feedback을 무시하지 않는다.
+
+하지만 reported:
+```
+5-10 mm yr^-1
+```
+soil-cover thickening은:
+- in-situ weathering
+- organic accumulation
+- mineral debris trapping
+- fracture infill
+을 포함하므로 `P_sand` calibration에 사용하지 않는다.
+
+고운사 mass balance에서는 이 성분들을 분리한다.
+
+
 ## excluded
 
 - mycorrhiza
