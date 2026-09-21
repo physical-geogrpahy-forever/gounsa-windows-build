@@ -1,5 +1,10 @@
 # Doane tree-throw / hillslope-roughness lineage
 
+> **현재 상태: ARCHIVE ONLY / PRODUCTION EXCLUDED**  
+> 2026-09-21 `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`가 이 파일의 구현 판정을 덮어쓴다.  
+> Tree throw / uprooting은 현재 고운사 100년 production baseline에서 제외되어 있으며, 이 파일은 향후 optional 재검토를 위한 문헌 및 구현 아이디어 보존용이다.
+
+
 ## 핵심 논문
 - Doane et al. (2021). Topographic roughness on forested hillslopes: A theoretical approach for quantifying hillslope sediment flux from tree throw.
 - Doane et al. (2023). Hillslope roughness reveals forest sensitivity to extreme winds.
