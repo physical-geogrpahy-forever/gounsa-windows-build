@@ -602,6 +602,81 @@ f(TWI)
 를 함께 고려한다.
 
 
+## 결정 18. lateral flow를 chemical-weathering spatial state로 명시
+
+Bower et al. 2023 forested podzols에서 lateral-flow affected horizons는 vertically developed profiles보다 훨씬 강한 plagioclase depletion을 보였다.
+
+따라서 mandatory spatial sensitivity:
+
+```
+upslope contributing water
+lateral throughflow
+depth to bedrock
+flow-path history
+```
+
+를 포함한다.
+
+각 grid cell을 완전히 독립된 vertical weathering column으로만 계산하지 않는다.
+
+## 결정 19. tree-root/fracture vertical connectivity를 별도 sensitivity로 둔다
+
+Uhlemann et al. 2024:
+
+```
+tree location
++ fracture zone
+ -> deeper vertical infiltration
+```
+
+가능.
+
+따라서:
+
+```
+vertical connectivity
+=
+f(fracture state, root state, antecedent moisture)
+```
+
+형태의 sensitivity를 허용한다.
+
+단, root presence가 직접 fracture permeability를 얼마나 변화시키는지는 separate NEW COUPLING이며 coefficient를 임의 생성하지 않는다.
+
+## 결정 20. hillslope hydrologic structure의 점진적 공진화를 sensitivity에 둔다
+
+Hartmann & Blume 2024는 수십~수천년 동안:
+
+```
+soil formation
++ vegetation development
+ -> preferential/lateral flow structure
+```
+
+가 변화함을 보여준다.
+
+100년 고운사 first production에서는 hydrologic structure를 완전 동적화하지 않더라도, 다음 변화는 sensitivity 후보로 둔다.
+
+- organic-layer storage
+- infiltration partition
+- preferential-flow fraction
+- shallow/lateral flow fraction
+
+## 결정 21. inherited weathering-depth prior에 hillslope length/relief를 고려
+
+Pedrazas et al. 2021 + Ferrier & Perron 2020에 따라:
+
+```
+divide-channel distance
+local relief
+ridge-valley spacing
+```
+
+은 inherited `Z_weathered(t0)` prior와 rock-moisture capacity 설계에 사용할 수 있다.
+
+단 field-site-specific depth values를 고운사에 직접 전이하지 않는다.
+
+
 ## excluded
 
 - mycorrhiza
