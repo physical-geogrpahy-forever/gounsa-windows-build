@@ -80,3 +80,23 @@ https://doi.org/10.1098/rstb.2011.0251
 - 기존 canonical: `2012_Taylor_DGVMWeathering.md`
 - 삭제한 중복본: `2012_Taylor_GlobalBiologicalWeathering.md`
 - 기존 핵심 판정인 "DGVM NPP/PFT -> process-based weathering의 published precedent"를 유지하면서 상세 process chain을 보강함.
+
+
+## 2026-09-21 mycorrhiza scope override
+
+이 논문은 `DGVM -> process-based chemical weathering`이라는 상위 구조의 참고 선례로만 유지한다.
+
+고운사에서 사용하지 않는 부분:
+```
+mycorrhizal functional type
+root + mycorrhizal nutrient-uptake combined term
+AM/EcM differentiation
+```
+
+고운사에서 참고 가능한 비균근 상위 구조:
+- DGVM NPP/PFT/hydrology
+- root nutrient demand
+- soil solution chemistry
+- mineral dissolution
+
+균근 state는 모델 interface에 만들지 않는다.
