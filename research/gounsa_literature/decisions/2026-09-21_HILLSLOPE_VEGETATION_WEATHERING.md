@@ -778,3 +778,74 @@ It is a hillslope-connected state/process.
 - `models/Sandstone_Soil_Production.md`
 - `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
 - `decisions/2026-09-21_SOIL_WEATHERING_FOURTH_PASS_NON_MYCORRHIZAL.md`
+
+
+## 결정 24. soil respiration source와 soil-gas state를 depth별로 분리한다
+
+Hodges et al. 2019의 sandstone/shale forest catena 관측을 추가 반영한다.
+
+    LPJ-GUESS root/belowground respiration
+      -> R_CO2(z)
+      -> gas transport + porosity + saturation + depth
+      -> pCO2(z), pO2(z)
+      -> W_chem / redox context
+
+Sandstone에서 deeper root respiration이 나타날 수 있다는 근거는 있으나, 이를 sandstone 고정계수로 사용하지 않는다.
+
+결정:
+- `R_CO2 != pCO2` 유지
+- `pCO2`와 필요시 `pO2/redox`를 chemistry-side state로 둔다
+- hillslope position은 직접 gas multiplier가 아니라 moisture, porosity, gas diffusion을 통해 작동
+
+## 결정 25. postfire root-channel hydrologic legacy를 즉시 0으로 초기화하지 않는다
+
+Pawlik & Kasprzak 2018은 root-system 영향이 tree mortality/cutting 후 수십 년에도 ERT에서 남을 수 있음을 보여준다.
+
+따라서:
+
+    current live vegetation
+    !=
+    inherited root-created hydrologic structure
+
+이다.
+
+첫 구현에서는 inherited fracture/permeability state 안에 root-channel/biopore legacy를 보존하거나 별도 sensitivity state로 둘 수 있다.
+
+단:
+- decay time constant 미확정
+- arbitrary decay function 금지
+- ERT resistivity를 permeability로 직접 환산 금지
+
+## 결정 26. tree-induced local soil deepening은 Mode C 근거지만 rate calibration이 아니다
+
+Shouse & Phillips 2016에서 tree/stump microsite 아래 토양이 adjacent soil보다 깊었고, 이 현상은 strongly dipping sedimentary strata뿐 아니라 flat-bedded terrain에서도 관찰됐다.
+
+따라서:
+
+    root-rock contact + fracture accessibility
+      -> local soil-production/deepening sensitivity
+
+는 허용한다.
+
+그러나 stump-adjacent depth contrast는 cumulative legacy이므로 `P_sand` 또는 연간 생산률로 변환하지 않는다.
+
+## 결정 27. sandstone에서 vegetation의 surface protection과 bedrock bioerosion을 분리한다
+
+Turkington & Shouse 2019은 siliceous sandstone에서 root grooves와 joint/bedding-plane opening을 통한 bedrock denudation을 보고한다.
+
+따라서 같은 나무가:
+
+    surface soil erosion
+      -> 감소
+
+와 동시에:
+
+    shallow/exposed bedrock biomechanical weathering
+      -> 증가
+
+를 만들 수 있다.
+
+결정:
+- vegetation weathering multiplier 하나 금지
+- surface erosion resistance와 root-rock substrate production을 별도 process로 유지
+- LPJ-GUESS biomass를 bedrock weathering coefficient에 직접 곱하지 않음

@@ -1144,3 +1144,88 @@ The Gounsa model therefore remains modular.
 This is consistent with Meng et al. 2022, which identifies underrepresentation of biotic processes in existing soil-landscape evolution models.
 
 The current best architecture is a process-constrained NEW COUPLING, not a claim that one published model already does everything.
+
+
+## 12.12 sandstone forest root-gas and biopore legacy mini-pass
+
+이번 소묶음은 sandstone forest에서 vegetation-weathering coupling을 `gas state`, `local soil deepening`, `root-channel hydrologic legacy`, `exposed-bedrock biomechanical weathering`으로 더 분해한다.
+
+### soil gas is a depth-dependent state
+
+Hodges et al. 2019:
+
+    lithology + hillslope position + depth + season
+      -> porosity / gas transport / moisture
+      -> root and soil respiration expression
+      -> pCO2(z), pO2(z)
+      -> weathering / redox context
+
+Sandstone watershed에서 동일 깊이 기준 pCO2가 더 높고 pO2가 더 낮았고, 저자들은 더 큰 macroporosity와 deeper root respiration을 핵심 원인으로 해석했다.
+
+따라서:
+
+    R_CO2(z) != pCO2(z)
+
+를 유지하고, chemistry interface에는 최소한 depth-resolved 또는 layer-resolved gas-state proxy를 둔다.
+
+### tree-induced soil deepening is real but not a production-rate calibration
+
+Shouse & Phillips 2016:
+
+    root-rock contact
+      + joints/fractures/bedding access
+      -> local regolith/soil deepening
+
+이 현상은 steeply dipping strata뿐 아니라 flat-bedded sedimentary terrain에서도 관찰되었다.
+
+그러나 stump-adjacent depth contrast는 cumulative legacy이며 `mm yr^-1` production rate가 아니다.
+따라서 Mode C의 structural support로만 사용하고 `P_sand` coefficient를 만들지 않는다.
+
+### inherited root-channel / biopore connectivity survives vegetation loss
+
+Pawlik & Kasprzak 2018 ERT:
+
+    living roots
+      -> root channels + moisture migration
+      -> heterogeneous regolith hydrologic architecture
+
+그리고:
+
+    tree mortality / cutting
+      -> reduced but persistent subsurface signature for decades
+
+따라서 postfire first implementation은 current vegetation state와 inherited root-created structure를 구분한다.
+
+Candidate state for sensitivity only:
+
+    C_rootlegacy(t0)
+
+또는 동등한 biopore/connectivity state.
+
+중요: published decay law가 없으므로 arbitrary exponential decay를 baseline에 넣지 않는다.
+
+### sandstone tree effect has opposite-sign pathways
+
+Turkington & Shouse 2019:
+
+    forest cover / roots
+      -> surface binding / bioprotection
+
+동시에 shallow or exposed siliceous sandstone에서는:
+
+    root grooves + joint opening
+      -> biomechanical bedrock weathering / local soil deepening
+
+따라서 vegetation을 weathering 또는 erosion에 단일 signed multiplier로 넣지 않는다.
+
+Current production interpretation:
+
+    vegetation surface protection
+    !=
+    root-rock substrate production
+    !=
+    root respiration chemical forcing
+    !=
+    root-water hydrologic forcing
+
+이 네 경로는 각각 독립 interface로 유지한다.
