@@ -1,5 +1,10 @@
 # TreeThrow annual event-model lineage
 
+> **현재 상태: ARCHIVE ONLY / PRODUCTION EXCLUDED**  
+> 2026-09-21 `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`가 이 파일의 구현 판정을 덮어쓴다.  
+> Tree throw / uprooting은 현재 고운사 100년 production baseline에서 제외되어 있으며, 이 파일은 향후 optional 재검토를 위한 문헌 및 구현 아이디어 보존용이다.
+
+
 ## 목적
 100년 고운사 사면수송에서 tree throw를 generic diffusivity에 포함하지 않고 **연 단위 discrete event**로 계산할 수 있는 actual model precedent를 관리한다.
 
