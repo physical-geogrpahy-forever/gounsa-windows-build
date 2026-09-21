@@ -368,3 +368,33 @@ Do not return to:
 - tree throw/uprooting production
 - shallow landslide production
 - arbitrary NPP/biomass weathering multiplier
+
+
+---
+
+## post-audit completion
+
+최종 consistency audit에서 `MASTER.md` 후반에 남아 있던 옛 Hartmann-only scaffold와 tree-throw production hierarchy를 발견하여 정리했다.
+
+최종 상태:
+- complete chemical-weathering production target = LPJ-GUESS -> B-WITCH-style interface -> WITCH/PROFILE
+- Hartmann/LPJ-GUESS-CNP = low-cost benchmark
+- Gabet-Mudd/Doane/Constantine tree-throw lineage = archive/reference only
+- no stale `daily LPJ-GUESS/Hartmann chemical dissolved-weathering forcing` production statement remains in MASTER
+- direct living-root sandstone fracture = optional/unresolved, not production-ready
+- `INDEX.md` regenerated from actual branch tree
+
+Final actual index counts:
+```
+Papers    325
+Models     40
+Decisions  19
+Sessions    8
+```
+
+Key final commits in this audit:
+- vegetation-weathering decision refinement: `6d8ff09534d04c47e1c5903bff064924bbb8f50a`
+- vegetation-weathering model refinement: `d66ad63f64488cec9235b9e4a935ad1ad31f53b0`
+- MASTER nonlinear constraints: `a439cba20d543dd6a851edbf72d9e2fb41290466`
+- INDEX regeneration: `3f6341f14ad8b6a25ec02f62418585572319dd82`
+- final MASTER stale-text cleanup: `4bc39048266845a14d7e144f90cf4f3f6f1ffad4`
