@@ -12,6 +12,7 @@ deep roots가 bedrock vadose zone의 chemical weathering을 정량적으로 얼�
 
 # 적용 환경
 - forested Critical Zone
+- fractured bedrock dominated by argillite with sandstone interbeds
 - weathered bedrock
 
 # 핵심 과정
@@ -42,6 +43,8 @@ C/Cr 내 deep roots를 수분흡수뿐 아니라 chemical-weathering source로 �
 LPJ-GUESS FineRootC(z)와 root respiration을 이 논문의 chemical-weathering modifier로 연결하는 것은 새로운 coupling이다.
 
 # 한계
+원 site는 주로 argillite이며 sandstone interbeds가 포함된 fractured bedrock이다. 고운사 sandstone analogue로 직접 간주하지 않는다.
+
 특정 parent material과 Critical Zone 조건의 정량배수를 고운사에 직접 적용하면 안 된다.
 
 # 최종 판정
