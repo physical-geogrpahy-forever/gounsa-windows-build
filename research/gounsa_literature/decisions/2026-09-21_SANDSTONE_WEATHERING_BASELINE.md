@@ -296,3 +296,49 @@ LPJ-GUESS/Hartmann
 ```
 
 Do not add annual climate or biomass multipliers to `P_sand` without a separate published/local relation.
+
+
+---
+
+## 10. shallow-soil correction
+
+Project condition:
+```
+sandstone
++ shallow soil
+```
+
+supersedes any interpretation that treats Gounsa as a generic thick-soil sandstone hillslope.
+
+The previous single-mode baseline:
+
+```
+P_sand(h) = P0_sand exp(-h/gamma_sand)
+```
+
+is retained as **mode A**, not as the only production function.
+
+Mandatory sensitivity **mode B** must allow a finite-depth production peak because the Oregon sandstone lineage indicates:
+- high production at about 15-30 cm
+- possible lower production at <15 cm
+- resistant/less-weathered bedrock near bare exposure
+
+Thus no production code may assume:
+```
+less soil always -> faster production
+```
+all the way to h = 0.
+
+See:
+`decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
+
+### implication for 100-year magnitude
+Because soil is shallow, the site may lie near the upper production regime, so century-scale production should be retained and compared quantitatively against erosion, dry ravel and fire-spall rather than pre-judged negligible.
+
+### implication for creep
+Shallow `H_active` directly limits:
+```
+q_bg = -D*_bg H_active grad(z)
+```
+
+and all mobile-soil transport modules must include an availability cap.
