@@ -114,12 +114,24 @@ This is large enough to compare explicitly with:
 
 ## 4. creep implication of shallow soil
 
-Residual creep baseline:
+Residual creep production baseline:
 
 ```
 q_bg
 =
--D*_bg H_active grad(z)
+-K_bg H_* [1-exp(-H_active/H_*)] grad(z)
+```
+
+For shallow soil:
+
+```
+H_active << H_*
+```
+
+```
+q_bg
+approx
+-K_bg H_active grad(z)
 ```
 
 Because `H_active` is shallow:
@@ -255,3 +267,23 @@ equivalent to order:
 under a simple constant-rate comparison.
 
 Because these values come from different sandstone systems and long-term cosmogenic averages, they define a sensitivity envelope rather than an annual transient forecast.
+
+
+---
+
+## 9. implementation status
+
+Numerical scaffold:
+`models/Landlab_ShallowSoil_Weathering_Creep.md`
+
+Current implementation:
+- Mode A sandstone production -> Landlab-compatible exponential weatherer
+- Mode B -> custom shallow-hump sensitivity weatherer
+- residual creep -> `DepthDependentDiffuser`
+- optional steep-slope sensitivity -> `DepthDependentTaylorDiffuser`
+- root transport -> separate Gabet 2003 flux
+- dry ravel -> separate disturbance module
+
+Excluded from production:
+- tree throw / uprooting
+- shallow landslide
