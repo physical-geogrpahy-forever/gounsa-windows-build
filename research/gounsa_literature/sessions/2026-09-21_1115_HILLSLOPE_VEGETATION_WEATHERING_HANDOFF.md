@@ -472,3 +472,138 @@ from Yoo & Mudd 2008.
 5. Mode C vegetation-sensitive soil-production sensitivity design
 
 6. fire-spall + coarse-fragment supply/armour
+
+
+---
+
+## post-handoff continuation
+
+추가로 검토/저장한 핵심 논문:
+
+- `papers/2017_Hasenmueller_DeepRoots_BedrockFractures.md`
+- `papers/2022_Primka_Hillslope_RootDynamics.md`
+- `papers/2023_Donaldson_Aspect_Saprolite_Symmetry.md`
+- `papers/2021_Wang_3DClimateTopography_Weathering.md`
+- `papers/2015_Hasenmueller_Topographic_SoilCO2.md`
+- `papers/2023_Kopp_Topography_SoilCO2_Efflux.md`
+- `papers/2020_Tang_Sandstone_PreferentialFlow_Hillslope.md`
+- `papers/2019_Sullivan_Aspect_FluxPIHM_WITCH_Vegetation.md`
+- `papers/2023_Nudurupati_Landlab_TransientVegetationTopography.md`
+
+핵심 추가결론:
+
+### deep roots vary with hillslope position
+Hasenmueller 2017:
+```
+hillslope hydrology
+ -> fracture-root density / deep-root deployment
+```
+
+따라서 root access depth를 PFT 고정값으로만 보면 안 된다.
+
+### root dynamics vary with moisture/topography
+Primka 2022:
+```
+dry sites
+ -> faster root-tip turnover
+
+wetter/deeper soils
+ -> larger standing crop / longer survival
+```
+
+이는 chemical weathering과 Gabet root transport 양쪽의 spatial vegetation state validation에 사용.
+
+### current vegetation can be offset by hydrologic effects
+Donaldson 2023:
+```
+north / woody
+ -> deeper biological/root forcing
+ -> stronger water withdrawal
+
+south / grass
+ -> more perched/lateral water
+ -> stronger hydrologic weathering opportunity
+```
+
+결과적으로 saprolite thickness가 유사할 수 있음.
+
+즉 vegetation effect 내부에도 반대부호 경로가 존재한다.
+
+### CO2 source != pCO2
+Hasenmueller 2015:
+```
+topography
+ -> soil depth/moisture/gas diffusivity
+ -> pCO2
+```
+
+Kopp 2023:
+```
+dry ridge
+ -> water-limited respiration
+
+wet valley
+ -> oxygen-limited respiration
+```
+
+따라서:
+```
+R_CO2
+!=
+pCO2
+```
+를 유지한다.
+
+### sandstone preferential flow
+Tang 2020:
+neighboring temperate-forest sandstone/shale catchments에서 preferential flow가 lithology, horizon structure, antecedent moisture, hillslope position에 따라 달랐다.
+
+따라서:
+```
+deep flow fraction
+!=
+f(TWI)
+```
+단일식.
+
+### direct hillslope hydrology + WITCH + vegetation precedent
+Sullivan et al. 2019:
+```
+Flux-PIHM
++
+WITCH
++
+vegetation nutrient uptake / litter return
+```
+
+을 실제 결합.
+
+Vegetation cycling inclusion improved solute-depth behavior but reduced net shale weathering by about 10%.
+
+This is one of the strongest published integration precedents for the current Gounsa architecture.
+
+### Landlab dynamic vegetation interface precedent
+Nudurupati et al. 2023:
+```
+topography / climate
+ -> dynamic tree-shrub-grass patterns
+```
+를 Landlab에서 구현.
+
+Weathering engine은 아니므로 production source가 아니라 terrain-to-dynamic-vegetation implementation reference.
+
+---
+
+## current actual archive counts after continuation
+
+```
+Papers      397
+Models       43
+Decisions    23
+Sessions     10
+```
+
+`INDEX.md` was regenerated from the actual branch tree.
+
+Latest index commit:
+`f734285051f11f6099d8fde0993ba2911da21e40`
