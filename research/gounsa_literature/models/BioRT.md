@@ -156,6 +156,39 @@ BioRT
 
 이때 SWEHR surface runoff와 BioRT subsurface hydrology의 water balance가 중복되지 않도록 shared water-state 설계가 필요하다.
 
+## Maher residence-time constraint
+
+Maher 2010 strengthens the role of BioRT-style spatial hydrology.
+
+Chemical weathering can be controlled by:
+```
+fluid residence time
+flow rate
+approach to saturation
+secondary-mineral reactions
+```
+
+rather than runoff magnitude alone.
+
+For Gounsa, a BioRT spatial sensitivity should therefore preserve:
+- shallow vs deep flow
+- residence time
+- saturation state
+- reactive transport path length
+
+This is one reason BioRT remains the strongest spatial alternative to WITCH/PROFILE.
+
+## mycorrhiza exclusion
+
+No mycorrhizal state is used in the Gounsa BioRT pathway.
+
+Allowed biological inputs:
+- root/belowground respiration
+- plant nutrient uptake
+- litter/SOM-related chemistry
+- optional non-mycorrhizal DOC/organic-ligand sensitivity
+
+
 ## current judgment
 
 ### BioRT-Flux-PIHM
