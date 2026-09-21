@@ -57,6 +57,7 @@
 - `decisions/2026-09-21_BACKGROUND_CREEP.md`
 - `decisions/2026-09-21_GEOMORPH_SCOPE_CORRECTION.md`
 - `decisions/2026-09-21_SANDSTONE_WEATHERING_BASELINE.md`
+- `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 
 ---
 
@@ -1383,3 +1384,75 @@ Final P0_sand/gamma_sand는 matrix abundance, cement type, permeability, tensile
 Chemical dissolved mass loss W_chem은 P_sand와 별도 질량수지항으로 유지한다.
 
 DynSoil/MErSiM과 Braun 2016은 optional advanced sensitivity model로 둔다.
+
+
+---
+
+## 2026-09-21 shallow-soil sandstone correction
+
+Project condition:
+```
+sandstone + shallow mobile soil
+```
+
+Latest decision:
+`decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
+
+### sandstone production
+Do not hard-lock:
+```
+P(h)=P0 exp(-h/gamma)
+```
+as a universal relation down to bare bedrock.
+
+Required modes:
+
+```
+mode A
+= Evans-style exponential sandstone production
+
+mode B
+= shallow-soil humped / zero-depth-suppressed sensitivity
+```
+
+Oregon sandstone evidence permits a finite-depth production peak around the shallow-soil range and reduced production near bare/exposed bedrock.
+
+Therefore:
+```
+less soil
+!= always faster production all the way to h=0
+```
+
+### creep
+Shallow mobile soil strengthens the current baseline:
+
+```
+q_bg
+=
+-D*_bg H_active grad(z)
+```
+
+because small `H_active` directly limits residual creep.
+
+Current hillslope transport remains:
+
+```
+q_hill
+=
+q_bg
++
+q_rootgrowth
++
+q_dryravel
+```
+
+with strict mobile-soil availability caps.
+
+### current priority
+1. actual Gounsa `H_AB` distribution
+2. shallow sandstone production regime
+3. local sandstone matrix/cementation
+4. fire-spall/coarse-fragment production
+5. compare 100-year production against erosion/export
+
+Deep-regolith DynSoil/MErSiM remains optional rather than the next priority.
