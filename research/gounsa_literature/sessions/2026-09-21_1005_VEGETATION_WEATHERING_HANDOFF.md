@@ -132,7 +132,9 @@ biological productivity
 ```
 
 ### Taylor et al. 2011 / 2012
-root / mycorrhizal nutrient uptake와 biological proton cycle을 weathering에 연결.
+후속 범위 수정에 따라 균근-specific 항은 production/sensitivity에서 제외한다.
+
+Taylor 2012는 DGVM -> process-based weathering이라는 상위 구조만 참고한다.
 
 ### REWTCrunch 2022
 기존 archive 재확인:
@@ -398,3 +400,31 @@ Key final commits in this audit:
 - MASTER nonlinear constraints: `a439cba20d543dd6a851edbf72d9e2fb41290466`
 - INDEX regeneration: `3f6341f14ad8b6a25ec02f62418585572319dd82`
 - final MASTER stale-text cleanup: `4bc39048266845a14d7e144f90cf4f3f6f1ffad4`
+
+
+---
+
+## later scope correction: mycorrhiza excluded
+
+사용자 범위 수정에 따라 균근(mycorrhiza)은 현재 고운사 production 및 sensitivity에서 제외한다.
+
+Authoritative decision:
+`decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
+
+관련 문헌은 archive/reference only이며, 이후 구현에는 다음 변수를 만들지 않는다.
+
+```
+mycorrhizal_type
+AM / EcM state
+fungal weathering source
+fungal oxalate allocation
+```
+
+Non-mycorrhizal vegetation-weathering pathways만 유지:
+- root respiration / soil CO2
+- root depth/distribution
+- root water uptake
+- litter/SOM
+- DOC/organic-ligand sensitivity without fungal parameterization
+- nutrient uptake/return
+- hydrology
