@@ -535,6 +535,110 @@ The exact LPJ-GUESS interface is NEW COUPLING.
 
 ---
 
+## 10.1 non-mycorrhizal ecological interface after Druhan & Bouchez 2024
+
+Druhan & Bouchez 2024 provides a direct published theoretical framework for ecological regulation of chemical weathering without requiring a biomass multiplier.
+
+Three vegetation pathways are elevated to core interface status.
+
+### A. root water uptake
+
+```
+root water uptake
+ -> reduced drainage
+ -> altered residence/reaction time
+ -> altered weathering
+```
+
+This makes LPJ-GUESS layer-wise root water uptake a chemical-weathering input, not only an ecosystem water-balance output.
+
+### B. root respiration
+
+Use LPJ-GUESS root/belowground respiration if available.
+
+If a direct suitable output is unavailable, Stolze 2026 provides a published kinetic intermediate form:
+
+```
+R_root
+=
+k * f(T) * f(S_w)
+```
+
+with spatial root distribution supplied by LPJ-GUESS.
+
+Replacing Stolze's fixed 0.2 m rooting domain with LPJ-GUESS `FineRootC(z)` is NEW COUPLING.
+
+### C. nutrient uptake and litter return
+
+```
+mineral dissolution
+ -> dissolved nutrient
+
+root nutrient uptake
+ -> vegetation pool
+
+litter turnover
+ -> topsoil return / resolubilization
+```
+
+Nutrient uptake is therefore not treated as permanent export from the modeled Critical Zone.
+
+This is directly compatible with the intended:
+
+```
+W_chem nutrient release
+ -> LPJ-GUESS-CNP
+ -> uptake / biomass / litter
+ -> soil chemistry
+```
+
+return loop.
+
+### D. geomorphic mineral-supply control
+
+Separate from the three ecological pathways:
+
+```
+erosion / deposition
+ -> fresh-mineral supply
+ -> mineral residence
+ -> W_chem
+```
+
+This pathway can dominate or mask vegetation effects, as Larsen 2023 demonstrates.
+
+### first-production interface
+
+```
+LPJ-GUESS
+├─ root water uptake(z,t)
+├─ root respiration(z,t)
+├─ nutrient uptake(z,t)
+├─ litter return(t)
+└─ FineRootC(z,t)
+
+Landlab/SWEHR
+├─ erosion/deposition
+├─ H_AB
+└─ fresh/imported material state
+
+Hillslope hydrology
+├─ drainage
+├─ residence time
+├─ saturation
+└─ deep/shallow flow
+
+        |
+        v
+
+WITCH / PROFILE
+or advanced PFLOTRAN/BioRT
+        |
+        v
+W_chem + nutrient release
+```
+
+
 ## 11. key negative constraints
 
 Do not use:
