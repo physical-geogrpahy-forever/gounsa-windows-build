@@ -191,6 +191,118 @@ LPJ-GUESS FineRootC
 ```
 
 
+## third-pass refinements: roots, mycorrhiza, spatial hydrology
+
+### root vertical distribution is a required chemical-weathering state
+
+Gatz-Miller et al. 2023 used 2D reactive transport over 170 years and compared simplified versus dynamically evolving root architecture.
+
+The root representation changed:
+- local water uptake
+- solute transport
+- depth and geometry of geochemical zones
+
+Therefore the Gounsa chemical-weathering interface must preserve at minimum:
+
+```
+FineRootC(z)
+root fraction by layer
+root-access depth
+root water uptake by layer
+```
+
+Do not collapse all belowground vegetation state to total FineRootC.
+
+### root exudate availability is partitioned
+
+Garcia-Arredondo et al. 2023 shows root-derived DOC can be partitioned among:
+- microbial consumption
+- mineral sorption
+- redox reactions
+- dissolved transport
+
+Therefore:
+
+```
+root exudation source
+!=
+100% mineral-weathering ligand
+```
+
+REWTCrunch sensitivity should include an exudate availability / partition term rather than treating all root C as chemically available.
+
+### mycorrhizal functional type is an advanced required sensitivity
+
+Quirk et al. 2012:
+- AM and EM tree systems differed in mineral colonization and Ca release
+- EM systems could show substantially greater silicate weathering in the tested basalt substrate
+
+Bonneville et al. 2011:
+- living tree-mycorrhiza caused localized acidification at the hypha-mineral interface
+- biotite alteration rate was quantified at the interface scale
+
+Schmalenberger et al. 2015:
+```
+mineral nutrient content
+ -> fungal C allocation / oxalate secretion
+ -> Ca weathering
+```
+
+Thus exudation is not necessarily a fixed fraction of root C.
+
+Gounsa implication:
+
+```
+LPJ-GUESS PFT
+ -> mycorrhizal functional type [AM / EcM / mixed]
+ -> ligand / proton / microsite sensitivity
+```
+
+This mapping is a **new coupling**.
+
+Do not use a universal mycorrhizal enhancement multiplier.
+
+### sandstone-specific biogeochemical sensitivity
+
+Potysz & Bartz 2024 shows simulated rhizospheric organic conditions can enhance sandstone deterioration, with strong dependence on:
+- Fe-bearing cement
+- goethite vs hematite
+- cement dissolution
+- sandstone matrix/mineralogy
+
+Therefore Gounsa sandstone petrography is required not only for P_sand(H) but also for chemical vegetation-weathering parameterization.
+
+### spatial hydrology alternatives
+
+BioRT-Flux-PIHM and Wen et al. 2022 show that:
+```
+topography
+ -> shallow/deep flow partition
+ -> residence time
+ -> chemical reaction environment
+ -> W_chem / solute export
+```
+
+can matter at watershed/hillslope scales.
+
+Current WITCH/PROFILE production target remains, but BioRT is now a spatial alternative / validation engine.
+
+### possible W_chem -> soil-production bridge
+
+Yu & Hunt 2018 provides a transport-limited framework connecting chemical weathering / solute transport to gross soil production and erosion-adjusted net soil formation.
+
+This is a future mechanistic sensitivity only.
+
+Current production remains:
+```
+W_chem
+!=
+P_sand(H)
+```
+
+until a mass-conserved sandstone-specific front model is adopted.
+
+
 ## current judgment
 - vegetation effect on chemical weathering: **explicitly required**
 - vegetation effect on physical sandstone production: **mechanistically supported but quantitatively unresolved**
