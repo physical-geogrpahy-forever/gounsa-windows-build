@@ -90,3 +90,37 @@ The paper is a useful warning that a short hydrologic timestep alone does not gu
 
 # 참고 링크 / DOI
 https://doi.org/10.5194/soil-6-337-2020
+
+
+## 2026-09-21 hillslope-weathering re-audit
+
+추가 원문 검토에서 HydroLorica의 중요한 장점은:
+```
+spatial water balance
+ -> local infiltration
+ -> infiltration-dependent pedogenesis
+```
+구조임을 다시 확인했다.
+
+따라서 고운사에 직접 쓸 수 있는 구조적 선례:
+- 사면 위치별 infiltration 차이
+- surface water routing
+- soil-layer bookkeeping
+- hydrology-dependent pedogenesis
+
+하지만 current production에서 사용하지 않는 항:
+- tree throw
+- simplified annual forest/grass succession state
+
+특히 저자들이 vegetation implementation을 annual-decadal study에 쓰지 말라고 명시하므로, 고운사 vegetation은 반드시 LPJ-GUESS가 담당한다.
+
+현재 역할:
+```
+HydroLorica
+= hydrology-dependent pedogenesis / soilscape architecture reference
+
+NOT
+= vegetation engine
+```
+
+관련 최신 decision에서는 tree throw를 제외한 infiltration/pedogenesis 구조만 참고한다.
