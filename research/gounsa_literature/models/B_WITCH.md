@@ -140,6 +140,28 @@ root biomass(z)
 
 This is the preferred advanced sensitivity for explicit rhizosphere chemistry.
 
+## current Gounsa scope refinement
+
+Gounsa does not copy every biological term from B-WITCH-derived lineages.
+
+Required:
+- hydrology / drainage
+- soil and deep-root CO2
+- vegetation element uptake / return
+- litter / SOM forcing
+- soil temperature
+
+Optional sensitivity:
+- non-mycorrhizal root-derived DOC / ligand source
+
+Excluded:
+- any mycorrhizal functional type
+- fungal hyphal weathering
+- fungal organic-acid allocation
+
+Thus B-WITCH is used as a vegetation-weathering interface precedent, not as an instruction to reproduce all biological sub-processes.
+
+
 ## production judgment
 Chemical weathering production target:
 
