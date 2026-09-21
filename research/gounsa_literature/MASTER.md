@@ -45,6 +45,7 @@
 9. 유수침식 root effect와 shallow-landslide root cohesion을 같은 parameter로 합치지 않는다.
 10. 이미 결정된 Wu-vs-WEPP 갈림길을 다시 열지 않는다. 둘은 역할이 다르다.
 11. chemical weathering에서 vegetation effect를 runoff 하나로 축소하지 않는다. hydrology, soil CO2/respiration, nutrient uptake/return, litter/decomposition의 published pathways를 분리한다.
+13. 균근(mycorrhiza)은 현재 production과 sensitivity에서 제외하고 관련 문헌만 archive/reference로 보존한다.
 12. physical sandstone production에는 검증되지 않은 root-biomass multiplier를 임의로 추가하지 않는다.
 
 관련 결정:
@@ -62,6 +63,7 @@
 - `decisions/2026-09-21_SHALLOW_SANDSTONE_PRODUCTION.md`
 - `decisions/2026-09-21_WEATHERING_CREEP_IMPLEMENTATION_FRAMEWORK.md`
 - `decisions/2026-09-21_VEGETATION_WEATHERING_COUPLING.md`
+- `decisions/2026-09-21_MYCORRHIZA_EXCLUSION.md`
 
 ---
 
