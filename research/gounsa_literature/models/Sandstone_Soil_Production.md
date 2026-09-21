@@ -133,7 +133,7 @@ P_sand(h)
 P0_sand exp(-h/gamma_sand)
 ```
 
-If soil is stripped, production approaches `P0_sand`.
+If soil is stripped, the exponential mode approaches `P0_sand`, but this is **not** assumed universally. In the shallow-soil sensitivity mode, production may decline again toward exposed bedrock.
 
 This is preferable to:
 
@@ -236,13 +236,17 @@ gamma_sand
 These are not a final prior distribution until Gounsa petrography is identified.
 
 ## final judgment
-**Production baseline adopted.**
+**Shallow-soil sandstone baseline adopted with two mandatory sensitivity modes.**
 
+```text
+mode A: exponential
+P_A(h) = P0_sand exp(-h/gamma_sand)
+
+mode B: shallow-soil hump / zero-depth suppression
+P_B(h) = published-constrained sensitivity form
 ```
-annual sandstone soil production
-=
-P0_sand exp(-H_AB/gamma_sand)
-```
+
+Mode B is required because Oregon sandstone data permit a production peak at finite shallow soil thickness rather than forcing maximum production at bare bedrock.
 
 This replaces:
 - granite-based century-scale magnitude reasoning
@@ -266,3 +270,50 @@ LPJ-GUESS/Hartmann
 ```
 
 Do not add annual climate or biomass multipliers to `P_sand` without a separate published/local relation.
+
+
+## shallow-soil correction
+
+Project condition:
+```
+sandstone + shallow mobile soil
+```
+
+This makes the thin-soil regime the primary uncertainty.
+
+Oregon Coast Range sandstone evidence:
+- very rapid rates can occur around roughly 15-30 cm soil
+- very thin soils below roughly 15 cm can show lower rates
+- exposed/nearly exposed bedrock may be less weathered and more resistant than the finite-depth peak zone
+
+Therefore:
+
+```
+h -> 0
+does not automatically imply
+P -> universal maximum
+```
+
+The Evans 2021 exponential form remains a required sensitivity case, but it is not hard-locked at very small `h`.
+
+### transport consequence
+
+Residual creep already uses:
+
+```
+q_bg = -D*_bg H_active grad(z)
+```
+
+so shallow soil automatically reduces the available creep flux.
+
+Root-growth transport and dry-ravel export must also respect available mobile-soil mass.
+
+### production priority
+
+For Gounsa, prioritize:
+1. actual `H_AB` distribution
+2. shallow production behavior
+3. sandstone matrix/cementation
+4. fire-spall supply
+
+over deep-regolith mineral-age complexity.
