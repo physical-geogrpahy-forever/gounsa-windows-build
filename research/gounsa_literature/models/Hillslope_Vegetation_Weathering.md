@@ -810,6 +810,125 @@ weathering front = top-down infiltration depth
 Use both as end-member/sensitivity controls until site hydrology is constrained.
 
 
+## 12.3 direct hillslope hydrology + WITCH + vegetation precedent
+
+Sullivan et al. 2019 is a direct published coupling of:
+
+```
+Flux-PIHM hydrology
++
+WITCH mineral weathering
++
+vegetation nutrient uptake / litter return
+```
+
+on opposing forested hillslopes.
+
+This is especially important because vegetation cycling did not simply increase weathering.
+
+Published result:
+- adding vegetation cycling improved depth-dependent solute behavior
+- net shale weathering decreased by about 10%
+
+Therefore:
+
+```
+vegetation nutrient cycling
+ -> weathering
+```
+
+can have a negative net effect even within a mechanistic hydrology-weathering model.
+
+This strongly supports keeping:
+- nutrient uptake
+- litter return
+- hydrology
+- mineral kinetics
+
+as separate fluxes rather than a positive vegetation multiplier.
+
+For Gounsa:
+
+```
+Flux-PIHM vegetation term
+ ->
+LPJ-GUESS nutrient uptake / litter return
+```
+
+is a NEW COUPLING.
+
+## 12.4 CO2 production versus pCO2 state
+
+Hasenmueller et al. 2015 and Kopp et al. 2023 show that:
+
+```
+CO2 production rate
+!=
+soil pCO2
+```
+
+because pCO2 also depends on:
+- soil depth
+- moisture
+- porosity
+- gas diffusivity
+- topographic convergence
+- oxygen limitation
+
+Thus the Gounsa chemistry interface should conceptually separate:
+
+```
+CO2 source
+=
+root + heterotrophic respiration
+
+from
+
+pCO2 state
+=
+source
++ gas transport / retention
+```
+
+Minimum sensitivity variables:
+- local saturation
+- soil depth
+- porosity/gas diffusivity
+- convergent vs divergent position
+
+Kopp 2023 further indicates the moisture response is non-monotonic:
+- dry ridges can be water-limited
+- wet valleys can be oxygen-limited
+
+Therefore:
+
+```
+R_CO2 = f(T, moisture, saturation, vegetation)
+```
+
+should permit suppression under excessive saturation.
+
+## 12.5 sandstone preferential-flow constraint
+
+Tang et al. 2020 directly compared neighboring temperate-forest shale and sandstone catchments.
+
+In the sandstone catchment, preferential-flow frequency and vertical pathway depended on:
+- hillslope position
+- antecedent moisture
+- soil horizon structure
+- lithology
+
+This means:
+
+```
+deep flow fraction
+!=
+f(TWI or aspect alone)
+```
+
+For Gounsa, shallow/deep flow partition should include sandstone profile/horizon and permeability/fracture information.
+
+
 ## 13. strongest papers for Gounsa
 
 ### direct sandstone/sedimentary hillslope relevance
