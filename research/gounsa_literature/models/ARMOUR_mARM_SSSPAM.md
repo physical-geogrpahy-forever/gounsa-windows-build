@@ -255,3 +255,45 @@ CAESAR-Lisflood:
 - quantitative root/litter state와 stony-soil hydrology 약함
 
 둘 다 단독으로 고운사 전체 요구를 만족하지 않는다.
+
+## 2026-09-22 원논문 공간구조 재감사
+
+### routing
+Welivitiya et al. (2019) 원문은 regular square DEM에서 steepest-slope criterion으로 flow direction을 정하고, contributing area를 **D8**로 계산한다고 명시한다.
+따라서 SSSPAM을 genuine 2D hydrodynamic model로 부르면 안 된다.
+
+### runoff/transport
+원문:
+```
+Q = r A_c / omega
+```
+- r: runoff excess generation
+- A_c: contributing area
+- omega: flow width
+
+transport capacity:
+```
+T_c = K1 Q^delta1 S^delta2 d50a^delta3 omega
+```
+Zhang et al. (2011) flume fit에서 K1=2382.32, delta1=1.26, delta2=1.63, delta3=-0.34.
+
+따라서 event hydrodynamics를 직접 푸는 구조가 아니라 D8 contributing-area + empirical transport-capacity 구조다.
+
+### erosion/profile
+실제 장점은 여전히 강하다.
+- size-selective erosion transition matrix
+- surface armour enrichment
+- subsurface-to-surface mass resupply
+- resupply propagation through all profile layers
+- depth-resolved grading
+- physical weathering
+- deposition transition matrix
+- DEM update
+
+### 추가 한계
+- bulk density를 grading/time에 무관한 constant로 가정
+- deposition은 transport-capacity excess를 모두 퇴적시키는 단순화가 있음
+
+### 재판정
+**고운사 armour/profile/weathering 모델 후보로 유지.**
+그러나 D8와 empirical transport-capacity 때문에 event-scale 2D water-erosion engine으로는 사용하지 않는다.
