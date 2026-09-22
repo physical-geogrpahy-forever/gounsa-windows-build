@@ -212,3 +212,30 @@ Iber+ 자체에는 여러 hydrology/infiltration options가 존재하지만,
 - quantitative vegetation: 없음
 
 따라서 **전체 production model이 아니라 water-erosion engine 후보**로 분류한다.
+
+## 2026-09-22 적용범위 재감사
+
+### 확인된 적용 범위
+Cea et al. (2024)는 다음 규모에서 Iber+ soil-erosion module을 제시/검증했다.
+- laboratory multiclass experiment
+- 60 x 2.2 m vineyard hillslope plot, 4 rainfall events
+- **20 km² French Alps headwater mountain catchment**
+- river reach debris-flood morphology case
+
+따라서 `산지 적용성이 없다`고 볼 수는 없다. 산지 유역에서 event-scale 적용 선례가 있다.
+
+### 그러나 확인되지 않은 것
+2024 erosion paper 자체에서 다음은 dynamic erosion state로 구현되지 않았다.
+- root biomass
+- RLD
+- dead/live roots
+- litter mass
+- PFT
+- postfire vegetation recovery
+- embedded rock-fragment-specific soil hydraulics
+
+따라서 stony forest/postfire physics가 자체적으로 해결된다고 주장하지 않는다.
+
+### 재판정
+**event-scale 2D water erosion에는 현재 가장 강한 기존 후보로 유지.**
+단, quantitative vegetation과 deep stony profile은 별도 문제다.
