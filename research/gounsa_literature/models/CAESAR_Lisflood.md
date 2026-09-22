@@ -113,3 +113,34 @@ LPJ-GUESS root/litter state
 1. active-layer vertical bookkeeping이 SSSPAM/mARM보다 고운사 embedded gravel에 더 적합한지
 2. catchment-mode hillslope erosion에서 rainfall detachment 자체를 계산하는지, 또는 주로 runoff-driven sediment transport인지
 3. vegetation erosion suppression을 root/litter state로 바꾸는 기존 산림 extension이 있는지
+
+## 2026-09-22 공식문서 재감사
+
+### hillslope soil erosion
+CAESAR-Lisflood 공식 Tab Parameters 문서는 slope-process의 `Soil erosion rate`를 **USLE-type adaptation**으로 설명한다.
+
+핵심:
+- slope length는 drainage area의 제곱근으로 근사
+- slope와 일련의 계수로 erosion 계산
+- 공식 문서가 `no suggested values`라고 명시
+- field data에 대해 calibrated/tested되지 않았다고 명시
+- saturation `j_mean`에 따라 soil erosion rate를 바꾸는 기능도 experimental/untested
+
+따라서 이 항은 고운사의 process-based rainfall/rill erosion 핵심식으로 사용할 수 없다.
+
+### vegetation
+공식 vegetation tab에서 vegetation maturity 0-1, vegetation critical shear, mature vegetation에서 허용되는 erosion proportion을 사용한다.
+그러나 문서상 이 vegetation parameterization은 주로 **in-channel lateral erosion과 bank/lateral erosion**을 제한한다.
+고운사 hillslope의 root biomass/RLD/litter-controlled detachment를 직접 계산하는 모듈이 아니다.
+
+### active layers
+공식 grainfilemaker는 사용자 지정 grain distributions와 **10개 active layers** 생성 기능을 제공한다. 따라서 depth-resolved grain storage는 실재 기능이다.
+
+### 재판정
+- multiclass/active-layer/long-term morphology: 강함
+- 2D flow: 강함
+- hillslope rainfall/interrill/rill process physics: 부적합
+- quantitative forest vegetation: 부적합
+
+**고운사 hillslope water-erosion 핵심모델 후보에서는 제외.**
+장기 multiclass morphodynamics/armour 비교모델로만 유지.
