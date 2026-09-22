@@ -297,3 +297,51 @@ Zhang et al. (2011) flume fit에서 K1=2382.32, delta1=1.26, delta2=1.63, delta3
 ### 재판정
 **고운사 armour/profile/weathering 모델 후보로 유지.**
 그러나 D8와 empirical transport-capacity 때문에 event-scale 2D water-erosion engine으로는 사용하지 않는다.
+
+
+---
+
+## 2026-09-22 정밀 재검증: routing과 erosion law
+
+Welivitiya et al. (2019) 원문에서 다음을 확인했다.
+
+### routing
+- regular square-grid DEM
+- steepest-slope criterion
+- contributing area는 **D8** method로 계산
+- genuine 2D shallow-water hydrodynamics가 아님
+
+### transport capacity
+각 pixel의 transport capacity는 Zhang et al. (2011)의 flume-derived empirical equation을 사용한다.
+
+```
+T_c = K_1 Q^delta1 S^delta2 d50_a^delta3 omega
+```
+
+원 논문 적용 계수:
+- K1 = 2382.32
+- delta1 = 1.26
+- delta2 = 1.63
+- delta3 = -0.34
+
+이는 Zhang et al. flume experiment의 best-fit empirical constants이다.
+
+### armour/profile
+SSSPAM 고유의 강점:
+- actual erosion mass E_a
+- size-selective erosion transition matrix
+- surface armour coarsening
+- eroded mass vector G_e
+- subsurface resupply
+- multilayer PSD
+- weathering
+- DEM/profile update
+
+### 고운사 판정
+**SSSPAM은 armour/profile/weathering engine으로 강하지만 water-erosion engine으로는 사용하지 않는다.**
+
+이유:
+- D8 routing
+- empirical transport-capacity constants
+- event-scale genuine 2D runoff 없음
+- quantitative vegetation erosion resistance 없음
