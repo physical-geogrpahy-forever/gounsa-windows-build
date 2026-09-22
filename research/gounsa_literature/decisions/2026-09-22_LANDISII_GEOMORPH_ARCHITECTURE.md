@@ -81,3 +81,39 @@ DyRoot 2019
 ## 원칙
 Generic vegetation factor 금지.
 각 LANDIS-II state는 기존 published relation/model 또는 독립 현장측정으로 물리량에 매핑한다.
+
+
+## Root/litter interface refinement
+
+### Root
+Preferred intermediate variable:
+```
+NECN fine-root biomass
+ -> species-specific SRL
+ -> RLD
+```
+
+Use Korean Quercus/Pinus root-trait data where available.
+
+Then use:
+- forest-specific rill-detachment experiments
+- independent field/flume/JET measurements
+to constrain erosion resistance.
+
+### Litter
+Separate:
+1. surface litter
+2. soil litter/dead fine roots
+
+Surface litter:
+```
+mass -> species-specific SSA -> physical litter area
+```
+but total area is not automatically cover/contact area.
+
+Soil litter/dead fine roots:
+- RLD/RSAD/LSAD-type belowground resistance metrics are more appropriate.
+
+### Explicit prohibition
+Do not apply incorporated-litter LSAD equations directly to NECN surface litter.
+Do not treat litter mass and cover as interchangeable.
