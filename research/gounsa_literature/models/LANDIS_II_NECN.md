@@ -160,3 +160,51 @@ The reverse direction should use independent published geomorphic process models
 을 고운사 100년 문제에 직접적으로 제공한다.
 
 단, root geometry와 geomorphic resistance는 별도 published relation/model이 필요하다.
+
+
+---
+
+## 2026-09-22 Korean postfire applicability and geomorphic model interfaces
+
+### Korean precedent
+Lim & Choi (2025) applied LANDIS-II + PnET-Succession to the 2000 East Coast wildfire natural-restoration site in Goseong over 25 years.
+
+Important:
+- Quercus-dominated recovery was broadly reproduced.
+- The authors explicitly warn that the 82 ha study area is much smaller than LANDIS-II's recommended >10,000 ha scale.
+- Small-domain edge effects and seed dispersal can therefore be problematic.
+
+For Gounsa, domain size must be treated as a model-validity issue, not merely a technical setting.
+
+### geomorphic interfaces currently supported by literature
+
+```
+LANDIS-II / NECN
+├─ cohort / wood / mortality
+│    -> Gabet & Mudd 2010
+│       root fracture + tree throw + soil production
+│
+├─ fire + vegetation recovery
+│    -> Lamb et al. 2011
+│       postfire dry-ravel storage/release
+│
+├─ fine/coarse root biomass
+│    -> root allometry
+│    -> Schwarz et al. 2010 RBM
+│       shallow-landslide reinforcement
+│
+├─ fine-root + litter state
+│    -> forest erosion-resistance relation [still unresolved]
+│    -> Iber+ event erosion candidate
+│
+└─ soil depth / slope / moisture from geomorphic model
+     -> Hotta et al. 2026 precedent
+     -> LANDIS-II establishment and water balance
+```
+
+### key unresolved variable mappings
+1. coarse-root biomass -> rootwad volume / tree-throw mechanics
+2. fine/coarse-root biomass -> root diameter-class distribution
+3. surface litter biomass -> litter cover/contact area
+4. fine-root biomass -> rill erodibility
+5. geomorphic soil-depth change -> NECN soil carbon/nitrogen pool remapping
