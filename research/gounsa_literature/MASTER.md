@@ -847,3 +847,138 @@ environmental suitability
 3. size-class별 rill/dry-ravel entrainment 및 removal parameter
 4. fragment architecture -> LPJ-GUESS soil hydraulic parameter 변환
 5. oak rootstock 및 kudzu propagule/clonal state의 현장 초기화
+
+
+---
+
+## 2026-09-22 매립 석력 다량 조건에서의 모델 선택
+
+현장 전제: 고운사 토양에는 **매립된 rock fragments가 많다**.
+
+### 자의성 최소화 원칙
+고운사에서는 다음과 같은 임의 보정식을 만들지 않는다.
+
+```
+K_eff = K_fine * arbitrary_stone_factor
+soil_water = soil_water * arbitrary_armour_factor
+erosion = erosion * custom_armour_factor
+```
+
+대신 각 과정에 대해 기존 published model의 원식과 상태변수를 사용하고, 모델 사이에서는 동일한 물리량과 단위를 전달한다. 모델 간 연결 자체는 새로운 coupling으로 명시하되 새로운 경험계수를 만들지 않는다.
+
+### 1. 매립 석력의 수문: GEM / Naseri 계열
+**Naseri et al. 2020 General Effective Medium (GEM)**을 high embedded-stoniness의 우선 hydraulic-property model로 둔다.
+
+입력:
+- volumetric rock-fragment fraction
+- fine-earth hydraulic conductivity
+- rock-fragment hydraulic conductivity
+- fragment shape/orientation
+- matric potential
+
+출력:
+- effective hydraulic conductivity `K(h)`
+
+장점:
+- saturated/unsaturated conductivity
+- permeable/impermeable fragments
+- fragment interaction
+- 높은 석력함량을 직접 다루는 physically based model
+
+soil-water retention은 Naseri et al. 2023의 volume-mixing framework를 우선 검토한다.
+
+```
+theta_mix(h)
+= (1-f) theta_soil(h)
++ f theta_rock(h)
+```
+
+따라서 매립 석력의 효과를 임의의 infiltration multiplier로 만들지 않는다.
+
+### 2. 표면/부분매립 석력과 seal: EUROSEM
+EUROSEM은 다음을 이미 분리한다.
+- `ROC`: 토양체적 내 rock-fragment fraction
+- `PAVE`: surface non-erodible/stone cover
+- `ISTONE`: surface/seal 조건에 따른 infiltration effect 방향
+
+대표 published relations:
+```
+B_roc = B (1 - ROC)
+DET_pav = DET (1 - PAVE)
+```
+
+Ksat의 PAVE 효과는 surface seal/structural porosity 조건에 따라 증가 또는 감소식을 선택한다.
+
+중요:
+**'embedded'라는 이유만으로 infiltration 감소를 부여하지 않는다.**
+surface seal, macroporosity 및 fragment position을 함께 판정한다.
+
+EUROSEM은 stony steep hillslope 적용 선례가 있지만 plane/channel cascade이므로 genuine 2D production engine으로는 사용하지 않는다.
+
+### 3. 2D runoff / erosion / sediment transport: Iber+ 2024
+현재 production erosion engine의 우선 구조는 **Iber+ 2024**이다.
+
+기존 구현:
+- genuine 2D shallow-water finite volume
+- rainfall-driven detachment
+- flow-driven detachment
+- multiclass sediment
+- suspended load / bed load
+- loose low-cohesion sediment layer
+- mass-conserving class fractions
+- shielding of original soil by loose layer
+- size-specific transport / hiding
+- 2D Exner topographic update
+
+따라서 새 2D erosion equation이나 custom armour erosion coefficient를 만들 필요가 없다.
+
+### 4. 현재 권장 published-model chain
+```
+LPJ-GUESS
+       |
+       | vegetation/root/litter state
+       |
+       +------------------------------+
+                                      |
+embedded rock-fragment soil           |
+hydraulic properties                  |
+GEM 2020 + Naseri 2023                |
+       |                              |
+       | K(h), theta(h), Ksat         |
+       v                              v
+                Iber+ 2024
+       genuine 2D runoff + erosion
+       multiclass sediment + shielding
+                 |
+                 v
+      soil depth / sediment redistribution
+```
+
+surface/seal 특수효과가 필요할 때만 EUROSEM의 ROC/PAVE/ISTONE published relation을 사용한다.
+
+### 5. 단일모델과 모듈결합의 trade-off
+현재까지 확인한 범위에서:
+- **EUROSEM 하나**를 쓰면 stoniness + infiltration + erosion을 한 published model 안에서 가장 많이 해결하지만 genuine 2D와 dynamic multiclass armour 조건을 잃는다.
+- **Iber+ 하나**는 genuine 2D와 multiclass erosion/loose-layer shielding을 해결하지만 high embedded-stoniness의 soil hydraulic-property physics가 부족하다.
+- 따라서 기존의 모든 요구를 유지하면서 자의적 경험식을 피하려면 **GEM/Naseri -> Iber+**가 가장 방어적인 published-model chain이다.
+
+이 연결은 하나의 기존 published model이 아니므로 새로운 coupling으로 명시한다. 그러나 연결부에서 새 fitted equation을 만들지 않고 `K(h)`, `theta(h)`, `Ksat`, sediment fractions 같은 동일 물리량을 전달하는 것을 원칙으로 한다.
+
+### 6. 후순위
+- KINEROS2: ROC/PAVE 계열과 event hydrology 강점은 있으나 genuine 2D 아님
+- OpenLISEM: postfire 2D 비교에는 강하지만 stoniness는 주로 surface/splash 항이며 high embedded-stone hydraulic-property model이 아님
+- Ma & Shao NDPM: embedded-stone infiltration 상세검증/민감도용
+- HYDRUS 2D/3D stony-soil studies: hydraulic benchmark용
+
+### 7. 최신 관련 파일
+- `models/Stony_Soil_Hydraulics_GEM.md`
+- `models/EUROSEM.md`
+- `models/Rock_Fragment_Armour.md`
+- `models/Iber.md`
+- `decisions/2026-09-22_STONY_SOIL_MODEL_SELECTION.md`
+
+### 8. 남은 검증
+1. Iber+ loose-layer/original-soil class에 fire-spall coarse classes를 넣을 수 있는 원 구현 범위 재검증
+2. GEM effective hydraulic properties를 Iber+ infiltration parameter에 전달할 때 사용할 published transformation 확인
+3. 고운사 sandstone fragment 자체의 `K(h)`, `theta(h)` 또는 실측
+4. fire severity -> spall mass/initial size distribution의 published quantitative model
