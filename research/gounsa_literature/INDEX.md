@@ -296,11 +296,12 @@
 - `decisions/2026-09-22_FIRE_SPALL_ARMOUR_HYDROLOGY.md`
 - `decisions/2026-09-22_STONY_SOIL_MODEL_SELECTION.md`
 
-## Sessions (3)
+## Sessions (4)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
 - `sessions/2026-09-22_1415_SESSION_HANDOFF.md`
+- `sessions/2026-09-22_1435_STONY_MODEL_SELECTION_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
