@@ -1,6 +1,6 @@
 # Gounsa Literature Master
 
-업데이트: 2026-09-21
+업데이트: 2026-09-22
 
 이 문서는 고운사 산불 후 식생-지형 상호작용 모델 문헌검토의 **단일 통합 요약본**이다.
 
@@ -731,3 +731,119 @@ fire
 3. WoodC/cohort mortality -> tree throw/CWD의 정량 변환
 4. deep-root chemical weathering flux -> R/C/Cr mass or thickness production 변환
 5. 2025 LPJ-GUESS P-weathering 논문의 정확한 서지정보 재복구
+
+
+---
+
+## 2026-09-22 fire-spall / rock-fragment armour / postfire vegetation 추가 결론
+
+### 1. dynamic armour
+coarse fragments를 고정 cover로 두지 않는다.
+
+```
+fine-soil removal
+ -> buried fragments exhumed
+ -> surface armour increases
+ -> rill incision / sediment yield decrease
+```
+
+Rieke-Zapp et al. 2007은 concentrated flow 아래에서 이 transient armouring을 직접 관찰했다.
+
+### 2. armour hydrology
+`armour -> infiltration 감소`를 고정 규칙으로 사용하지 않는다.
+
+Poesen et al. 1990과 Cerdà 2001에 따르면:
+- surface-resting fragments는 sealing을 억제하고 infiltration을 증가시키며 runoff를 줄일 수 있다.
+- embedded fragments는 infiltration을 감소시키고 runoff를 증가시킬 수 있다.
+
+따라서 hydrological effect는 cover뿐 아니라 fragment size, embeddedness/position, fine-earth properties, sealing, antecedent moisture 및 slope의 함수로 둔다.
+
+### 3. fragment size classes
+Li et al. 2022에서 fragment size에 따라 runoff와 soil-loss response가 크게 달랐다.
+따라서 armour state에는 grain-size distribution이 필요하다.
+
+중요:
+```
+fragmentation != armour loss
+```
+
+작은 fragments가 제자리에 남으면 shielding과 flow resistance가 오히려 강화될 수 있다.
+
+### 4. fire-spall -> long-term fragmentation -> removal
+- Buckman et al. 2021: wildfire-induced spalling의 sandstone 현장근거
+- Pala et al. 2025: thermal spalling이 existing boulders를 작게 만들어 이후 mobilization에 필요한 shear stress를 낮춤
+- Shtober-Zisu & Wittenberg 2021: 산불 10년 뒤 large spalls/flakes의 breakdown 및 pulverization 관찰
+- Poesen 1987: rill flow에 의한 size-dependent rock-fragment transport
+
+따라서 권장 구조:
+```
+fire
+ -> spall production(size)
+ -> large/coarse surface fragments
+ -> postfire weathering/fragmentation
+ -> smaller size classes
+ -> size-specific entrainment/removal
+ -> armour change
+```
+
+### 5. armour와 erosion의 상충효과
+hydrology와 detachment shielding을 분리한다.
+
+```
+fragment architecture
+ -> hydrological modifier
+ -> infiltration / runoff / rill hydraulics
+
+fragment architecture
+ -> exposed fine-soil fraction / roughness
+ -> detachment and transport resistance
+```
+
+따라서 runoff가 커져도 armour가 강하면 sediment yield가 낮을 수 있다.
+
+### 6. soil water -> vegetation
+Huang et al. 2024는 rock-fragment content가 soil-water profile을 바꾸며 plant species/root traits에 따라 response가 다름을 보였다.
+
+고운사에서는:
+```
+soil depth
++ fine-earth volume
++ fragment cover/size/position
++ roots/macropores
+ -> soil hydraulic state
+ -> soil moisture
+ -> PFT establishment/growth
+```
+를 새로운 coupling으로 검토한다.
+
+### 7. oak vs kudzu
+현재 문헌은 `stony/poor soil -> kudzu exclusion`을 지지하지 않는다.
+
+- Takahashi et al. 1995: fire-disturbed Mt. Rokko에서 compacted, eroded, steep soils에도 natural kudzu stands가 발달
+- Hwang et al. 2011: 한국 poorly developed mountain soil의 postfire oak sprouting
+- Kim et al. 2020: oak resprouts가 pre-existing stump/root resources를 이용해 초기 경쟁우위를 가짐
+- Susko et al. 1999: kudzu seed establishment는 dormancy, water stress, burial depth에 민감
+- Tsugawa et al. 1990: kudzu는 prostrate stem/root network에 의한 clonal expansion이 중요
+
+따라서 초기천이 필터:
+```
+environmental suitability
++ prefire rootstock legacy
++ seed propagule availability
++ clonal access
++ resprouting ability
++ light competition
+```
+
+참나무와 칡을 동일한 seed-based PFT establishment로 처리하지 않는다.
+
+### 8. 최신 결정/모델
+- `models/Rock_Fragment_Armour.md`
+- `decisions/2026-09-22_FIRE_SPALL_ARMOUR_HYDROLOGY.md`
+
+### 9. 남은 핵심 gap
+1. 고운사 사암에서 burn severity -> spall mass 및 initial size distribution
+2. postfire sandstone의 1-100 year fragmentation rate
+3. size-class별 rill/dry-ravel entrainment 및 removal parameter
+4. fragment architecture -> LPJ-GUESS soil hydraulic parameter 변환
+5. oak rootstock 및 kudzu propagule/clonal state의 현장 초기화
