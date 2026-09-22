@@ -142,3 +142,73 @@ epsilon = min(M_s/M_s,cr,1)
 ### 현재 판정
 event-scale 2D multiclass erosion과 surface loose-layer state는 OpenLISEM보다 Iber+가 더 적합하다.
 이유는 OpenLISEM current code에서 multiclass controls/material-depth evolution 일부가 비활성인 반면 Iber+ 2024는 class별 mass conservation이 published active feature이기 때문이다.
+
+
+---
+
+## 2026-09-22 기존모델 사용가능성 재감사
+
+### 실제 구현이 강한 부분
+2024 Iber+ soil-erosion module 자체에 구현됨:
+- 2D shallow-water finite-volume hydrodynamics
+- rainfall-driven detachment
+- runoff/flow-driven detachment
+- loose-layer redetachment
+- multiclass suspended load
+- multiclass bed load
+- class-specific deposition
+- class-specific mass conservation
+- dynamic loose-layer grading
+- shielding by loose sediment mass
+- GPU implementation
+- laboratory to meso-scale applications
+- public software and test cases
+
+### vertical soil structure
+2024 erosion module의 vertical structure:
+```
+loose sediment layer
+original soil matrix
+non-erodible rock
+```
+
+즉:
+- loose-layer mass/PSD는 동적
+- original-soil grading g_k는 input
+- SSSPAM/mARM처럼 여러 깊이 layer의 embedded PSD를 자체적으로 진화시키는 model은 아님
+- physical weathering module 없음
+
+### hydrology
+Iber+ 자체에는 여러 hydrology/infiltration options가 존재하지만,
+2024 erosion paper의 검증사례에서는 일부 test가 simple loss/infiltration parameterization을 사용한다.
+따라서 고운사의 stony-soil theta-h-K dynamics가 2024 erosion module 안에서 자동 해결된다고 주장하지 않는다.
+
+### vegetation
+2024 soil-erosion module 자체에는:
+- root biomass
+- RLD
+- live/dead root state
+- litter biomass
+- PFT
+를 erosion resistance state로 사용하는 published dynamic module이 없음.
+
+따라서 LPJ-GUESS vegetation state를 Iber erodibility에 연결하면 새로운 coupling이다.
+
+### 판정
+**고운사 event-scale 2D water-erosion engine 후보로 매우 강함.**
+하지만 단독으로:
+- depth-resolved embedded gravel profile
+- physical weathering
+- quantitative vegetation/root effect
+를 해결하지 못함.
+
+### standalone verdict
+- event 2D hydrodynamics: 강함
+- rainfall/flow erosion separation: 강함
+- multiclass surface sediment: 강함
+- dynamic loose armour: 강함
+- deep embedded PSD: 부족
+- weathering: 없음
+- quantitative vegetation: 없음
+
+따라서 **전체 production model이 아니라 water-erosion engine 후보**로 분류한다.
