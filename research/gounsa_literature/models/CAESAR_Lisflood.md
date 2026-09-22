@@ -144,3 +144,42 @@ CAESAR-Lisflood 공식 Tab Parameters 문서는 slope-process의 `Soil erosion r
 
 **고운사 hillslope water-erosion 핵심모델 후보에서는 제외.**
 장기 multiclass morphodynamics/armour 비교모델로만 유지.
+
+
+---
+
+## 2026-09-22 정밀 재검증: slope erosion과 vegetation
+
+공식 CAESAR-Lisflood parameter documentation에서 slope-process의 soil erosion은 **USLE-type adaptation**으로 설명된다.
+
+핵심:
+- soil erosion = slope length, slope, empirical coefficients의 함수
+- slope length는 drainage area^0.5로 유도
+- rainfall detachment와 runoff detachment를 별도 물리과정으로 계산하는 event erosion module이 아님
+
+vegetation parameterization:
+- vegetation maturity 0-1
+- vegetation critical shear
+- mature vegetation에서 허용되는 erosion proportion
+
+공식 설명은 vegetation을 특정 PFT가 아니라 channel/lateral erosion을 제한하는 일반 vegetation state로 취급한다.
+
+### 고운사 판정 변경
+CAESAR-Lisflood의 강점:
+- 2D flow
+- multiclass sediment
+- active/subsurface layers
+- armouring
+- long-term morphology
+
+그러나 고운사 hillslope water erosion에서는:
+- rainfall-driven detachment 없음
+- flow-driven soil detachment를 Iber+/Hairsine-Rose 수준으로 분리하지 않음
+- vegetation이 root biomass/RLD/litter state가 아님
+
+따라서 **고운사 primary hillslope water-erosion engine 후보에서는 제외**한다.
+
+남는 역할:
+- long-term geomorphic comparator
+- active-layer/armour architecture comparator
+- catchment morphology benchmark
