@@ -1065,3 +1065,164 @@ actual event erosion/deposition mass는 OpenLISEM에서 받는다.
 관련:
 - `models/ARMOUR_mARM_SSSPAM.md`
 - `decisions/2026-09-22_DYNAMIC_ARMOUR_MODEL_SELECTION.md`
+
+
+---
+
+## 2026-09-22 Iber+ ↔ SSSPAM exact mass interface 및 event-engine 변경
+
+### 1. event erosion engine
+Primary event erosion engine을 **Iber+ 2024**로 변경한다.
+
+이유:
+- genuine 2D SWE
+- particle-class-specific suspended/bed load
+- original-soil detachment와 loose-layer redetachment 분리
+- class별 deposition
+- loose-layer mass `M_s,k`의 active mass conservation
+- dynamic loose-layer grading
+- shielding
+- Exner topographic update
+
+OpenLISEM은 SWATRE hydrology benchmark/postfire comparison으로 유지한다.
+
+### 2. Iber+ persistent states
+Original soil:
+```
+g_k
+D_rdd,k
+D_fdd,k
+```
+
+Loose surface layer:
+```
+M_s,k [kg m^-2]
+f_k = M_s,k/M_s
+D_rdrd,k
+D_fdrd,k
+D_dep,k
+```
+
+### 3. long-term profile handoff
+embedded soil profile에서 실제로 제거해야 하는 class-k mass:
+
+```
+E_orig,i,k
+=
+A_i ∫(D_rdd,i,k + D_fdd,i,k) dt
+```
+
+반면:
+```
+E_redet,i,k
+=
+A_i ∫(D_rdrd,i,k + D_fdrd,i,k) dt
+```
+는 이미 loose layer에 있던 material의 재이동이므로 deep profile에서 다시 제거하지 않는다.
+
+### 4. event-end state
+다음 상태를 그대로 보존한다.
+
+```
+M_s,k(end)
+f_k(end)
+z_b(end)
+```
+
+Iber+ relation:
+```
+l_d,k = M_s,k / (rho_s phi)
+```
+
+따라서 loose-layer mass-to-thickness에 custom equation을 만들지 않는다.
+
+### 5. SSSPAM/mARM 역할
+사용:
+- depth-resolved embedded PSD
+- vertical profile resupply
+- weathering transition
+- inter-event profile restructuring
+
+사용하지 않음:
+- SSSPAM 자체 calibrated fluvial erosion equation
+- Iber+ event result 위에 SSSPAM erosion/deposition을 다시 계산하는 것
+
+### 6. double counting 금지
+- redetachment를 deep profile erosion으로 재계산 금지
+- Iber+ Exner elevation change와 SSSPAM event elevation change 중복 금지
+- Iber+ class-selective deposition 뒤 SSSPAM deposition sorting 재적용 금지
+- Iber shielding 외 별도 custom armour factor 동시 적용 금지
+
+### 7. surface-layer mismatch
+Iber+ variable-thickness loose layer와 SSSPAM armour/profile layer는 동일한 정의가 아니다.
+
+따라서:
+- surface authoritative state = Iber+ `M_s,k`
+- deeper authoritative profile = SSSPAM/mARM
+- surface/deep exchange는 mass conservation과 기존 SSSPAM vertical-resupply rule만 사용
+- fitted exchange coefficient 금지
+
+### 8. Hairsine-Rose 계보
+Iber+의 original-soil / deposited-layer 구조는:
+- Hairsine & Rose 1991 rainfall detachment/deposition
+- Hairsine & Rose 1992 sheet flow
+- Hairsine & Rose 1992 rill flow
+계보에 기반한다.
+
+이 계보는 original cohesive soil과 deposited noncohesive layer를 분리하고, deposited layer가 original soil을 shield하는 구조를 이미 갖는다.
+
+### 9. 자의성 없는 parameter policy
+다음 값은 output fitting으로 정하지 않는다.
+
+Iber hydrology:
+- Ksat
+- porosity
+- initial saturation
+- soil depth
+- wetting-front suction
+
+Iber erosion:
+- original-soil PSD `g_k`
+- initial loose-layer mass `M_s,k`
+- critical shield mass `M_s,cr`
+- rainfall detachability
+- flow detachability `K_d,k`
+- critical shear stress `tau_s`
+
+우선순위:
+1. 현장 직접 측정
+2. 독립 rainfall/flume detachment experiment
+3. published physically based transformation
+4. 직접 측정 불가능 시 literature-constrained uncertainty range
+
+**soil-loss 결과에 맞춘 자유 calibration은 production parameter source로 사용하지 않는다.**
+
+### 10. 현재 production architecture
+```
+LPJ-GUESS
+    |
+    v
+measured / independently constrained soil state
+    |
+    v
+Iber+ 2024
+2D runoff
+multiclass detachment / redetachment
+deposition / transport
+dynamic loose-layer mass
+event topography
+    |
+    | E_orig,k ; M_s,k(end) ; z_b(end)
+    v
+SSSPAM / mARM
+embedded multilayer PSD
+vertical resupply
+weathering
+inter-event profile evolution
+    |
+    v
+next-event g_k / soil depth / profile state
+```
+
+관련 결정:
+- `decisions/2026-09-22_IBER_SSSPAM_EVENT_PROFILE_INTERFACE.md`
