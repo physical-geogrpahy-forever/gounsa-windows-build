@@ -139,3 +139,47 @@ non-erodible rock
 3. **CAESAR-Lisflood**: 비교모델, 핵심 hillslope erosion 후보에서는 제외
 
 이 상태에서도 아직 Iber+와 SSSPAM을 연결한다고 결정하지 않는다.
+
+
+---
+
+## 2026-09-22 정밀검증 추가 결과
+
+### CAESAR-Lisflood
+공식 parameter documentation:
+- slope soil erosion = USLE-type adaptation
+- rainfall/flow detachment 분리형 event model 아님
+- vegetation = maturity / critical shear / allowed erosion proportion
+- root biomass/RLD/litter/PFT 기반 아님
+
+**판정 변경: primary hillslope water-erosion engine 후보에서 제외.**
+active-layer/armour/long-term morphology comparator로 유지.
+
+### SSSPAM
+Welivitiya et al. (2019):
+- flow direction/contributing area = D8
+- transport capacity = Zhang et al. (2011) flume-derived empirical equation
+- genuine 2D hydrodynamic event model 아님
+
+**판정: armour/profile/weathering engine 후보로 유지, water-erosion engine으로는 제외.**
+
+### Iber+ 2024
+- 2D SWE
+- rainfall-driven detachment
+- runoff-driven detachment
+- multiclass suspended/bed load
+- class-specific mass conservation
+- open software/test cases
+- meso-scale catchment validation
+
+부족:
+- quantitative root/litter state
+- deep multilayer embedded PSD
+- physical weathering
+
+**판정: 현재 existing event-scale water-erosion engine 중 가장 직접적인 후보.**
+
+## 현재 역할구분
+- water erosion: Iber+ 우선 검증
+- armour/profile/weathering: SSSPAM/mARM 우선 검증
+- long-term single-engine comparator: CAESAR-Lisflood
