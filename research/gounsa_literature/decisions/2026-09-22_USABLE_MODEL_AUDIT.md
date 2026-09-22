@@ -115,3 +115,27 @@ non-erodible rock
 2. SSSPAM의 fluvial equation과 spatial routing이 고운사 100년 hillslope에 그대로 쓸 수 있는지 확인
 3. Iber+의 stony-soil hydrology와 forest/postfire validation 범위를 확인
 후에만 전체 선택을 한다.
+
+## 2026-09-22 결정적 약점 재검증
+
+### CAESAR-Lisflood
+공식 문서 확인 결과 hillslope `Soil erosion rate`는 USLE-type adaptation이며 suggested values가 없고 field calibration/test가 되지 않았다고 명시된다. vegetation parameterization도 주로 channel/lateral erosion 억제에 적용된다.
+
+**판정 변경:** 고운사 hillslope water-erosion 핵심후보에서 제외. multiclass active-layer/long-term morphodynamics comparator로 유지.
+
+### SSSPAM
+2019 원문은 flow direction/contributing area를 D8로 계산한다. runoff excess와 contributing area로 Q를 계산하고, Zhang et al. flume-derived empirical transport-capacity equation을 사용한다.
+
+**판정 유지:** armour/profile/weathering에는 매우 강함. event genuine-2D erosion engine은 아님.
+
+### Iber+
+2024 논문은 laboratory, vineyard hillslope, 20 km² French Alps mountain headwater catchment, river reach까지 적용한다.
+
+**판정 강화:** 산지 event-scale 2D erosion 후보로 실제 적용범위가 충분히 확인됨. 단 root/litter/postfire/stony-profile module은 없음.
+
+## 현재 후보 상태
+1. **Iber+**: event-scale 2D water erosion 후보
+2. **SSSPAM/mARM**: armour/profile/weathering 후보
+3. **CAESAR-Lisflood**: 비교모델, 핵심 hillslope erosion 후보에서는 제외
+
+이 상태에서도 아직 Iber+와 SSSPAM을 연결한다고 결정하지 않는다.
