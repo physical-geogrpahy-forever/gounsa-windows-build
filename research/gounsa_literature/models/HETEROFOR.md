@@ -218,3 +218,67 @@ B. endogenous repeated wildfire within the 100-year run -> SEIB retains a major 
 - papers/2020_deWergifosse_HETEROFOR_Water.md
 - papers/2023_Guignabert_HETEROFOR_Validation.md
 - papers/2025_REGE_HETEROFOR_SoilCarbon.md
+
+
+## 2026-09-22 LiDAR/root-interface refinement
+
+Current HETEROFOR 1.2 manual confirms that the inventory explicitly accepts:
+- a user-defined spatial cell size for radiation, regeneration cohorts and ground-vegetation layers
+- each adult tree's relative x, y, z
+- girth/DBH, height, crown-base height and four crown radii
+- cell-by-cell regeneration cohorts
+- cell-by-cell ground-vegetation layers
+- fine-root proportion by soil horizon
+- hourly meteorological forcing
+
+The same manual confirms:
+- stand-level or tree-level water-balance option
+- soil-carbon dynamics with annually generated litter cohorts
+- regeneration from an annually updated seed bank
+- seed production, germination and mortality in the seed-bank option
+
+No native wildfire/fire-spread option was found in the May 2025 HETEROFOR 1.2 manual. Therefore fire remains an external initial-disturbance coupling for the current Gounsa design.
+
+### Spatial root helper
+
+HETEROFOR itself does not provide a full branched horizontal root architecture. The preferred published helper is now ChaMRoots (Mao et al. 2015).
+
+```
+HETEROFOR / LiDAR
+ tree x,y
+ DBH / basal area
+ species
+     |
+     v
+ChaMRoots
+     |
+     +--> RID by x,y,z
+     +--> root diameter spectrum
+     +--> vertical root profile
+```
+
+ChaMRoots was explicitly designed to be coupled with spatially explicit individual-based forest dynamics models.
+
+For shallow landslides, do not convert this to a single apparent cohesion. Use the Schwarz spatial root-distribution + Root Bundle Model lineage:
+
+```
+ChaMRoots/root map
+  -> root diameter and density field
+  -> Root Bundle Model
+  -> spatial root reinforcement
+  -> slope stability
+```
+
+For water erosion, use a separate forest-root erosion-resistance interface. Root reinforcement and erosion resistance remain different processes.
+
+### Current provisional ranking under LiDAR criterion
+
+1. HETEROFOR + spatial root helper
+2. SEIB-DGVM
+3. LANDIS-II + NECN
+4. iLand
+5. LPJ-GM
+
+This is not a generic ranking of forest models. It applies specifically to Gounsa's observed-fire, LiDAR-initialized, fine-scale vegetation-geomorph coupling problem.
+
+HETEROFOR's main unresolved weakness is absence of a documented native wildfire module. If repeated endogenous fire is required inside the 100-year simulation, SEIB-DGVM must be reconsidered.
