@@ -288,10 +288,11 @@
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-22_FIRE_SPALL_ARMOUR_HYDROLOGY.md`
 
-## Sessions (2)
+## Sessions (3)
 
 - `sessions/2026-09-21_0016_SESSION_HANDOFF.md`
 - `sessions/2026-09-21_0031_SESSION_HANDOFF.md`
+- `sessions/2026-09-22_1415_SESSION_HANDOFF.md`
 
 ## Core files
 - `SYSTEM.md`
