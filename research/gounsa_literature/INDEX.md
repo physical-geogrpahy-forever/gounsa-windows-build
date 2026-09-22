@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (241)
+## Papers (246)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -116,6 +116,7 @@
 - `papers/1998_Kirkby_MEDALUS_GlobalChange.md`
 - `papers/1998_Mitas_Mitasova_DistributedErosion.md`
 - `papers/1998_Moglen_DrainageDensityClimate.md`
+- `papers/1998_Morgan_EUROSEM.md`
 - `papers/1998_Tucker_Bras_HillslopeDrainageDensity.md`
 - `papers/1998_Vining_FluvialSystemsEvolution.md`
 - `papers/1999_CHILD_UsersGuide.md`
@@ -139,6 +140,7 @@
 - `papers/2007_DeBaets_RootArchitecture.md`
 - `papers/2007_RiekeZapp_RockFragmentsConcentratedFlowArmour.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
+- `papers/2008_Ma_Shao_StonySoilDualPorosity.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
@@ -162,6 +164,7 @@
 - `papers/2016_Pelak_BistablePlantSoil.md`
 - `papers/2016_Zhang_RockFragmentsHydrologicalProcessesReview.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
+- `papers/2017_Khaleghpanah_EUROSEM_StonySteepLands.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
 - `papers/2018_Pelletier_Biomass_Diffusivity.md`
@@ -172,6 +175,7 @@
 - `papers/2020_Kim_OakResproutingCompetitionKorea.md`
 - `papers/2020_Liu_LitterSoilDetachment.md`
 - `papers/2020_Millares_WiMMed_Long_Term_Mountain_Erosion.md`
+- `papers/2020_Naseri_GEM_StonySoilHydraulicConductivity.md`
 - `papers/2020_Oeser_LPJGUESS_WeatheringProductivity.md`
 - `papers/2020_Wu_Chen_Modeling_Soil_Erosion_With_Evolving_Rills.md`
 - `papers/2020_Wu_Two_Dimensional_Rainfall_Runoff_Soil_Erosion.md`
@@ -201,6 +205,7 @@
 - `papers/2023_Godziek_PitMoundDetection.md`
 - `papers/2023_KatoNoguchi_KudzuInvasionReview.md`
 - `papers/2023_Ma_RootDetachmentGrassShrub.md`
+- `papers/2023_Naseri_RockFragments_WaterRetentionConductivity.md`
 - `papers/2023_Pawlik_SandstoneRootsSoilProduction.md`
 - `papers/2023_Wang_GrassShrubDetachment.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
@@ -248,12 +253,13 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 
-## Models (25)
+## Models (27)
 
 - `models/CHILD.md`
 - `models/DANSAT_ANSWERS2000.md`
 - `models/Doane_TreeThrow_Roughness.md`
 - `models/ELM_Erosion.md`
+- `models/EUROSEM.md`
 - `models/Forest_Disturbance_2004.md`
 - `models/Iber.md`
 - `models/LAPSUS.md`
@@ -270,13 +276,14 @@
 - `models/SCION_FLORA.md`
 - `models/SERGHEI_SE.md`
 - `models/SIBERIA.md`
+- `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
 - `models/WEPP.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (9)
+## Decisions (10)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -287,6 +294,7 @@
 - `decisions/2026-09-21_STRICT_2D_QUANTITATIVE_VEGETATION.md`
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-22_FIRE_SPALL_ARMOUR_HYDROLOGY.md`
+- `decisions/2026-09-22_STONY_SOIL_MODEL_SELECTION.md`
 
 ## Sessions (3)
 
