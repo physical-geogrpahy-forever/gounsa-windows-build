@@ -269,3 +269,75 @@ Unresolved conversions:
 - litter mass -> cover/contact/roughness
 
 Generic vegetation multiplier is not accepted.
+
+
+---
+
+## 2026-09-22 physically interpretable root/litter state conversions
+
+### Fine roots
+NECN provides fine-root biomass.
+
+Tree-trait literature provides species-specific SRL:
+```
+SRL = root length / root dry mass
+```
+
+Therefore, after converting NECN root biomass to root mass density in the relevant soil volume:
+```
+RLD = root mass density * SRL
+```
+
+This is a physical trait conversion, not an erosion calibration.
+
+For Gounsa, Korean Quercus mongolica and Pinus koraiensis fine-root trait data now exist and should be preferred over foreign generic-tree averages.
+
+### Surface litter
+NECN provides surface litter mass.
+
+Species-specific litter SSA provides:
+```
+total litter surface area per ground area
+=
+surface litter mass per ground area
+*
+SSA
+```
+
+Korean/NE Asian Quercus and Pinus litter studies provide relevant SSA and hydrologic measurements.
+
+Important:
+```
+total surface area != projected cover != soil-contact area
+```
+
+Do not convert SSA directly to cover fraction without packing/overlap/contact information.
+
+### Soil litter / dead fine roots
+NECN soil litter is conceptually different from surface litter.
+
+For incorporated litter / dead fine roots, literature using:
+- RLD
+- RSAD
+- LSAD
+- soil-contact area
+is more relevant than surface-cover equations.
+
+### Current safest interface
+```
+NECN fine-root biomass
+ -> species-specific SRL
+ -> RLD
+ -> forest rill-erodibility relation or independent flume/JET
+
+NECN surface litter mass
+ -> species-specific SSA
+ -> physical litter area
+ -> measured/validated cover-contact state
+ -> rainfall/splash/runoff protection
+
+NECN dead fine-root / soil litter
+ -> belowground RLD/RSAD/LSAD-type resistance
+```
+
+No generic vegetation multiplier is accepted.
