@@ -24,8 +24,13 @@
 
 따라서 별도의 custom armour factor를 만들 이유가 없다.
 
-## event hydrology/erosion engine
-현재 우선후보는 OpenLISEM+SWATRE.
+## 상태 변경
+이 문서의 **event hydrology/erosion engine 선택은 후속 결정 `2026-09-22_IBER_SSSPAM_EVENT_PROFILE_INTERFACE.md`에 의해 대체되었다.**
+
+SSSPAM/mARM의 long-term armour/profile 선택은 유지한다.
+
+## 과거 event hydrology/erosion 후보
+당시 우선후보는 OpenLISEM+SWATRE였다.
 
 확인된 기존 기능:
 - Richards-equation SWATRE
@@ -122,8 +127,8 @@ Welivitiya & Hancock 2024의 experimental parameter-estimation method를 사용�
 - D8, own fluvial erosion parameterisation requires calibration
 - high-resolution event hydrodynamics 약함
 
-## 현재 최종 선택
-**OpenLISEM+SWATRE for event hydro-erosion + SSSPAM/mARM for long-term armour/profile evolution**
+## 현재 상태
+**long-term armour/profile = SSSPAM/mARM 유지. Primary event erosion engine = Iber+ 2024로 변경.**
 
 이것이 현재까지 조사한 범위에서:
 1. 매립 석력이 많은 현장조건을 가장 잘 보존하고
