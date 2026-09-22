@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (266)
+## Papers (271)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -85,8 +85,11 @@
 - `papers/1990_Tsugawa_KudzuProstrateRootDevelopment.md`
 - `papers/1991_Abe_Ziemer_RootReinforcedShearZone.md`
 - `papers/1991_Abe_Ziemer_ShallowLandslides.md`
+- `papers/1991_Hairsine_Rose_RainfallDetachmentDeposition.md`
 - `papers/1991_Sidle_RootCohesionVegetationManagement.md`
 - `papers/1992_Hairsine_Rose_OverlandFlowErosion.md`
+- `papers/1992_Hairsine_Rose_RillFlow.md`
+- `papers/1992_Hairsine_Rose_SheetFlow.md`
 - `papers/1992_Howard_FluvialLandsculpting.md`
 - `papers/1992_Kirkby_ErosionLimitedHillslope.md`
 - `papers/1993_Elliot_Laflen_RillErosion.md`
@@ -210,6 +213,7 @@
 - `papers/2022_Naseri_HYDRUS3D_VirtualStonySoils.md`
 - `papers/2022_QuijanoBaron_COPLAS.md`
 - `papers/2022_RoqueMalo_REWTCrunch.md`
+- `papers/2022_SanzRamos_IberV3_Manual.md`
 - `papers/2022_Srivastava_CHILD_BGM.md`
 - `papers/2022_Tan_ELM_Erosion.md`
 - `papers/2022_Wang_HerbaceousRootSystems.md`
@@ -225,6 +229,7 @@
 - `papers/2023_Wang_GrassShrubDetachment.md`
 - `papers/2023_Welivitiya_SSSPAM_Catchment.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
+- `papers/2024_Cea_IberPlus_MulticlassErosion.md`
 - `papers/2024_Cea_Iber_GPU_Multiclass_Erosion.md`
 - `papers/2024_Chen_RootTraitsPurpleSoil.md`
 - `papers/2024_Cunico_BiomassMorphodynamics.md`
@@ -304,7 +309,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (11)
+## Decisions (12)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -316,6 +321,7 @@
 - `decisions/2026-09-21_THREE_PROCESS_GEOMORPH_STRUCTURE.md`
 - `decisions/2026-09-22_DYNAMIC_ARMOUR_MODEL_SELECTION.md`
 - `decisions/2026-09-22_FIRE_SPALL_ARMOUR_HYDROLOGY.md`
+- `decisions/2026-09-22_IBER_SSSPAM_EVENT_PROFILE_INTERFACE.md`
 - `decisions/2026-09-22_STONY_SOIL_MODEL_SELECTION.md`
 
 ## Sessions (5)
