@@ -982,3 +982,86 @@ surface/seal 특수효과가 필요할 때만 EUROSEM의 ROC/PAVE/ISTONE publish
 2. GEM effective hydraulic properties를 Iber+ infiltration parameter에 전달할 때 사용할 published transformation 확인
 3. 고운사 sandstone fragment 자체의 `K(h)`, `theta(h)` 또는 실측
 4. fire severity -> spall mass/initial size distribution의 published quantitative model
+
+
+---
+
+## 2026-09-22 dynamic armour 최종 모델 선택 보완
+
+### 핵심 계보 발견
+고운사에서 필요한 dynamic armour와 embedded rock-fragment profile을 이미 구현한 published model lineage가 확인되었다.
+
+```
+ARMOUR
+ -> mARM
+ -> mARM3D / mARM5D
+ -> SSSPAM
+```
+
+이 계보가 기존 모델로 처리하는 과정:
+- selective fine removal
+- surface coarsening
+- armour formation
+- particle-size-specific entrainment
+- parent-to-daughter weathering
+- multilayer embedded PSD
+- subsurface resupply
+- soil-depth update
+- DEM evolution
+
+따라서 고운사에서 custom armour coefficient를 새로 만들 필요가 없다.
+
+### event hydro-erosion과 long-term armour의 역할분담
+현재 우선 구조:
+
+```
+OpenLISEM + SWATRE
+ -> actual event erosion/deposition mass
+ -> SSSPAM/mARM state updater
+ -> surface PSD / embedded PSD / armour / soil depth / DEM
+```
+
+OpenLISEM+SWATRE:
+- measured/effective theta-h-K direct input
+- Richards-equation soil water
+- 2D SWOF surface flow
+- splash / flow detachment
+- erosion/deposition
+
+SSSPAM/mARM:
+- dynamic armour
+- embedded PSD
+- weathering/fragmentation
+- profile resupply
+- long-term soil-depth/DEM evolution
+
+### OpenLISEM 소스 검증에서 확인된 한계
+- StoneFraction은 static input
+- material-depth evolution switch는 현재 비활성
+- dynamic armour가 production code에서 완결되지 않음
+- 일부 multiclass sediment UI/initialization은 비활성/주석 상태
+- root effect는 extra cohesion input
+- litter effect는 interception/splash protection 중심
+
+따라서 OpenLISEM 단독으로 100년 armour/profile feedback을 완결한다고 주장하지 않는다.
+
+### SSSPAM 자체 침식식은 쓰지 않는 이유
+SSSPAM의 fluvial erosion parameterisation은 site/laboratory calibration을 필요로 하므로 고운사에 그대로 이식하면 자의성이 남는다.
+
+따라서 SSSPAM에서는:
+- grading transition
+- armour
+- weathering
+- profile resupply
+- mass balance
+- soil-depth/DEM update
+를 사용하고,
+actual event erosion/deposition mass는 OpenLISEM에서 받는다.
+
+### 핵심 결정
+현재 최우선 구조:
+**OpenLISEM+SWATRE for event hydro-erosion + SSSPAM/mARM for long-term armour/profile evolution**
+
+관련:
+- `models/ARMOUR_mARM_SSSPAM.md`
+- `decisions/2026-09-22_DYNAMIC_ARMOUR_MODEL_SELECTION.md`
