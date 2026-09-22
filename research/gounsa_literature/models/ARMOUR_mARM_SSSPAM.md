@@ -201,3 +201,57 @@ SSSPAM/mARM:
 - ../papers/2022_Welivitiya_SSSPAM_GullyValidation.md
 - ../papers/2023_Welivitiya_SSSPAM_Catchment.md
 - ../papers/2024_Welivitiya_PhysicalWeatheringRate.md
+
+
+---
+
+## 2026-09-22 기존모델 사용가능성 재감사
+
+### 실제로 강한 부분
+SSSPAM/mARM 계보는 외부 coupling 없이 자체적으로 다음 상태를 관리한다.
+- surface armour
+- particle-size-resolved surface grading
+- multiple subsurface layers
+- depth-resolved PSD
+- erosion 후 vertical resupply
+- deposition 후 profile redistribution
+- physical weathering
+- soil depth/profile evolution
+- DEM evolution
+
+mARM5D는 공개 Fortran90 코드와 GPL v2 배포가 확인된다.
+CSDMS/Zenodo source가 존재한다.
+
+### fluvial erosion 자체
+SSSPAM의 fluvial erosion은 자체 erodibility factor와 discharge/slope exponents를 사용하는 landscape-evolution erosion law를 사용한다.
+
+대표 형태:
+```
+E_f = K_e q^alpha1 S^alpha2 T
+```
+
+따라서:
+- rainfall-driven vs flow-driven detachment를 명시적으로 분리하지 않음
+- root biomass/RLD/litter가 erodibility에 직접 들어가는 published dynamic vegetation module 없음
+- 고운사 forest/postfire rill-interrill physics를 자체적으로 완결하지 않음
+- site calibration된 fluvial parameters를 그대로 이식하면 안 됨
+
+### 판정
+**SSSPAM/mARM은 고운사 전체 erosion model이 아니라, 가장 강한 existing armour/profile/weathering engine 후보.**
+
+즉 현재:
+- armour/profile/weathering: 강력 후보
+- event hydrology: 부족
+- quantitative vegetation erosion resistance: 부족
+- rill/interrill process separation: 부족
+
+### CAESAR-Lisflood와 비교
+SSSPAM/mARM:
+- profile depth resolution, PSD, weathering에 강함
+- event hydrodynamics 약함
+
+CAESAR-Lisflood:
+- 2D hydrodynamics, active layers, multiclass sediment, long-term morphology에 강함
+- quantitative root/litter state와 stony-soil hydrology 약함
+
+둘 다 단독으로 고운사 전체 요구를 만족하지 않는다.
