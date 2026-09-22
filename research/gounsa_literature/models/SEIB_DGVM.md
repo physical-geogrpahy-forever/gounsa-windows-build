@@ -3,178 +3,308 @@
 ## 목적
 LiDAR 기반 세밀 지형과 결합 가능한 spatially explicit individual-based vegetation model 후보로 검토한다.
 
-## 기본 구조
-Sato et al. 2007.
+## 기본 계보
+
+### Sato et al. 2007
 - 기본 virtual forest: 30 m x 30 m
-- forest-floor establishment mesh: 1 m x 1 m
+- 1 m establishment mesh
 - individual woody PFTs + grasses
 - individual tree positions, crown competition, gap dynamics
-- physical/physiological processes: daily
-- trunk growth: monthly
-- establishment, mortality, disturbance including wildfire: annual
+- fine roots represented by biomass
 
-SEIB-DGVM-NSC:
-- leaf, trunk, root NSC pools
-- root NSC and root turnover included
-- daily root turnover
+### Sato & Ise 2012
+- Africa 0.5° geographic cells
+- each geographic cell represented by 30 m x 30 m virtual forest
+- fire, root biomass, litter/fuel pools
+- coarse inter-grid dispersal precedent:
+  - 90% of establishment opportunities from local woody biomass
+  - 10% from environmentally eligible PFTs occurring in adjacent geographic cells
+- this is not a mechanistic distance-resolved seed kernel
 
-SEIB-NOAH:
-- soil heat/water calculation can operate at subdaily step
-- published coupling exchanges soil moisture/temperature and vegetation variables daily
+### Sato et al. 2023
+- Hokkaido cold-temperate conifer-broadleaf mixed forest
+- East Asian cold-temperate PFTs
+- elevation / terrestrial-wetness gradient
+- drought and excessive-soil-moisture tolerance
+- catastrophic-disturbance succession
+
+### Sato & Sumida 2025
+- 100 m x 100 m virtual forest
+- cold-temperate conifer/broadleaf crown allometry and competition
+
+### SEIB-DGVM-NSC / SEIB-NOAH lineages
+- root NSC and root turnover available in the NSC lineage
+- NOAH-LSM provides subdaily soil heat/water physics in the current main line
 
 ## 최신 공개 코드 상태
-2026-09-22 확인:
-- official download page updated 12 Sep 2026
-- latest public version: 3.30
+2026-09-22 official page check:
+- latest public major version: 3.30
+- model description modified 2026-08-16
 - Apache License 2.0
 - Fortran90
-- gfortran/MinGW-w64 실행 확인
-- default distribution is one virtual forest point simulation
-- forest area can be modified in configuration
-- multi-plot/regional code and information are provided in code>mpi
+- gfortran/MinGW-w64 execution confirmed by official page
+- base distribution is a one-virtual-forest point simulation
+- virtual-forest area is configurable
+- `code>mpi` provides multi-grid parallel execution
 
-Version 3.30 was released 9 Aug 2026 and its distribution was subsequently replaced after restart/reproducibility fixes in August 2026. Use the current package, not an early August copy.
+## v3.30 spatial structure
 
-## spatial scale nuance
-SEIB is spatially explicit primarily for aboveground individual trees and recruitment space.
+### Virtual forest
+- square stand
+- side length = `Max_loc`
+- standard v3.30 parameter file: `Max_loc = 100 m`
 
-Important limitations:
-- fine roots are represented as a biomass organ but are described as formless in the cold-temperate implementation
-- standard SEIB does not provide explicit horizontal root architecture around each tree
-- the main model does not mechanistically simulate long-distance seed dispersal
-- large-scale applications often treat one virtual forest as representative of a larger grid
+### Internal horizontal grids
+- woody establishment: `Dived x Dived`
+- grass: `DivedG x DivedG`
+- v3.30 standard: `Dived = DivedG = 50`
+
+Therefore the standard 100 m stand has a 2 m establishment-cell edge.
+
+The probability applied to one establishment mesh cell is:
+```
+P_establish(p) * (Max_loc / Dived)^2
+```
+
+Important:
+changing `Max_loc` changes the internal spacing if `Dived` is unchanged, but that does not mean every finer spacing has ecological validation.
+
+## v3.30 temporal structure
+- NOAH-LSM land-surface physics: 30 min
+- most physiology: daily
+- biomass growth: daily
+- litter decomposition: daily
+- fire: daily
+- direct-radiation spatial redistribution: every 14 days
+- mortality: annual
+- self-pruning: annual
+- crown movement: annual
+- establishment: annual
+
+This temporal architecture is substantially easier to interface with storm/event geomorphology than a succession model whose biological state changes only every several years.
+
+## Plant state
+
+### Woody individuals
+- `mass_leaf`
+- leaf area
+- crown diameter
+- crown depth
+- `mass_trunk`
+- height
+- sapwood and heartwood diameter
+- fine-root biomass `mass_root`
+- stock and available resource pools
+
+### Roots
+Fine roots have no explicit spatial geometry in v3.30. They are represented by individual-tree biomass.
+
+Also:
+```
+mass_trunk = stem + branches + coarse-root biomass
+```
+
+Therefore coarse roots are not an independent state.
+
+This distinction is critical:
+```
+fine individual-tree canopy geometry
+!=
+fine individual-tree root geometry
+```
+
+## Litter and dead biomass
+Living biomass enters litter pools via:
+- turnover
+- seasonal leaf shedding
+- self-pruning
+- carbon starvation
+- mortality
+
+v3.30 records aboveground and belowground litter inputs separately.
+
+Daily decomposition includes:
+- woody debris
+- leaf litter
+- fine-root litter
+- grass litter
+
+Fire can consume living vegetation and litter according to the selected fire module.
+
+This is a major advantage over fine-spatial forest models that lack mature litter/deadwood turnover.
+
+## Water and soil
+The standard v3.30 configuration activates NOAH-LSM.
+
+- land physics at 30 min
+- updated soil temperature and soil-water states are returned to daily SEIB biology
+- original SEIB profile: 20 layers x 0.1 m
+- outputs include layer soil water, surface runoff, subsurface runoff, transpiration, evaporation, snow and related variables
+
+### Critical within-stand limitation
+The internal vegetation grid is not a matching fine hydrological grid.
+
+Official v3.30 documentation states:
+- all grass cells share the same stand-level soil-water pools
+- temperature, atmospheric CO2 and physiological soil-water status are spatially uniform within a stand on a given day
+- PAR varies spatially among crown disks and grass cells
 
 Therefore:
 ```
-1 m tree/recruitment mesh != 1 m fully distributed soil/root model
+2 m establishment mesh != 2 m soil-water grid
 ```
 
+LiDAR-scale soil-water heterogeneity cannot simply be supplied to individual 2 m cells inside one large virtual forest.
+
+## Topographic coupling precedent
+Cold-temperate SEIB work and the TOPMODEL lineage provide a precedent for:
+```
+topographic wetness / CTI
+ -> plot or grid soil-water environment
+ -> PFT photosynthesis, establishment and mortality
+ -> biomass and species composition
+```
+
+The code-history for cold-temperate PFTs includes `CTI_dif` so that site CTI can differ from a grid-average CTI.
+
+This is useful, but it is not a genuine within-stand 2D lateral hydrology solver.
+
+## MPI multi-plot architecture
+The official MPI package:
+- computes multiple grid cells in parallel
+- substitutes `start_mpi.f90` and `main.f90` for point-simulation drivers
+- shares the main physiology/spatial/population code
+- distributed sample uses coarse 0.5° Siberian grids
+
+Thus multi-plot execution exists. However:
+```
+MPI multi-plot computation != automatic inter-plot ecological interaction
+```
+
+Fine-scale annual seed exchange among Gounsa plots would still require an explicit coupling layer.
+
 ## LiDAR relevance
-Strengths:
+Strong points:
 - individual x-y tree positions
 - individual crown dimensions
-- 1 m establishment mesh
-- plot area is configurable
-- 2025 cold-temperate work used a 100 m x 100 m virtual forest
-- outputs of individual tree properties are supported in current 3.21+ viewer format
-- direct comparison with LiDAR-derived tree/canopy structure is conceptually straightforward
+- meter-scale establishment mesh
+- configurable stand size
+- cold-temperate East Asian PFT lineage
+- individual fine-root biomass
+- above/belowground litter
+- fire/postfire succession
+- 30-min land physics
+- daily biology/decomposition/fire
+- current output includes individual-tree properties
 
-LiDAR can be used to initialize or constrain:
+LiDAR can potentially constrain or validate:
 - tree positions
 - height
 - crown dimensions
-- density/gap structure
-- canopy height surface
+- density
+- canopy gaps
+- canopy-height surface
 
-However direct LiDAR-to-SEIB initialization is not treated here as an existing published automatic assimilation routine. Such initialization would need a documented preprocessing interface.
+Direct LiDAR-to-SEIB state assimilation is not treated here as an existing published automatic routine. A preprocessing/restart interface would be a new implementation.
 
-## cold-temperate applicability
-Sato et al. 2023 and Sato & Sumida 2025:
-- mixed conifer-broadleaf forest
-- revised allometry/allocation for cold-temperate woody PFTs
-- 2025 study used 100 m x 100 m virtual forest
-This is substantially closer to Gounsa than tropical-only individual-tree models.
+## Recommended Gounsa scale architecture
+Do not force vegetation and geomorphology to have identical horizontal discretization.
 
-## root and litter
-Represented:
-- woody fine-root biomass
-- grass fine-root biomass
-- fine-root turnover
-- litter carbon pool
-- standing dead tree-leaf mass
-- standing dead grass mass
-- lying dead mass in the fire lineage
-- soil organic carbon pools
-
-Important limitation:
-- soil carbon vertical distribution is not represented in the cited SEIB soil-C formulation
-- horizontal fine-root geometry is not explicitly represented
-
-Geomorph interface therefore should be:
+A defensible architecture to test is:
 ```
-individual/tree or PFT root biomass
- -> species/PFT-specific vertical and horizontal root architecture helper
- -> LiDAR/DEM geomorph raster
+LiDAR DEM / geomorph grid
+1-5 m
+    |
+    | aggregate terrain / soil state
+    v
+SEIB virtual-forest tiles
+initially test ~10-50 m and 20-50 m ranges
+    |
+    | individual x,y + crown + mass_root + litter
+    v
+spatial disaggregation / rasterization
+back to 1-5 m geomorph grid
 ```
-not direct use of a SEIB 1 m root map.
 
-## wildfire and succession
-Published SEIB studies explicitly induce fire and follow postfire succession.
-The fire lineage uses fuel load, fuel moisture and wind and tracks litter fuel pools.
-Vegetation dynamics and disturbance are assessed annually while physiological processes are daily.
+The vegetation tile size must be chosen by sensitivity tests involving:
+- crown radius relative to tile size
+- tree density
+- periodic boundaries
+- stand-level soil-water homogenization
+- computational cost
+- topographic variability
 
-## topographic coupling precedent
-Sato et al. 2020 coupled SEIB-DGVM + NOAH-LSM with a TOPMODEL-type representation of within-grid topographic heterogeneity.
-The model represented:
-- elevation heterogeneity
-- topographic index / CTI
-- soil-water redistribution
-- drought and over-wet stress
-- vegetation feedback
+Making every LiDAR cell an independent SEIB stand would destroy local tree competition and is not recommended.
 
-This is important for Gounsa because it demonstrates an existing published:
+## Root and litter geomorph interfaces
+Because SEIB does not contain explicit root geometry:
 ```
-topography
- -> soil moisture redistribution
- -> tree abundance / mortality
+individual mass_root
+ -> species/PFT-specific vertical root distribution
+ -> horizontal root-spread helper
+ -> RLD / RSAD / root mass per geomorph cell
 ```
-coupling in the SEIB lineage.
+must be a documented new coupling.
 
-But this is not a LiDAR-scale lateral hydrology solver. It is a topographic-index parameterization.
+Likewise:
+```
+litter mass
+ -> physical surface litter/contact/storage state
+```
+requires a separate defensible interface.
 
-## comparison with iLand under LiDAR criterion
-iLand has:
-- individual trees
+## Comparison with other current candidates
+
+### iLand
+- excellent individual trees and root/litter outputs
 - 2 m light grid
-- 2 m regeneration grid
-- 20 m seed grid
+- but core production/water/soil processes operate largely at 1 ha / 100 m resource-unit scale
+- LiDAR does not remove that belowground scale mismatch
 
-but:
-- core water balance, production and many soil processes use 100 m x 100 m (1 ha) resource units.
+### TROLL 4.0
+- 1 m aboveground voxels
+- explicit fine-root depth distribution and root-length-related water uptake
+- spatial 1 m seedling bank
+- excellent remote-sensing compatibility
+- but current model is tropical, assumes flat within-stand topography, lacks mature litter decomposition/wood decay and fire modules
 
-Thus for a 1-5 m LiDAR geomorph grid, iLand has a stronger scale mismatch in belowground/eco-hydrological feedback than SEIB.
+### LPJ-GM
+- strongest explicit landscape migration extension of LPJ-GUESS
+- but published local vegetation dynamics remain kilometer-scale
+- under a LiDAR fine-scale objective this becomes a much larger disadvantage
 
-## comparison with TROLL 4.0
-TROLL 4.0:
-- trees explicit at 1 m
-- fine-root biomass and vertical root distribution
-- belowground voxels
-- LiDAR validation is excellent
+### LANDIS-II
+- strong landscape connectivity and root/litter pools in some succession extensions
+- but cohort/raster abstraction and succession timestep remain less aligned with fine event-driven geomorph feedback
 
-but:
-- current model is primarily tropical
-- total fine-root biomass is assumed equal to leaf biomass
-- roots do not spread horizontally between belowground voxels
-- litter decomposition and wood decay are explicitly future developments
-- no mature wildfire module in TROLL 4.0 description
+## Remaining SEIB problems
+1. explicit horizontal and vertical root architecture
+2. stand-level soil-water homogenization
+3. explicit fine-scale inter-plot seed dispersal
+4. geomorphic soil-depth changes mapped to SEIB/NOAH soil layers
+5. Korea-specific PFT/species calibration
+6. LiDAR initialization workflow
+7. optimum tile size and periodic-boundary sensitivity
+8. fire module choice and calibration for Korean temperate forest
 
-Therefore TROLL is an important structural/LiDAR benchmark, but not currently a better whole-process Gounsa vegetation engine.
+## Current verdict
+**Provisional first-choice vegetation engine for technical testing under the LiDAR criterion.**
 
-## remaining SEIB problems
-1. explicit horizontal root spread
-2. direct litter surface distribution at LiDAR/DEM resolution
-3. explicit inter-plot seed dispersal if multiple virtual forests are tiled
-4. mapping geomorphic soil-depth change into SEIB/NOAH soil layers
-5. determining whether one large virtual forest or multiple coupled subplots is computationally preferable
-6. Korea-specific PFT/species calibration
-7. LiDAR-based initialization workflow
-
-## current verdict
-Provisional first-choice vegetation engine for further technical testing under the LiDAR criterion.
-
-Not because every process is already spatially explicit at 1 m, but because it currently provides the best combination of:
-- fine aboveground spatial structure
-- cold-temperate applicability
+It is not a complete 1-5 m ecohydrological model. Its advantage is the current combination of:
+- fine individual-tree aboveground structure
+- East Asian cold-temperate applicability
 - root biomass
-- litter
-- fire/postfire succession
-- daily physiology
-- subdaily soil physics
-- topographic-hydrology coupling precedent
-- open modifiable code
+- litter/dead biomass
+- fire
+- daily biological processes
+- subdaily land physics
+- configurable open source code
 
-## related papers
-- papers/2007_Sato_SEIB_DGVM.md
-- papers/2020_Sato_SEIB_TOPMODEL.md
-- papers/2023_Ninomiya_SEIB_DGVM_NSC.md
-- papers/2025_Sato_Sumida_SEIB_Crown.md
+## Related papers
+- `papers/2007_Sato_SEIB_DGVM.md`
+- `papers/2012_Sato_Ise_SEIB_Africa_Dispersal.md`
+- `papers/2020_Sato_SEIB_TOPMODEL.md`
+- `papers/2023_Sato_SEIB_Hokkaido_MixedForest.md`
+- `papers/2023_Ninomiya_SEIB_DGVM_NSC.md`
+- `papers/2025_Sato_Sumida_SEIB_Crown.md`
+- `papers/2025_Sato_Sumida_SEIB_Crown_MixedForest.md`
