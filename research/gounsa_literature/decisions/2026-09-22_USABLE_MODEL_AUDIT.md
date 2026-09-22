@@ -65,3 +65,53 @@ OpenLISEM, PSEM_2D, SERGHEI-SE, Wu 2D, WEPP 등은 특정 기능 비교용으로
 - 적용범위 밖 parameterization을 가져오지 않는다.
 - 논문에 없는 vegetation/root relation을 발명하지 않는다.
 - 전체 model 채택은 각 후보의 자체 기능 감사가 끝난 후에만 결정한다.
+
+
+## 3. Iber+ 2024
+
+### 자체 구현
+- genuine 2D shallow-water finite-volume hydraulics
+- rainfall-driven detachment
+- flow-driven detachment
+- loose-layer redetachment
+- multiclass suspended and bed load
+- class-specific deposition
+- dynamic loose-layer mass and grading
+- shielding
+- public software/test cases
+
+### vertical structure
+```
+loose layer
+original soil
+non-erodible rock
+```
+
+따라서 deep multilayer embedded PSD model은 아님.
+
+### 부족
+- quantitative root biomass/RLD/litter state 없음
+- physical weathering 없음
+- multilayer soil-profile evolution 없음
+- stony-soil hydrology는 별도 검증 필요
+
+### 판정
+**가장 강한 existing event-scale 2D water-erosion engine 후보.**
+하지만 전체 고운사 soil-profile/vegetation model은 아님.
+
+## 현재 세 후보의 역할 차이
+
+| 모델 | 가장 강한 자체기능 | 결정적 부족 |
+|---|---|---|
+| CAESAR-Lisflood | 2D flow + multiclass + active layers + long-term morphology | quantitative roots/litter, explicit stony-soil hydrology |
+| SSSPAM/mARM | multilayer PSD + armour + weathering + soil profile | event 2D hydrodynamics, vegetation erosion state |
+| Iber+ | 2D rainfall/flow erosion + multiclass loose layer | deep profile, weathering, vegetation erosion state |
+
+### 현 단계 결론
+세 모델 모두 **단독으로 고운사 전체 요구조건을 충족하지 않는다.**
+
+따라서 다음 단계는 새 coupling 설계가 아니라:
+1. CAESAR-Lisflood가 hillslope rainfall detachment와 forest/postfire vegetation을 어디까지 자체 처리하는지 추가 확인
+2. SSSPAM의 fluvial equation과 spatial routing이 고운사 100년 hillslope에 그대로 쓸 수 있는지 확인
+3. Iber+의 stony-soil hydrology와 forest/postfire validation 범위를 확인
+후에만 전체 선택을 한다.
