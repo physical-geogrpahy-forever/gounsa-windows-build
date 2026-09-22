@@ -1226,3 +1226,86 @@ next-event g_k / soil depth / profile state
 
 관련 결정:
 - `decisions/2026-09-22_IBER_SSSPAM_EVENT_PROFILE_INTERFACE.md`
+
+
+---
+
+## 2026-09-22 LiDAR vegetation-engine reassessment
+
+사용자가 vegetation-geomorph coupling에 30 m보다 세밀한 LiDAR 지형을 사용할 수 있음을 명확히 하여 식생모델 기준을 수정했다.
+
+### revised criterion
+- LiDAR individual-tree/crown initialization
+- 1-10 m 이하 공간상태와의 결합성
+- 100-year succession
+- seed production/dispersal/regeneration
+- quantitative fine-root and litter state
+- hourly/daily ecohydrology where possible
+- postfire recovery
+- modifiable implementation
+
+### current provisional primary engine
+**HETEROFOR + spatial helper models**
+
+HETEROFOR current documentation confirms:
+- adult tree x,y,z and crown geometry initialization
+- configurable cell size for radiation/regeneration/ground vegetation
+- hourly meteorology and water balance
+- optional tree-level water balance
+- fine-root allocation, vertical root proportion and turnover
+- structural roots
+- annual litter cohorts / soil-carbon dynamics
+- seed-bank regeneration
+- 2022 Capsis seed approach with global/local seed dispersion and seed rain
+- temperate mixed-forest calibration and century-scale application
+
+### root spatialization
+**ChaMRoots (Mao et al. 2015)** is now the preferred helper from LiDAR/HETEROFOR trees to 3-D root-density fields.
+
+```
+tree x,y, DBH, species
+ -> ChaMRoots
+ -> RID by horizontal position, diameter class and depth
+```
+
+For shallow landslides:
+```
+spatial root distribution
+ -> Schwarz spatial Root Bundle Model
+ -> root reinforcement field
+```
+
+Do not use this landslide reinforcement as water-erosion resistance.
+
+### litter spatialization
+Use HETEROFOR tree litterfall plus LiDAR crown footprints and the Sánchez-López et al. 2023 spatial litter approach to create 1-5 m surface-litter maps.
+
+### main HETEROFOR gaps
+1. no documented native wildfire/fire-spread module in HETEROFOR 1.2
+2. early postfire herb/shrub **root biomass and turnover** are not yet established as strong HETEROFOR states
+3. intended stand scale is roughly 0.5-5 ha; larger-domain performance and inter-stand coupling need testing
+4. Korean species/PFT parameterization required
+
+### secondary candidates
+1. **SEIB-DGVM**: retains major advantage if endogenous repeated wildfire is required; native wildfire/SPITFIRE lineage, grasses, roots and litter.
+2. **SORTIE-ND 7.06**: excellent spatial tree/recruitment/substrate framework and postfire applications, but no standard dynamic root-biomass/root-water-uptake state.
+3. LANDIS-II + NECN: landscape fallback, but coarse coupling relative to LiDAR/event geomorph.
+4. iLand: 1-ha resource-unit ecohydrology is a scale mismatch.
+5. LPJ-GM: solves migration but published local vegetation resolution is too coarse for this LiDAR objective.
+6. standard LPJ-GUESS: retains good physiology but not preferred as spatial engine.
+
+### current Gounsa-specific order
+For an observed initial wildfire with fine-scale LiDAR and quantitative root/litter geomorphic coupling:
+
+1. HETEROFOR + ChaMRoots + spatial litter helper
+2. SEIB-DGVM
+3. SORTIE-ND + root helper
+4. LANDIS-II + NECN
+5. iLand
+6. LPJ-GM
+7. standard LPJ-GUESS
+
+This is not a generic ranking of forest models.
+
+Latest decision:
+- `decisions/2026-09-22_LIDAR_VEGETATION_ENGINE_SELECTION.md`
