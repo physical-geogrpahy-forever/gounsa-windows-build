@@ -208,3 +208,64 @@ LANDIS-II / NECN
 3. surface litter biomass -> litter cover/contact area
 4. fine-root biomass -> rill erodibility
 5. geomorphic soil-depth change -> NECN soil carbon/nitrogen pool remapping
+
+
+---
+
+## 2026-09-22 root/litter -> erosion literature audit
+
+### Full numerical model search
+No existing model was found that simultaneously provides:
+- forest succession comparable to LANDIS-II
+- live/dead root pools
+- litter pools
+- steep-hillslope event hydrodynamics
+- root-dependent rill detachment
+- dynamic armour/profile
+
+Closest precedents:
+
+#### COPLAS
+Quijano-Baron et al. 2022:
+- leaves, roots, litter, soil carbon
+- 100-year open-forest erosion/landform experiments
+- **reference only**
+- excluded from Gounsa production basis
+
+#### ELM-Erosion
+Tan et al. 2022:
+- topsoil root biomass density
+- residue biomass
+- LAI
+- PFT-specific rainfall/runoff erosion effects
+- global and calibrated; not hillslope 2D event engine
+
+#### PROMET
+- dynamic RLD from biological module
+- root-dependent erosion resistance
+- agricultural/crop-oriented, coarse process-pixel scale
+
+### Forest-specific constraints
+- Parhizkar et al. 2021: tree species/root weight density affect rill detachment and erodibility
+- Liu et al. 2019: RLD is a strong predictor of rill erodibility
+- Xia et al. 2019: forest litter mass strongly reduces soil loss
+- Zhu et al. 2020: forest litter affects interception/infiltration/runoff, but fragment preferential flow is omitted
+
+### Root-profile gap
+NECN gives total fine/coarse-root biomass, not depth-resolved RLD.
+DyRoot 2019 is an existing root-profile model validated across forest ecosystems.
+
+### Current interpretation
+```
+LANDIS-II NECN
+ -> species/cohort/root/litter state
+ -> independently constrained root/litter geometry or traits
+ -> geomorphic process model
+```
+
+Unresolved conversions:
+- fine-root biomass -> RLD/root architecture
+- coarse-root biomass -> diameter/rootwad distribution
+- litter mass -> cover/contact/roughness
+
+Generic vegetation multiplier is not accepted.
