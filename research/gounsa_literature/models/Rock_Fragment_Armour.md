@@ -44,9 +44,13 @@ fine removal
 ## armour hydrology
 부호는 고정하지 않는다.
 
-Poesen et al. 1990:
-- resting fragments -> sealing 억제, infiltration 증가, runoff 감소
-- embedded fragments -> infiltration 감소, runoff 증가
+Poesen et al. 1990 / EUROSEM 재검증:
+- surface-resting fragments는 sealing을 억제해 infiltration을 증가시킬 수 있음
+- **embedded라는 이유만으로 infiltration 감소를 부여하지 않는다**
+- high structural porosity/macroporosity 속 fully embedded fragments는 infiltration 증가 가능
+- surface seal 속 partially embedded fragments는 infiltration 감소 가능
+
+따라서 embeddedness 자체보다 surface seal과 structural/textural porosity 상태가 부호를 결정한다.
 
 Cerdà 2001:
 - 자연토양의 surface-resting fragments가 infiltration을 증가시키고 interrill erosion을 크게 줄일 수 있음.
@@ -54,11 +58,22 @@ Cerdà 2001:
 Zhang et al. 2016:
 - hydrological effect는 positive/negative 양쪽 모두 가능하며 fragment architecture가 핵심.
 
-따라서:
+고운사에서는 임의 함수 `I=f(...)`를 새로 적합하지 않는다.
+
+매립 석력이 많은 soil matrix의 hydraulic properties는 우선 Naseri et al. 2020 GEM 및 Naseri et al. 2023의 published WRC/HCC 관계로 계산한다.
+표면 stone/seal 효과가 필요한 경우 EUROSEM의 ROC/PAVE/ISTONE 관계를 그대로 사용하거나 현장측정 Ksat를 사용한다.
+
+즉:
 ```
-I = f(soil, moisture, surface cover, size distribution, embeddedness, sealing, roots)
+embedded soil-matrix RF
+ -> GEM / published stony-soil hydraulic model
+ -> effective K(h), theta(h)
+
+surface/partially embedded stone
+ -> EUROSEM PAVE/ISTONE (only when matching field condition)
+ -> event infiltration/splash shielding
 ```
-로 두며 `armour -> infiltration 감소`를 고정 규칙으로 두지 않는다.
+로 구분한다.
 
 ## armour erosion shielding
 Poesen et al. 1994, Rieke-Zapp et al. 2007, Jomaa et al. 2012:
@@ -131,9 +146,14 @@ SurfaceFragment(size, embeddedness)
  -> exposed fine-soil fraction
  -> interrill/rill detachment resistance
 
-SurfaceFragment + SoilMatrixFragment
- -> HydraulicModifier
- -> infiltration / runoff / soil moisture
+SoilMatrixFragment
+ -> GEM / published stony-soil hydraulic-property model
+ -> effective K(h), theta(h)
+ -> infiltration / soil moisture
+
+SurfaceFragment / surface-seal state
+ -> EUROSEM PAVE/ISTONE when applicable
+ -> event infiltration / splash shielding
 
 Erosion of fines
  -> fragment exhumation
@@ -150,7 +170,9 @@ Weathering/fragmentation
 ## 최종 판정
 - dynamic armour module: 채택
 - size-class tracking: 채택
-- resting/embedded distinction: 채택
+- resting/embedded distinction: 채택하되 **surface seal / structural porosity를 함께 판정**
+- high embedded-stoniness hydraulics: GEM/Naseri lineage 우선
+- surface stone infiltration/splash relation: EUROSEM published relation 우선
 - universal `armour -> infiltration decrease`: 탈락
 - universal `fragmentation -> armour decrease`: 탈락
 - fragmentation + size-specific removal -> armour decrease: 채택 구조
@@ -170,3 +192,27 @@ Weathering/fragmentation
 - ../papers/2024_Huang_RockFragmentSoilWaterVegetation.md
 - ../papers/2025_Pala_ThermalSpallingPostfireDebrisFlow.md
 - ../papers/2026_Song_SlopeDependentRockFragmentErosion.md
+
+
+## 2026-09-22 자의성 최소화 모델 선택 보완
+
+현장조건: 고운사 토양에는 **매립 석력이 많음**.
+
+따라서 rock-fragment hydrology에서 경험적인 `armour coefficient`를 새로 만들지 않는다.
+
+우선순위:
+1. **GEM (Naseri et al. 2020)**: soil-matrix 내부 high volumetric RF의 effective hydraulic conductivity
+2. **Naseri et al. 2023**: effective water-retention / conductivity 검증과 RF water storage
+3. **EUROSEM**: surface PAVE, surface seal/position effect, splash shielding
+4. **Iber+ 2024**: genuine 2D hydrodynamics + multiclass loose sediment + shielding + size-specific transport
+
+중요:
+- GEM/Naseri는 hydraulic property model
+- EUROSEM은 stoniness erosion/hydrology precedent
+- Iber+는 2D erosion/transport engine
+- 서로 다른 모델을 결합하는 software architecture는 새로운 coupling이지만, **각 연결에서 새 경험식이나 임의계수를 만들지 않고 동일 물리량을 전달**한다.
+
+관련 모델:
+- `Stony_Soil_Hydraulics_GEM.md`
+- `EUROSEM.md`
+- `Iber.md`
