@@ -239,3 +239,31 @@ Cea et al. (2024)는 다음 규모에서 Iber+ soil-erosion module을 제시/검
 ### 재판정
 **event-scale 2D water erosion에는 현재 가장 강한 기존 후보로 유지.**
 단, quantitative vegetation과 deep stony profile은 별도 문제다.
+
+
+---
+
+## 2026-09-22 정밀 재검증: standalone 범위
+
+Cea et al. (2024)에서 직접 확인:
+- fully distributed 2D shallow-water model
+- rainfall-driven erosion
+- runoff-driven erosion
+- multiclass sediment
+- suspended load
+- bed load
+- per-class mass conservation
+- laboratory부터 meso-scale catchment까지 검증
+- software와 test-case data 공개
+
+반면 모델 자체에서 확인되지 않은 것:
+- root biomass/RLD driven erodibility
+- litter biomass driven erodibility
+- multilayer embedded soil PSD
+- physical weathering
+- postfire vegetation recovery module
+
+### 고운사 판정
+**현재까지 조사한 기존 모델 중 event-scale hillslope water erosion 자체는 Iber+가 가장 직접적으로 요구조건에 가깝다.**
+
+단, 이는 전체 고운사 모델 채택이나 LPJ-GUESS coupling 확정을 의미하지 않는다.
