@@ -94,6 +94,11 @@ Cell-count scaling per km²:
 
 Relative to 200 m, 25 m is 64x more cells and 10 m is 400x more cells per area.
 
+### Official 2026 performance evidence
+medfate 5.0 substantially restructured the C++ implementation and added `single_runner`, `multiple_runner`, and `watershed_runner`. Official medfateland 3.0 timing tests used three months on the 100 m example watershed on an 8-core 11th-generation Core i5 laptop. For `growth` with Granier transpiration the medfate 5.0 timings were about 3.689 s with bucket soil, 5.796 s with a single soil domain, and 26.972 s with a dual soil domain. These values are benchmark-specific, not a direct estimate for Gounsa, but they show that current code is much faster than the 4.8 lineage used in the 2025 regional study.
+
+Spatial simulation functions expose parallel computation and chunking. Therefore fine Gounsa grids are technically more plausible with the current codebase, but 10 m over the entire study area for 100 years must still be benchmarked rather than assumed feasible.
+
 Recommended test strategy:
 1. 25 m vegetation grid as first production benchmark.
 2. 10 m only on a small subcatchment initially.
