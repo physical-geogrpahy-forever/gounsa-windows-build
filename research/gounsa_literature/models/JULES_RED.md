@@ -145,6 +145,8 @@ Published Great Britain regional/catchment configurations include:
 - surface and subsurface runoff
 - subdaily river-flow routing with the River Flow Model
 
+A separate JULES groundwater development study also used an idealised V-shaped catchment with **10 m horizontal resolution**, 5 m soil depth and explicit hillslope/groundwater redistribution. This is important evidence that the JULES hydrologic core is not intrinsically restricted to kilometre-scale grids.
+
 JULES v8.1 also provides OASIS river-model coupling infrastructure.
 
 Important qualification:
@@ -167,11 +169,17 @@ RED v1 standalone experiments used a 1-month demographic timestep, but the paper
 
 The current JULES configuration therefore does not impose a one-month lower bound. A daily dynamic-vegetation call is configuration-permitted.
 
+More importantly, Chou et al. (2025, EGUsphere preprint) explicitly states for the coupled JULES-RED implementation:
+- carbon and water fluxes are simulated at a half-hourly timestep
+- vegetation dynamics, including tree carbon, height and LAI, are updated daily
+
+This is direct application-level evidence, not just an inference from the namelist.
+
 Criterion 5:
 **STRONG.**
-- subhourly ecophysiology/hydrology
-- dynamic vegetation scheduling can be daily
-- published RED v1 benchmark used monthly demography, which must be stated separately
+- half-hourly ecophysiology/hydrology
+- daily vegetation/demography update demonstrated in a recent JULES-RED application
+- original RED v1 benchmark used monthly demography, which must be stated separately
 
 ---
 
@@ -284,3 +292,6 @@ The most important unresolved items are:
 - Argles, A. P. K. et al. (2023). Modelling the impact of forest management and CO2-fertilisation on growth and demography in a Sitka spruce plantation. Scientific Reports, 13, 13487. DOI 10.1038/s41598-023-39810-2.
 - Lewis et al./Blyth et al. JULES Great Britain hydrology lineage; GMD 2019 catchment calibration/application.
 - JULES v8.1 User Guide, 2026, `JULES_VEGETATION`, `RED_PARMS`, soil, hydrology, prescribed-data, output-variable documentation.
+- Chou, H.-K. et al. (2025). Evaluation of national Greenhouse Gas Removal potential under a changing climate using a process-based land surface model. EGUsphere preprint. DOI 10.5194/egusphere-2025-4536.
+- Martínez-de la Torre et al. (2019). Great Britain JULES catchment hydrology. GMD 12, 765-784. DOI 10.5194/gmd-12-765-2019.
+- Martínez-de la Torre et al. (2020). Towards the representation of groundwater in the Joint UK Land Environment Simulator. Hydrological Processes. DOI 10.1002/hyp.13767.
