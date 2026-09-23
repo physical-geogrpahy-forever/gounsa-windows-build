@@ -1,297 +1,267 @@
 # JULES-RED model lineage
 
-업데이트: 2026-09-23
+업데이트: 2026-09-23, public-documentation correction 포함
 
 ## 현재 판정
-JULES + Robust Ecosystem Demography (RED)는 고운사 5조건을 다시 적용했을 때 새로 **top-tier shortlist에 들어갈 가치가 있는 simplified demographic land-surface model**이다.
+JULES + Robust Ecosystem Demography (RED)는 경량 demographic land-surface model로서 비교가치가 높다.
 
-핵심 장점은 다음 조합이다.
-
+핵심 조합:
 ```text
 PFT mass-class demography
 + tree / shrub / grass succession
 + subhourly JULES physiology and soil hydrology
-+ TOPMODEL / river-routing catchment precedent
-+ direct layer-wise soil-moisture prescription/restart capability
-+ root biomass and root litter outputs
++ catchment/TOPMODEL/routing lineage
++ layer-wise prescribed soil-water state
++ root biomass and root-litter outputs
 ```
 
-그러나 RED의 understory/light competition은 FATES 또는 LPJ-GUESS SEC/PPA보다 단순하다. 경쟁은 주로 seedling recruitment에 사용되는 gap fraction과 `tree > shrub > grass` dominance hierarchy로 계산되며, explicit 3-D/within-cell canopy positions나 PPA understory layers는 없다.
+그러나 고운사에서는 다음 세 가지 때문에 LPJ-SEC, FATES, MEDFATE보다 우선순위가 낮다.
+1. standard soil layer thickness와 total soil depth가 domain 전체에서 동일
+2. root architecture가 PFT-level prescribed exponential profile 중심
+3. canopy/understory competition이 SEC/PPA/FATES보다 단순
 
 ---
 
-# 1. cohort structure
+# 1. 공개버전 정정
+이 파일의 이전 버전은 `JULES v8.1`이라고 적었으나 2026-09-23 현재 공개 JULES documentation의 `Latest` user guide는 **v7.9**로 확인된다.
+
+따라서 별도의 확실한 source가 없는 한 이후 고운사 검토에서는 **public JULES v7.9 documentation**을 기준으로 한다.
+
+RED는 v7.9 public guide의 `JULES_RED` / `RED_PARMS`에 정식 포함되어 있다.
+
+---
+
+# 2. cohort structure
 RED represents each PFT as a number-density distribution over plant mass.
 
-Current JULES v8.1 `RED_PARMS` exposes per-PFT:
+Public v7.9 `RED_PARMS` exposes:
 - `mclass`: number of mass classes
 - `mass0`: lowest mass class
 - `massi`: highest mass class
 - `height0`
 - `crwn_area0`
-- allometric exponents for mass -> crown area / height / LAI / growth
-- baseline mortality
-- reproductive allocation `alpha_recrt`
+- `alpha_recrt`: assimilate allocation to reproduction
+- `mort_base`: baseline mortality
+- allometric exponents `phi_a`, `phi_g`, `phi_h`, `phi_l`
+- `dom_order`: PFT competition hierarchy
 
-The original RED v1 numerical experiments used:
-- 10 mass classes for tree PFTs
-- 8 mass classes for shrub PFTs
-- 1 mass class for grass PFTs
+The original RED v1 numerical experiments used approximately:
+- tree PFTs: 10 mass classes
+- shrub PFTs: 8 mass classes
+- grass PFTs: 1 class
 
-Thus RED is a true size/mass cohort model for woody vegetation, while grass remains a single demographic class.
+Thus RED is a true size/mass demographic model for woody vegetation, while grass remains much more aggregated.
 
-RED does not retain individual x-y plant positions or disturbance-patch age.
+RED does not retain individual plant x-y coordinates or geographic disturbance patches inside a cell.
 
 Criterion 1:
-**PARTIAL-STRONG.**
-- geographic JULES grid boxes are explicit
-- demographic mass classes exist inside each grid box
-- within-cell cohort positions are not explicit
+**PARTIAL-STRONG**
 
 ---
 
-# 2. understory and succession
-This is considerably stronger than ordinary TRIFFID.
-
-RED v1 explicitly models:
+# 3. understory and succession
+RED explicitly represents:
 ```text
 net assimilate
- -> fraction to seed production
- -> seedling influx into lowest mass class
- -> gap-limited establishment
+ -> reproductive allocation
+ -> influx into lowest mass class
+ -> competition/gap-limited establishment
  -> growth through mass classes
  -> mortality
 ```
 
-Competition is implemented using a functional-group hierarchy:
+Public v7.9 documentation confirms `dom_order`:
 ```text
-tree > shrub > grass
+3 = tree
+2 = shrub
+1 = grass
 ```
 
-Current JULES v8.1 `dom_order` documentation explicitly defines:
-- 3 = trees
-- 2 = shrubs
-- 1 = grass
+RED v1 bare-ground experiments showed the qualitative sequence:
+```text
+early grass
+ -> shrub dominance
+ -> tree dominance
+```
 
-The RED model paper demonstrated a bare-soil succession experiment in which:
-1. fast grass PFTs dominate early,
-2. evergreen shrubs replace grasses by shading grass seedlings,
-3. broadleaf trees subsequently replace much of shrub and grass vegetation.
+This is biologically close to the broad postfire trajectory required at Gounsa.
 
-Vegetation fractional cover approached its steady state in about 20 years in that idealized experiment, while full biomass equilibration took much longer.
+Important limitation:
+- competition is deliberately parsimonious
+- no SEC-style persistent x-y canopy gaps
+- no detailed PPA multilayer demographic canopy
+- hierarchy acts primarily on establishment/gap access
 
-This is unusually close to the biological trajectory required for Gounsa postfire recovery.
-
-### Important limitation
-Competition is deliberately parsimonious.
-- only the lowest/seedling mass class is directly subject to gap competition
-- tree/shrub/grass hierarchy determines which existing vegetation excludes seedlings
-- there is no explicit x-y crown geometry
-- there is no PPA-style multilayer canopy/understory demographic light solver
-- within each co-competing class RED v1 tends toward competitive exclusion of subdominant PFTs unless parameterization is modified
-
-Therefore criterion 2 is:
-**STRONG, but less structurally explicit than FATES or LPJ-GUESS SEC/PPA.**
+Criterion 2:
+**STRONG but simplified**
 
 ---
 
-# 3. soil-topography / geomorph coupling readiness
+# 4. time structure
+JULES fast land-surface processes can operate at subhourly/half-hourly timesteps.
 
-## 3A external soil-water state coupling: STRONG
-JULES v8.1 has mature layered soil-water state variables and allows direct prescribed soil wetness.
+Recent JULES-RED application evidence, Chou et al. 2025 preprint and author response:
+- carbon/water fluxes: half-hourly
+- vegetation dynamics: daily
 
-Important interfaces:
-- `sthuf`: unfrozen soil wetness for each soil layer
-- prescribed-data interface can prescribe `sthuf` through time for selected/all soil levels
-- restart/initial-condition files can set layer-wise soil wetness and temperature
-- TOPMODEL configuration adds `zw` water-table depth and deep-layer wetness
-- soil hydraulic properties can vary spatially and vertically through ancillary data
-
-Vegetation water stress can use:
-- layer-wise soil water
-- weighted root distribution
-- field-capacity / wilting-point-type thresholds (`sm_crit`, `sm_wilt`)
-- optionally soil water potential and PFT-specific opening/closing potentials
-
-Thus an external Gounsa hydrology/geomorph engine can, in principle, drive JULES-RED vegetation by updating/prescribing layer soil-water states at daily or finer synchronization points.
-
-## Native soil limitation
-`dzsoil_io`, the soil-layer thickness vector, is normally constant across the domain in standard JULES.
-
-Hence spatially variable shallow bedrock/soil depth is not as naturally represented as in MEDFATE or LPJ-GUESS-RE unless the domain is tiled/split or source code is extended.
-
-## 3B dynamic soil geometry
-Storm erosion/deposition changing soil depth and layer geometry is **NEW COUPLING**.
-
-Required remapping would include:
-- layer water mass
-- soil C/N pools
-- root fraction / effective rooting distribution
-- litter/interface state
-- hydraulic properties if texture/coarse-fragment content changes
-
-Criterion 3 overall:
-**STRONG for state exchange, MODERATE for soil geometry.**
-
----
-
-# 4. catchment / topography precedent
-JULES has strong catchment hydrology precedent independent of RED.
-
-Published Great Britain regional/catchment configurations include:
-- TOPMODEL saturation-excess runoff
-- 50 m source DEM/topographic-index data aggregated to 1 km JULES grids
-- explicit water-table depth
-- surface and subsurface runoff
-- subdaily river-flow routing with the River Flow Model
-
-A separate JULES groundwater development study also used an idealised V-shaped catchment with **10 m horizontal resolution**, 5 m soil depth and explicit hillslope/groundwater redistribution. This is important evidence that the JULES hydrologic core is not intrinsically restricted to kilometre-scale grids.
-
-JULES v8.1 also provides OASIS river-model coupling infrastructure.
-
-Important qualification:
-- these are JULES hydrology precedents, not published fine-resolution JULES-RED postfire catchment experiments
-- the best published JULES-RED field test identified so far is Harwood Forest, an upland Sitka spruce plantation, not a distributed catchment demography study
-
-Criterion 4:
-**STRONG lineage precedent, but direct JULES-RED catchment-demography validation is limited.**
-
----
-
-# 5. time structure
-Current JULES v8.1:
-- main land-surface timestep can be seconds-scale; typically 30 or 60 min
-- photosynthesis, stomatal conductance, energy and soil-water processes operate on the main timestep
-- `triffid_period` is the period for dynamic vegetation calls and is permitted to be >=1 day
-- RED is activated only with `l_triffid = TRUE`
-
-RED v1 standalone experiments used a 1-month demographic timestep, but the paper explicitly describes this as a numerical choice and reports robustness when the timestep is short relative to regrowth and mortality timescales.
-
-The current JULES configuration therefore does not impose a one-month lower bound. A daily dynamic-vegetation call is configuration-permitted.
-
-More importantly, Chou et al. (2025, EGUsphere preprint) explicitly states for the coupled JULES-RED implementation:
-- carbon and water fluxes are simulated at a half-hourly timestep
-- vegetation dynamics, including tree carbon, height and LAI, are updated daily
-
-This is direct application-level evidence, not just an inference from the namelist.
+The original RED v1 idealised experiments used a coarser demographic step; therefore original RED benchmark settings and recent JULES-RED application settings must not be conflated.
 
 Criterion 5:
-**STRONG.**
-- half-hourly ecophysiology/hydrology
-- daily vegetation/demography update demonstrated in a recent JULES-RED application
-- original RED v1 benchmark used monthly demography, which must be stated separately
+**STRONG for current application precedent**
 
 ---
 
-# 6. roots, litter and geomorphic outputs
-JULES v8.1 outputs include:
+# 5. external soil-water state coupling
+Public v7.9 `JULES_PRESCRIBED` explicitly supports `sthuf`:
+- soil wetness for every soil layer
+- can be prescribed at the beginning of each model timestep
+- state is then allowed to evolve during that timestep
+
+Initial conditions likewise expose layer-wise `sthuf` and, with TOPMODEL, water-table state such as `zw`.
+
+Therefore an external Gounsa hydrology engine could drive JULES through time-varying layer soil-water states.
+
+Criterion 3A, external water-state injection:
+**STRONG**
+
+---
+
+# 6. decisive soil-depth limitation
+Public v7.9 `JULES_SOIL`:
+- `sm_levels` controls number of soil layers
+- `dzsoil_io` controls layer thicknesses
+- documentation explicitly states that layer depths and therefore total soil depth are **constant across the domain**
+
+Typical recommended profile is:
+```text
+0.10 m
+0.25 m
+0.65 m
+2.00 m
+= 3.0 m total
+```
+
+This is a major mismatch with Gounsa where shallow regolith/soil depth may vary strongly from cell to cell and may be modified by erosion/deposition.
+
+A source-code extension, domain splitting, or external state abstraction would be required for literal dynamic cell-specific layer geometry.
+
+Criterion 3B, geomorphic soil geometry:
+**WEAK / CUSTOM**
+
+---
+
+# 7. roots and litter
+Public JULES PFT parameters include `rootd_ft_io`.
+
+Recommended water-stress mode:
+- calculates stress in each soil layer
+- weights layers using root fractions
+- assumes an exponential root distribution
+- `rootd_ft_io` is the e-folding depth
+
+Alternative mode uses `rootd_ft_io` as total root-zone depth.
+
+This is simple and robust but root architecture is much more prescribed/static than:
+- MEDFATE woody seedling daily root-depth development
+- FATES cohort hydraulics/root-layer machinery
+
+Public outputs include:
 - `rootC`: PFT root carbon biomass
-- `root_litC`: PFT root-turnover litter carbon
-- `leafC`, `woodC`, total vegetation C
-- `lit_c`, leaf/root/wood litter fluxes
-- layer soil-water extraction `ext`
-- PFT water-stress factor `fsmc`
-- soil moisture by layer
-- water-table depth `zw`
-- surface/subsurface runoff and baseflow
+- `root_litC`: root-turnover litter C
+- soil water extraction diagnostics
 
-PFT root depth is controlled by `rootd_ft_io` and can be used as an exponential root-depth distribution for weighting soil moisture uptake.
-
-This provides a direct bridge to Gounsa erosion/root terms:
+For Gounsa one can derive a layer root-mass estimate from:
 ```text
-PFT rootC
-+ PFT root-depth function
- -> layer root-mass estimate
- -> root biomass / RLD helper
- -> erosion and slope-process coupling
+rootC
++ root depth profile
 ```
 
-Conversion from carbon mass to physical root mass/RLD remains a documented helper/coupling, not a native JULES geomorph variable.
+but this is still a derived coupling, not a native geomorphic root state.
 
 ---
 
-# 7. fire
-JULES includes INFERNO and a switch that feeds burnt area into dynamic vegetation.
+# 8. dynamic erosion/deposition coupling
+JULES does not natively evolve soil layer geometry from erosion/deposition.
 
-RED theory allows additional disturbance mortality to be PFT- and mass-class dependent.
-
-However current public documentation does not by itself prove that the full INFERNO -> size-specific RED mortality pathway is production-ready in JULES v8.1. Do not claim this without source/application confirmation.
-
-For the current Gounsa design this is not fatal if the observed wildfire is imposed as the initial disturbance and the model is used primarily for postfire recovery.
-
----
-
-# 8. actual JULES-RED field application
-Argles et al. (2023) applied JULES-RED to Harwood Forest, Northumberland, UK:
-- upland Sitka spruce plantation
-- stand planted in 1973
-- initial tree density 2500 trees ha-1 in historical simulations
-- observed 2018 size distribution mapped to RED mass classes in fitted runs
-- GPP and forest structure evaluated
-- thinning represented as size-structure mortality/removal
-
-This confirms that RED mass classes are usable beyond idealized global DGVM experiments.
-
-But it is a single-PFT managed conifer stand, so it does not validate herb-shrub-tree postfire succession.
-
----
-
-# 9. spatial-resolution implication for Gounsa
-JULES itself can be run for arbitrary grid collections, but most catchment precedents are much coarser than the proposed Gounsa vegetation grid.
-
-No published 10-50 m JULES-RED catchment simulation was identified in this audit.
-
-A plausible test architecture is:
+Needed custom event remap:
 ```text
-25-50 m vegetation / soil grid
- -> JULES-RED per geographic cell
- -> hourly/subhourly surface physics
- -> daily demographic update
-
-1-5 m geomorph grid
- -> aggregate soil water / erosion / soil-depth state to vegetation grid
- -> disaggregate vegetation root/litter effects back to geomorph grid
+old/new soil interfaces
+ -> remap soil water
+ -> remap soil C/N
+ -> remove roots in eroded material
+ -> recompute surviving root distribution
+ -> handle litter/interface pools
+ -> continue RED demography
 ```
 
-This remains to be benchmarked computationally and ecologically.
+This is a **새로운 coupling**.
+
+Because standard `dzsoil_io` is global, this coupling is structurally more invasive than the equivalent operation in MEDFATE and likely more invasive than changing host soil geometry in FATES.
 
 ---
 
-# 10. five-criteria verdict
+# 9. catchment/topography precedent
+JULES hydrology has strong catchment precedent independent of RED:
+- TOPMODEL saturation-excess runoff
+- water-table depth
+- surface/subsurface runoff
+- subdaily River Flow Model routing
+- Great Britain catchment applications at half-hourly land-surface timestep
+
+An idealised groundwater development study also demonstrated fine horizontal resolution hydrology, but this is not the same as a published fine-resolution JULES-RED forest-demography catchment simulation.
+
+Criterion 4:
+**STRONG lineage precedent / direct RED precedent limited**
+
+---
+
+# 10. field evidence
+Argles et al. 2023 applied JULES-RED to Harwood Forest, Northumberland:
+- managed upland Sitka spruce plantation
+- observed tree size structure mapped to RED mass classes
+- forest growth and demographic structure evaluated
+- thinning represented through size-structured removal
+
+This proves RED mass classes are usable beyond idealised global simulations.
+
+It does not validate multi-PFT postfire herb-shrub-tree succession in a Korean mountain forest.
+
+---
+
+# 11. five-criteria verdict after source/documentation correction
 | Criterion | Verdict | Main reason |
 |---|---|---|
-| 1 spatial cohort | PARTIAL-STRONG | geographic cells + mass cohorts, but no within-cell x-y cohorts |
-| 2 explicit understory succession | STRONG | actual grass -> shrub -> tree succession, shrub/tree mass classes, recruitment; simplified gap hierarchy rather than multilayer canopy |
-| 3 soil/geomorph coupling readiness | STRONG 3A / CUSTOM 3B | layer soil-water can be prescribed/restarted; layer geometry spatially fixed by default |
-| 4 catchment/topography | STRONG lineage precedent | TOPMODEL + subdaily river routing; direct RED catchment application still lacking |
-| 5 <=daily | STRONG | 30-60 min LSM, dynamic vegetation call permitted daily; original RED test monthly |
+| 1 spatial cohort | PARTIAL-STRONG | geographic grid + woody mass classes; no internal x-y cohort positions |
+| 2 understory succession | STRONG-SIMPLIFIED | tree/shrub/grass hierarchy and recruitment, but simplified light competition |
+| 3 soil/geomorph coupling | water STRONG, geometry WEAK/CUSTOM | `sthuf` prescribable; `dzsoil_io` fixed across domain |
+| 4 catchment/topography | STRONG lineage | mature JULES hydrology, direct fine RED catchment validation limited |
+| 5 <= daily | STRONG | half-hourly fluxes and recent daily vegetation-dynamics application |
 
 ---
 
 # current role
-**Promote to top-tier comparison set.**
+**Comparator / lightweight fallback, not current first-choice production engine.**
 
-JULES-RED is especially attractive if the project wants:
-- much lighter demography than FATES
-- explicit shrubs rather than grass + tree only
-- root/litter and hydrology in one mature land-surface model
-- hourly water/energy response
-- direct external soil-moisture forcing capability
+JULES-RED remains attractive when:
+- computational simplicity is prioritized
+- tree/shrub/grass broad succession is sufficient
+- external soil moisture forcing is more important than explicit shallow-soil geometry
 
-It is less attractive than FATES when the priority is biologically rich seed-bank/cohort ecology and less attractive than LPJ-GUESS SEC/PPA when explicit canopy gaps and woody understory light structure are central.
+It is less attractive at Gounsa because:
+1. very shallow, spatially heterogeneous soil depth is central
+2. root-depth response is comparatively simple/static
+3. canopy-gap/understory competition is less explicit than LPJ-SEC or FATES
 
-The most important unresolved items are:
-1. practical 10-50 m computational benchmark
-2. Korea-specific PFT parameterization
-3. current JULES-RED fire coupling
-4. dynamic spatially varying soil-depth implementation
-5. whether the simplified seedling-gap competition is adequate for the observed Gounsa herb/shrub understory sequence
+Current higher-priority implementation paths:
+1. LPJ-GUESS SEC/PPA + PF-LPJG style external hydrology
+2. FATES + ELM/ParFlow
+3. MEDFATE + medfateland + herb-recruitment extension
+
+JULES-RED remains the parsimonious fallback.
 
 ## key references
-- Argles, A. P. K., Moore, J. R., Huntingford, C., Wiltshire, A. J., Harper, A. B., Jones, C. D., & Cox, P. M. (2020). Robust Ecosystem Demography (RED version 1.0): a parsimonious approach to modelling vegetation dynamics in Earth system models. Geoscientific Model Development, 13, 4067-4089. DOI 10.5194/gmd-13-4067-2020.
-- Argles, A. P. K. et al. (2023). Modelling the impact of forest management and CO2-fertilisation on growth and demography in a Sitka spruce plantation. Scientific Reports, 13, 13487. DOI 10.1038/s41598-023-39810-2.
-- Lewis et al./Blyth et al. JULES Great Britain hydrology lineage; GMD 2019 catchment calibration/application.
-- JULES v8.1 User Guide, 2026, `JULES_VEGETATION`, `RED_PARMS`, soil, hydrology, prescribed-data, output-variable documentation.
-- Chou, H.-K. et al. (2025). Evaluation of national Greenhouse Gas Removal potential under a changing climate using a process-based land surface model. EGUsphere preprint. DOI 10.5194/egusphere-2025-4536.
-- Martínez-de la Torre et al. (2019). Great Britain JULES catchment hydrology. GMD 12, 765-784. DOI 10.5194/gmd-12-765-2019.
-- Martínez-de la Torre et al. (2020). Towards the representation of groundwater in the Joint UK Land Environment Simulator. Hydrological Processes. DOI 10.1002/hyp.13767.
+- Argles, A. P. K. et al. (2020). Robust Ecosystem Demography (RED version 1.0). Geoscientific Model Development, 13, 4067-4089. DOI 10.5194/gmd-13-4067-2020.
+- Argles et al. (2023). Scientific Reports 13, 13487. DOI 10.1038/s41598-023-39810-2.
+- Martínez-de la Torre et al. (2019). GMD 12, 765-784. DOI 10.5194/gmd-12-765-2019.
+- Chou et al. (2025). EGUsphere 2025-4536 preprint and author response.
+- JULES public v7.9 User Guide, accessed 2026-09-23: `JULES_RED`, `JULES_SOIL`, `JULES_PRESCRIBED`, `JULES_PFTPARM`, output variables.
