@@ -127,7 +127,11 @@ Computational scaling is the main issue:
 
 Thus, relative to the 200 m published application, a 25 m grid has 64 times more cells per unit area and a 10 m grid has 400 times more cells per unit area.
 
-medfate 5.0 introduced major speedups and multi-site/watershed C++ runners, and medfateland supports parallel execution, so fine grids are more plausible than in the 2025 application. Nevertheless, 10 m over a large landscape and 100 years of daily growth remains computationally demanding.
+medfate 5.0 introduced major speedups and C++ `single_runner`, `multiple_runner`, and `watershed_runner` infrastructure. Official medfateland 3.0 computing-time tests used a 100 m example watershed and three months of simulation on an 8-core 11th-generation Core i5 laptop. With the Granier transpiration model, medfate 5.0 reduced `growth` runtime in that benchmark to approximately 3.689 s (`buckets` soil), 5.796 s (`single` soil domain), and 26.972 s (`dual` soil domain). These figures are benchmark-specific and should not be extrapolated directly to the full 100-year Gounsa run, but they confirm that the 5.0 codebase is substantially faster than 4.8.
+
+medfateland spatial functions also expose `parallelize`, `num_cores`, and `chunk_size`; for large outputs `keep_results = FALSE` is available to reduce result-storage overhead.
+
+Nevertheless, 10 m over a large landscape and 100 years of daily growth remains computationally demanding.
 
 Practical Gounsa test order:
 1. 25 m vegetation grid first,
