@@ -1,0 +1,2 @@
+Trigger observable pull-request Windows build for Gounsa LPJ-GUESS 4.1.1 v0.38 patch.
+Attempt 2: isolated pinned vcpkg, push CI disabled.
