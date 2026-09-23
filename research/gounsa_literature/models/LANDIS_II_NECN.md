@@ -1,7 +1,7 @@
 # LANDIS-II + NECN for Gounsa
 
 ## 현재 판정
-고운사 100년 산불 후 식생천이의 **최우선 식생모델 후보**.
+고운사 100년 산불 후 식생천이의 강한 raster-cohort 후보. 다만 event-driven geomorph coupling을 위해 시간구조를 엄격하게 재검토해야 한다.
 
 기준 구성:
 - LANDIS-II Core v8
@@ -22,16 +22,12 @@ NECN source inspection에서 확인:
 
 Fine root:
 ```
-FineRootBiomass
-=
-FoliarBiomass * FineRootFraction_species
+FineRootBiomass = FoliarBiomass * FineRootFraction_species
 ```
 
 Coarse root:
 ```
-CoarseRootBiomass
-=
-WoodBiomass * CoarseRootFraction_species
+CoarseRootBiomass = WoodBiomass * CoarseRootFraction_species
 ```
 
 ### dead biomass / litter
@@ -44,21 +40,38 @@ NECN은 다음을 별도 pool로 추적한다.
 - SOM2
 - SOM3
 
-따라서 산불 후:
+따라서 산불 후 live-root mortality, dead-root decomposition, litter/CWD 변화를 기존 ecosystem model 안에서 추적할 수 있다.
+
+## 하층식생 및 천이
+최신 NECN 계보의 중요한 장점:
+- `Grass` species type 존재
+- trees, shrubs, grasses를 species/cohort로 취급 가능
+- woody regeneration은 기존 woody biomass뿐 아니라 grass biomass에 의한 light competition도 받음
+- growth, mortality, reproduction, dispersal, regeneration이 succession extension 안에 존재
+- species별 wood/leaf/root C:N 및 above/belowground biomass를 계산
+
+따라서 PnET-Succession보다 고운사 초기 postfire herbaceous stage를 표현할 구조가 더 명확하다.
+
+## 시간 구조
+NECN의 ecosystem production, water, C/N dynamics는 월 단위가 핵심이다.
+LANDIS-II disturbance/succession framework의 상태 갱신 역시 event-scale ecohydrology를 위해 설계된 것은 아니다.
+
+고운사에서 가장 큰 문제:
 ```
-live roots
- -> mortality
- -> dead fine/coarse root pools
- -> decomposition
+폭우 6시간
+ -> erosion / deposition / soil-depth change
+ -> 즉시 vegetation environment change
 ```
-과
-```
-leaf/wood mortality
- -> litter/CWD
- -> fire reduction
- -> decomposition
-```
-을 기존 ecosystem model 안에서 추적할 수 있다.
+를 같은 달 중간에 NECN이 자연스럽게 반영하는 표준 구조가 확인되지 않았다.
+
+따라서 monthly ecology 자체보다 중요한 것은:
+- arbitrary-event restart
+- soil-depth/moisture map replacement
+- carbon/nitrogen pool remapping
+- cohort mortality due to burial/root exposure
+을 wrapper 또는 core modification 없이 가능한지 여부이다.
+
+이 부분이 해결되지 않으면 NECN은 spatial representation은 가장 좋지만 Gounsa 양방향 event coupling에는 시간적으로 너무 거칠다.
 
 ## fire effects
 NECN source에는 fire severity별:
@@ -79,6 +92,7 @@ NECN source에는 fire severity별:
 - surface dead wood
 - LAI
 - living biomass
+- grass/shrub/woody biomass
 - fire severity
 - soil depth input state
 - soil water-related state
@@ -94,245 +108,27 @@ NECN source에는 fire severity별:
 - erosion/deposition
 - dynamic soil-depth loss by geomorphic erosion
 
-따라서 LANDIS-II는 **vegetation driver**이고 geomorphic process model 자체는 아니다.
-
 ## Hotta et al. 2026 precedent
 Hotta et al. modified NECN to simulate post-landslide forest recovery.
+Confirmed inputs include slope angle, soil depth and soil moisture maps and slope-dependent establishment.
+Soil depth affects water storage capacity.
 
-Source inspection of branch `ForLandslide` confirms:
-- slope angle input map
-- soil depth input map
-- soil moisture input map
-- slope-dependent establishment probability
-- biomass threshold controlling recovery from slope limitation
-
-Example:
-```
-site biomass
-+ slope angle
- -> establishment probability adjustment
-```
-
-Soil depth is read from an input map and used in NECN water balance:
-```
-waterFull = soilDepth * fieldCapacity
-waterEmpty = wiltingPoint * soilDepth
-```
-
-No evidence was found that the branch dynamically erodes soil depth or updates slope from geomorphic processes.
-
-Therefore Hotta et al. is a published precedent for:
+This is a precedent for:
 ```
 geomorphic state -> LANDIS-II vegetation recovery
 ```
+not yet for dynamic event-by-event two-way geomorphic coupling.
 
-but not yet for:
-```
-LANDIS-II vegetation -> geomorphic change -> LANDIS-II
-```
-
-## 고운사에서의 의미
-고운사 coupling should preserve this direction:
-```
-geomorphic model
- -> updated soil depth / moisture / slope
- -> LANDIS-II NECN
-```
-
-The reverse direction should use independent published geomorphic process models fed by NECN vegetation states.
-
-## 현재 지형모델 연결 우선순위
-- water erosion: Iber+ candidate
-- armour/profile/weathering: SSSPAM/mARM candidate
-- postfire dry ravel: Lamb et al. 2011
-- tree throw/root-fracture soil production: Gabet & Mudd 2010
-- shallow-landslide root mechanics: Schwarz root-bundle lineage
-- fire-spall source: unresolved
-
-## 최종 판정
-**식생모델로는 매우 유망.**
-특히 LPJ-GUESS보다:
-- explicit species/cohort succession
-- landscape fire disturbance
-- dead-root pools
-- litter/CWD pools
-- post-disturbance regeneration
-을 고운사 100년 문제에 직접적으로 제공한다.
-
-단, root geometry와 geomorphic resistance는 별도 published relation/model이 필요하다.
-
-
----
-
-## 2026-09-22 Korean postfire applicability and geomorphic model interfaces
-
-### Korean precedent
-Lim & Choi (2025) applied LANDIS-II + PnET-Succession to the 2000 East Coast wildfire natural-restoration site in Goseong over 25 years.
-
-Important:
-- Quercus-dominated recovery was broadly reproduced.
-- The authors explicitly warn that the 82 ha study area is much smaller than LANDIS-II's recommended >10,000 ha scale.
-- Small-domain edge effects and seed dispersal can therefore be problematic.
-
-For Gounsa, domain size must be treated as a model-validity issue, not merely a technical setting.
-
-### geomorphic interfaces currently supported by literature
-
-```
-LANDIS-II / NECN
-├─ cohort / wood / mortality
-│    -> Gabet & Mudd 2010
-│       root fracture + tree throw + soil production
-│
-├─ fire + vegetation recovery
-│    -> Lamb et al. 2011
-│       postfire dry-ravel storage/release
-│
-├─ fine/coarse root biomass
-│    -> root allometry
-│    -> Schwarz et al. 2010 RBM
-│       shallow-landslide reinforcement
-│
-├─ fine-root + litter state
-│    -> forest erosion-resistance relation [still unresolved]
-│    -> Iber+ event erosion candidate
-│
-└─ soil depth / slope / moisture from geomorphic model
-     -> Hotta et al. 2026 precedent
-     -> LANDIS-II establishment and water balance
-```
-
-### key unresolved variable mappings
-1. coarse-root biomass -> rootwad volume / tree-throw mechanics
-2. fine/coarse-root biomass -> root diameter-class distribution
-3. surface litter biomass -> litter cover/contact area
-4. fine-root biomass -> rill erodibility
-5. geomorphic soil-depth change -> NECN soil carbon/nitrogen pool remapping
-
-
----
-
-## 2026-09-22 root/litter -> erosion literature audit
-
-### Full numerical model search
-No existing model was found that simultaneously provides:
-- forest succession comparable to LANDIS-II
-- live/dead root pools
-- litter pools
-- steep-hillslope event hydrodynamics
-- root-dependent rill detachment
-- dynamic armour/profile
-
-Closest precedents:
-
-#### COPLAS
-Quijano-Baron et al. 2022:
-- leaves, roots, litter, soil carbon
-- 100-year open-forest erosion/landform experiments
-- **reference only**
-- excluded from Gounsa production basis
-
-#### ELM-Erosion
-Tan et al. 2022:
-- topsoil root biomass density
-- residue biomass
-- LAI
-- PFT-specific rainfall/runoff erosion effects
-- global and calibrated; not hillslope 2D event engine
-
-#### PROMET
-- dynamic RLD from biological module
-- root-dependent erosion resistance
-- agricultural/crop-oriented, coarse process-pixel scale
-
-### Forest-specific constraints
-- Parhizkar et al. 2021: tree species/root weight density affect rill detachment and erodibility
-- Liu et al. 2019: RLD is a strong predictor of rill erodibility
-- Xia et al. 2019: forest litter mass strongly reduces soil loss
-- Zhu et al. 2020: forest litter affects interception/infiltration/runoff, but fragment preferential flow is omitted
-
-### Root-profile gap
-NECN gives total fine/coarse-root biomass, not depth-resolved RLD.
-DyRoot 2019 is an existing root-profile model validated across forest ecosystems.
-
-### Current interpretation
-```
-LANDIS-II NECN
- -> species/cohort/root/litter state
- -> independently constrained root/litter geometry or traits
- -> geomorphic process model
-```
-
-Unresolved conversions:
-- fine-root biomass -> RLD/root architecture
-- coarse-root biomass -> diameter/rootwad distribution
-- litter mass -> cover/contact/roughness
-
-Generic vegetation multiplier is not accepted.
-
-
----
-
-## 2026-09-22 physically interpretable root/litter state conversions
-
-### Fine roots
-NECN provides fine-root biomass.
-
-Tree-trait literature provides species-specific SRL:
-```
-SRL = root length / root dry mass
-```
-
-Therefore, after converting NECN root biomass to root mass density in the relevant soil volume:
-```
-RLD = root mass density * SRL
-```
-
-This is a physical trait conversion, not an erosion calibration.
-
-For Gounsa, Korean Quercus mongolica and Pinus koraiensis fine-root trait data now exist and should be preferred over foreign generic-tree averages.
-
-### Surface litter
-NECN provides surface litter mass.
-
-Species-specific litter SSA provides:
-```
-total litter surface area per ground area
-=
-surface litter mass per ground area
-*
-SSA
-```
-
-Korean/NE Asian Quercus and Pinus litter studies provide relevant SSA and hydrologic measurements.
-
-Important:
-```
-total surface area != projected cover != soil-contact area
-```
-
-Do not convert SSA directly to cover fraction without packing/overlap/contact information.
-
-### Soil litter / dead fine roots
-NECN soil litter is conceptually different from surface litter.
-
-For incorporated litter / dead fine roots, literature using:
-- RLD
-- RSAD
-- LSAD
-- soil-contact area
-is more relevant than surface-cover equations.
-
-### Current safest interface
+## root/litter conversion
+Safest current interface remains:
 ```
 NECN fine-root biomass
  -> species-specific SRL
  -> RLD
- -> forest rill-erodibility relation or independent flume/JET
+ -> forest erosion-resistance relation
 
 NECN surface litter mass
  -> species-specific SSA
- -> physical litter area
  -> measured/validated cover-contact state
  -> rainfall/splash/runoff protection
 
@@ -340,4 +136,24 @@ NECN dead fine-root / soil litter
  -> belowground RLD/RSAD/LSAD-type resistance
 ```
 
-No generic vegetation multiplier is accepted.
+For shallow landslide reinforcement use a separate root-mechanics lineage. Do not equate erosion resistance with root cohesion.
+
+## current comparison
+NECN advantages:
+- genuine raster landscape cells
+- built-in seed dispersal and succession
+- trees/shrubs/grasses
+- live/dead roots
+- litter/CWD
+- fire integration
+- simpler than ED/FATES
+
+NECN disadvantages:
+- monthly ecological time scale
+- event-time state injection is not a standard strength
+- small Gounsa domain may suffer edge/seed-source effects
+
+## 최종 판정
+**Strong simple spatial cohort candidate, but not yet selected.**
+
+If storm-time bidirectional coupling can be implemented defensibly, NECN becomes extremely attractive. If not, BiomeE/ED/FATES provide better temporal process resolution but need external spatial tiling.
