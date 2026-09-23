@@ -3,6 +3,8 @@
 ## 현재 판정
 BiomeE/BiomeEP와 유사한 cohort process model을 **실제 GIS 공간단위로 확장한 가장 직접적인 공개 구현 사례 중 하나**.
 
+2026-09-23 고운사 기준 수정 후에는 특히 criterion 3에서 평가가 상승한다. 고운사에서 요구하는 것은 vegetation code 자체가 dynamic soil depth를 소유하는 것이 아니라 외부 soil-topography/geomorphic engine의 토양·수문 상태를 받아 식생 반응에 반영할 수 있는가이기 때문이다.
+
 ## 식생 표현
 MEDFATE:
 - tree cohorts
@@ -11,7 +13,7 @@ MEDFATE:
 - seed bank / seedling bank
 - cohort-specific fine-root depth distribution
 - daily water/carbon/growth
-- annual woody recruitment and forest dynamics
+- woody recruitment and forest dynamics
 
 개별목 x,y는 추적하지 않는다.
 
@@ -33,7 +35,7 @@ medfateland v3.0.0:
 - spwb_land / growth_land / fordyn_land
 - spwb_land_day / growth_land_day
 
-`fordyn_land` adds management, seed dispersal, recruitment and resprouting to daily distributed ecohydrology/growth.
+`fordyn_land` adds management, seed dispersal, recruitment and resprouting to distributed ecohydrology/growth.
 
 ## 실제 published spatial application
 Balaguer-Romano et al. 2025:
@@ -53,6 +55,27 @@ Balaguer-Romano et al. 2025:
 
 Therefore 10–25 m cells are structurally allowed, but **no published validation at 10–25 m was identified**. Fine resolution must be benchmarked for computational cost and scale validity.
 
+## Criterion 3: external soil-topography coupling
+This is now one of the strongest aspects of the framework.
+
+Current medfate control documentation explicitly provides `soilDomains="none"`, whose purpose is to allow **bulk soil-water flows to be handled externally**. In addition, one-day growth/water calls can accept topographic and hydrologic forcing such as:
+- elevation
+- slope
+- aspect
+- runon
+- layer-wise `lateralFlows`
+- `waterTableDepth`
+
+Thus the revised Gounsa criterion 3 should be split as follows:
+
+### 3A external soil-hydrology state coupling: VERY STRONG
+A separate geomorphic/hydrologic engine can own lateral flow and soil-water redistribution while MEDFATE consumes the resulting state/fluxes for cohort physiology and growth.
+
+### 3B dynamic soil geometry coupling: CUSTOM / NEW COUPLING
+Native runs treat soil physical structure and hydraulic properties as static. Erosion/deposition that changes layer thickness or total active soil depth therefore requires an explicit remapping step before continuation.
+
+This distinction means MEDFATE should **not** be penalized merely because soil depth is not natively evolved by the vegetation code.
+
 ## 중요한 장점 for Gounsa
 1. cohort-based, not individual-tree
 2. actual geographic cells rather than statistical disturbance patches
@@ -64,18 +87,19 @@ Therefore 10–25 m cells are structurally allowed, but **no published validatio
 8. lateral water transfer among cells
 9. one-day simulation functions allow external event loop control
 10. state objects can be continued into subsequent calls
-11. R ecosystem: sf, terra and parallelization align with current workflow
+11. external bulk-soil hydrology can explicitly be delegated outside the model
+12. R ecosystem: sf, terra and parallelization align with current workflow
 
 ## Herb cohort code audit, 2026-09-23
 Current medfate source/tests show:
 - `forest` objects can contain `herbData` with species, height, cover, Z50 and Z95.
 - `growthInput()` explicitly incorporates tree, shrub and herb root-depth parameters.
-- package tests run both `growth()` and `fordyn()` successfully with `herbData` present.
+- package tests run growth calculations with `herbData` present.
 
 However, the natural-regeneration code is not symmetric across growth forms:
 - seed production/recruitment is separated into trees and shrubs.
 - `.seedlings2recruits()` creates only tree and shrub recruit cohorts.
-- `herbData` is explicitly removed from the newly generated recruit forest object.
+- `herbData` is not generated as a new recruit cohort set in the same woody recruitment pathway.
 - resprouting likewise handles tree and shrub cohorts, not herb recruitment.
 
 Therefore the correct statement is:
@@ -90,22 +114,24 @@ herb seed production -> herb recruitment -> new herb cohorts
 
 Hence MEDFATE has **dynamic herb physiology/growth**, but not yet a complete endogenous herbaceous succession module comparable to woody recruitment.
 
+`recruitmentMode` supports daily/annual and deterministic/stochastic recruitment formulations for the woody regeneration pathway. This should not be misread as evidence that full herbaceous population turnover is daily; the herb-recruitment gap remains.
+
 ## Event coupling audit
-medfateland outputs a `state` object for every spatial unit and officially supports continuation via `update_landscape()`. This makes interrupted daily/event-loop execution practical.
+medfateland outputs a `state` object for every spatial unit and supports continuation/update of landscape state. This makes interrupted daily/event-loop execution practical.
 
 For Gounsa:
 ```
 geomorph event
- -> DEM / soil-depth / moisture change
+ -> DEM / connectivity / soil-water / soil-depth state change
  -> edit landscape soil/state
- -> resume growth_land_day / growth_land
+ -> resume one-day/daily vegetation simulation
 ```
 is architecturally possible.
 
 However, dynamic geomorphic soil-depth change is not plug-and-play:
 - MEDFATE stores soil as layer widths plus hydraulic state.
-- `soil_redefineLayers()` can change layer widths, but documentation states that initialized hydraulic state variables are lost when layers are redefined.
-- `growthInput` also contains root fractions by layer, rhizosphere water state, internal carbon, litter and soil-carbon state.
+- `soil_redefineLayers()` can change layer widths, but initialized hydraulic state variables are not preserved automatically across arbitrary geomorphic layer redefinition.
+- vegetation input/state also contains root fractions by layer, rhizosphere water state, internal carbon, litter and soil-carbon state.
 
 Therefore an erosion/deposition event that changes soil thickness requires an explicit **state remapping algorithm**:
 1. change soil layer widths/depth,
@@ -127,11 +153,7 @@ Computational scaling is the main issue:
 
 Thus, relative to the 200 m published application, a 25 m grid has 64 times more cells per unit area and a 10 m grid has 400 times more cells per unit area.
 
-medfate 5.0 introduced major speedups and C++ `single_runner`, `multiple_runner`, and `watershed_runner` infrastructure. Official medfateland 3.0 computing-time tests used a 100 m example watershed and three months of simulation on an 8-core 11th-generation Core i5 laptop. With the Granier transpiration model, medfate 5.0 reduced `growth` runtime in that benchmark to approximately 3.689 s (`buckets` soil), 5.796 s (`single` soil domain), and 26.972 s (`dual` soil domain). These figures are benchmark-specific and should not be extrapolated directly to the full 100-year Gounsa run, but they confirm that the 5.0 codebase is substantially faster than 4.8.
-
-medfateland spatial functions also expose `parallelize`, `num_cores`, and `chunk_size`; for large outputs `keep_results = FALSE` is available to reduce result-storage overhead.
-
-Nevertheless, 10 m over a large landscape and 100 years of daily growth remains computationally demanding.
+medfate 5.0 introduced major speedups and C++ runner infrastructure. medfateland spatial functions expose parallel execution controls and result-storage options. Benchmark-specific speedups should not be extrapolated directly to a 100-year Gounsa run.
 
 Practical Gounsa test order:
 1. 25 m vegetation grid first,
@@ -149,12 +171,13 @@ Practical Gounsa test order:
 
 ## current role
 **Top-tier candidate for direct technical testing.**
-Potentially a better architecture match than BiomeE because the spatial wrapper, seed dispersal, daily state continuation and lateral hydrology already exist.
 
-However, if explicit grass/herb recruitment and replacement through the first postfire decades is mandatory without custom extension, BiomeE/FATES remains stronger biologically.
+Under the revised criterion 3, MEDFATE + medfateland is currently the most implementation-friendly candidate because actual GIS cells, daily restartable process calls, cohort roots, lateral water exchange, seed dispersal and explicit delegation of bulk-soil hydrology already exist in one public R/C++ framework.
+
+Its decisive unresolved biological issue is criterion 2: if Gounsa requires grass/herb species to colonize, recruit, replace one another and disappear endogenously after fire, that demographic loop needs either a small extension or a separate herb-succession module.
 
 ## key references
 - De Cáceres et al. 2023, GMD 16:3165–3201. DOI 10.5194/gmd-16-3165-2023
 - Balaguer-Romano et al. 2025, Journal of Environmental Management 395:127844. DOI 10.1016/j.jenvman.2025.127844
-- medfate v5.1.0 documentation/source, 2026
+- medfate v5.x documentation/source, 2026
 - medfateland v3.0.0 documentation, 2026
