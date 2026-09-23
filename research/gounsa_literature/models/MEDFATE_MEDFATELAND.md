@@ -16,7 +16,7 @@ actual geographic cells
 + explicit option to delegate bulk soil hydrology externally
 ```
 
-가장 큰 약점은 **herbaceous recruitment/succession의 비대칭성**이다.
+가장 큰 약점은 **herbaceous demography의 비대칭성**이다.
 
 ## 식생 표현
 MEDFATE:
@@ -134,9 +134,7 @@ Trees and shrubs use analogous depth-profile information.
 
 Thus existing herb cohorts are not cosmetic ground cover. They have explicit vertical root profiles participating in soil-water competition.
 
-This is one of MEDFATE's strongest Gounsa features.
-
-After an erosion event, required new rule is still:
+After an erosion event, required new rule remains:
 ```text
 removed soil volume
  -> calculate roots physically removed from each cohort profile
@@ -155,34 +153,65 @@ MEDFATE documentation/NEWS can be misleading if read too broadly because recent 
 
 The source audit resolves this.
 
+## 4.1 recruitment gap
 `R/regeneration.R` explicitly removes herb vegetation when constructing the recruitment forest:
 ```text
 if("herbData" %in% names(recr_forest)) recr_forest$herbData <- NULL
 if("herbCover" %in% names(recr_forest)) recr_forest$herbCover <- NULL
 ```
 
-The recruit-generation pathway then constructs tree/shrub recruit cohorts from the woody recruitment/seedling banks.
+The recruit-generation pathway then constructs tree/shrub recruit cohorts from woody recruitment/seedling banks.
 
-Therefore the correct statement is unambiguous:
+Therefore:
 ```text
-existing herbData cohorts
- -> daily water/carbon/growth/root competition: YES
+herb seed -> seed bank -> germination -> new herb cohort
+```
+is not implemented symmetrically with woody recruitment.
 
-herb seed production
- -> seed bank
- -> germination
- -> new herb cohort creation
- -> herb cohort replacement
-= NOT implemented symmetrically with woody recruitment
+## 4.2 daily mortality gap
+Current `src/growth_day_c.cpp` provides an even stronger source-level limitation.
+In the daily mortality/fire section:
+```text
+bool dynamicCohort = true;
+if((ctype[j] == "shrub") && (!shrubDynamics)) dynamicCohort = false;
+else if(ctype[j] == "herb") dynamicCohort = false;
 ```
 
-This means the current package has **herb physiology**, not a complete native herb demographic succession engine.
+Thus herb cohorts are explicitly excluded from the dynamic cohort mortality branch used for carbon starvation/desiccation and related daily demographic loss.
 
-This distinction matters for Gounsa immediately after fire, when early herb species colonisation and replacement may control erosion.
+Trees and dynamic shrubs can undergo these daily mortality calculations; herbs do not use the same demographic pathway.
+
+Correct interpretation:
+```text
+existing herbData
+ -> root profile, water competition, physiological/growth representation: YES
+
+new herb recruitment: NO
+herb demographic mortality as tree/shrub cohorts: NO
+```
+
+Hence MEDFATE has a physically meaningful **herb physiological layer**, but not a complete herb population-demography layer.
+
+For Gounsa this is more serious than previously thought because early postfire herb colonisation, dieback and replacement can directly control erosion resistance.
 
 ---
 
-# 5. event coupling architecture
+# 5. woody daily response
+MEDFATE's `growth_day_c.cpp` does update woody plant structure and fine-root state daily and contains daily mortality logic for trees and dynamic shrubs.
+
+Source outputs include:
+- FineRootBiomass
+- FineRootArea
+- fine-root area growth per day
+- sapwood/leaf growth
+- DBH / height
+- rhizosphere/root hydraulic conductance
+
+This gives MEDFATE an important advantage over LPJ-GUESS for immediate woody physiological response after a storm, even though herb demography remains incomplete.
+
+---
+
+# 6. event coupling architecture
 MEDFATE/medfateland remains the easiest of the top candidates for explicit day-by-day coupling.
 
 A plausible Gounsa loop is:
@@ -200,8 +229,8 @@ Because state objects are ordinary R/Rcpp data structures, inspection and contro
 
 ---
 
-# 6. direct missing module if MEDFATE is selected
-The biological gap is now sufficiently narrow to define explicitly.
+# 7. direct missing module if MEDFATE is selected
+The missing biology is now precisely defined.
 
 Needed herb extension:
 ```text
@@ -209,17 +238,20 @@ species-specific herb seed bank
  -> dispersal / local seed rain
  -> germination environmental filter
  -> recruit herbData row/cohort
- -> daily growth and root profile already handled by MEDFATE
+ -> herb density/cover/biomass dynamics
  -> mortality / disappearance
 ```
 
-This is much smaller than writing a whole vegetation model.
+Existing MEDFATE code can then handle:
+- daily water/carbon physiology
+- root profiles
+- competition for water/light to the extent represented
 
-The key question is whether implementing and validating this new herb-demography module is scientifically safer than merging LPJ-GUESS branches or operating the FATES host stack.
+This is still smaller than writing an entire vegetation model, but it is no longer just a tiny recruitment helper; a **complete herb demographic lifecycle** must be added and validated.
 
 ---
 
-# 7. 10–25 m resolution
+# 8. 10–25 m resolution
 No code-level minimum cell-size restriction was identified.
 
 Cell-count scaling relative to a 200 m application:
@@ -234,45 +266,53 @@ Recommended benchmark sequence:
 
 ---
 
-# 8. five-criteria verdict after source audit
+# 9. five-criteria verdict after source audit
 | criterion | verdict |
 |---|---|
 | 1 spatial cohort | **STRONG**: actual GIS cells + tree/shrub cohorts, no individual-tree burden |
-| 2 explicit understory succession | **STRONG for woody + physiology; PARTIAL for herb demography** |
+| 2 explicit understory succession | **STRONG for shrubs, PARTIAL/WEAK for herb demography** |
 | 3 soil/root coupling | **VERY STRONG external interface; custom conservative layer remap needed** |
 | 4 watershed/topography | **STRONG**: lateral surface/subsurface/groundwater/channel framework |
-| 5 <=daily | **STRONG**: daily stateful process calls |
+| 5 <=daily | **STRONG for physiology and woody dynamics; herb population dynamics absent** |
 
 ---
 
 # current role
-**Most implementation-friendly top-tier candidate.**
+**Most implementation-friendly top-tier candidate, but biologically incomplete for early herb succession.**
 
 Compared with LPJ-GUESS SEC:
 - easier actual-GIS daily coupling
+- daily woody structural/mortality response is more direct
 - weaker canopy-gap structure
-- herb recruitment missing
+- herb recruitment/mortality missing
 
 Compared with FATES:
 - dramatically easier software/control path
 - actual geographic cells are native and transparent
-- much weaker endogenous herb demography and less mechanistic plant hydraulics
+- much weaker herb demographic completeness and less mechanistic full-plant hydraulics
 
 Compared with JULES-RED:
-- much stronger root-by-cohort geometry and cell-specific soil representation
+- much stronger cohort/root geometry and cell-specific soil representation
 - easier geomorphic layer manipulation
-- weaker complete tree/shrub/grass demographic symmetry
+- less complete tree/shrub/grass demographic symmetry
 
-The production decision therefore hinges on one tradeoff:
+Current decision tradeoff:
 ```text
 MEDFATE
-= easiest geomorphic engineering + small new herb-demography module
+= easiest geomorphic engineering
++ daily woody/root response
+- must build and validate full herb demographic lifecycle
 
 FATES
-= strongest ready biology + hardest engineering stack
+= strongest ready biology
++ daily demography
++ strongest hydraulics
+- hardest engineering stack
 
 LPJ-GUESS SEC
-= best canopy/cohort architecture + branch integration work
+= best persistent canopy-gap cohort architecture
+- annual allocation/mortality requires explicit event damage hook
+- branch integration work
 ```
 
 ## key references
