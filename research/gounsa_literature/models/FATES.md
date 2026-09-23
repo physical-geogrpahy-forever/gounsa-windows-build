@@ -98,6 +98,46 @@ Important distinction:
 - FATES disturbance patches within a column remain spatially implicit and have no x-y location.
 Thus a FATES patch cannot be identified with a specific rill, hollow or depositional subpixel.
 
+## persistent single-patch option for Gounsa
+A new source/documentation audit on 2026-09-23 materially reduces the practical severity of the internal-patch limitation for this specific project.
+
+FATES exposes `mortality_disturbance_fraction`, defined as the fraction of canopy mortality that creates new disturbance area. In the mortality code the ordinary within-patch mortality term is multiplied by `(1 - mortality_disturbance_fraction)`, while the disturbance-rate contribution that drives patch fission is multiplied by `mortality_disturbance_fraction`.
+
+Therefore, if:
+- `mortality_disturbance_fraction = 0`,
+- future fire-driven patch creation is disabled for a postfire-recovery experiment,
+- land-use disturbance is disabled,
+
+then ordinary cohort mortality can continue without generating new disturbance-history patches.
+
+Recruitment is a separate demographic process. FATES retains PFT-specific seed banks, germination, recruit state and newly created cohorts independently of mortality-driven patch fission.
+
+For Gounsa this supports the following configuration without changing the core demographic equations:
+```text
+1 GIS vegetation cell
+ -> 1 host column/site
+ -> approximately 1 persistent FATES patch
+ -> multiple tree/shrub/grass cohorts inside that patch
+ -> PPA canopy/understory competition
+ -> PFT seed bank and recruitment
+ -> growth and mortality
+```
+
+This is especially defensible if the experiment treats the 2025 wildfire as the initial condition and studies the following 100-year recovery without imposing another landscape fire.
+
+Important caveats:
+- this is a project-specific **parameter/configuration strategy**, not a published Gounsa implementation
+- internal horizontal locations of cohorts still do not exist
+- PPA represents canopy/understory competition statistically inside the cell
+- if future fires, treefall-created disturbance mosaics, or anthropogenic disturbances must create subcell heterogeneity, the spatially implicit patch issue returns
+- inventory/restart initialization can provide explicit initial patch/cohort state per geographic site, which is useful for LiDAR/field-based initialization
+
+Hence criterion 1 should now be read as:
+```text
+native full FATES: PARTIAL because internal patches are spatially implicit
+Gounsa persistent-single-patch configuration: STRONGER PARTIAL / practical GIS-cell cohort model
+```
+
 ## restart/event coupling
 FATES and host models have full restart-state infrastructure. This is a major advantage for the Gounsa requirement:
 ```text
@@ -114,14 +154,17 @@ FATES disturbance patches are spatially implicit area fractions and have no x-y 
 
 Therefore a Gounsa coupling must use host-model grid/column locations as the real GIS unit. Internal patches cannot be directly mapped onto specific fine geomorphic pixels.
 
+The persistent-single-patch configuration above reduces but does not mathematically eliminate this limitation.
+
 ## implementation complexity
 This is the largest disadvantage.
 FATES does not normally run as a small standalone forest executable; it is embedded in CTSM/CLM or ELM. Adding ParFlow further increases infrastructure and computational complexity.
 
 ## five-criteria status for Gounsa
-1. spatially explicit cohort structure: **PARTIAL**
+1. spatially explicit cohort structure: **PARTIAL natively; STRONGER PARTIAL in persistent-single-patch GIS-cell configuration**
    - actual host grid is explicit
    - internal disturbance patches are spatially implicit
+   - patch fission can be minimized/disabled for the postfire recovery experiment while cohort demography continues
 2. explicit understory and succession: **STRONG**
    - tree/shrub/grass PFTs
    - PFT seed bank/recruitment
@@ -133,7 +176,7 @@ FATES does not normally run as a small standalone forest executable; it is embed
    - half-hourly biophysics and daily demography
 
 ## current verdict
-**Ecologically and temporally the strongest ready demographic-cohort candidate with a published hillslope hydrology coupling, but spatial interpretation is imperfect and implementation is heavy.**
+**Ecologically and temporally the strongest ready demographic-cohort candidate with a published hillslope hydrology coupling. The persistent-single-patch configuration makes its spatial abstraction substantially less problematic for a GIS-cell-based Gounsa implementation, but the host-model stack remains heavy.**
 
 Strengths:
 - tree/shrub/grass
@@ -147,9 +190,10 @@ Strengths:
 - daily demography
 - demonstrated 3-D hillslope hydrology coupling
 - robust restart infrastructure
+- practical option to keep geographic vegetation cells as persistent demographic units
 
 Weaknesses:
-- spatially implicit internal patches
+- internal cohort x-y positions still absent
 - heavy host-model stack
 - event-driven soil-depth changes remain custom state-remapping work
 - published hillslope example is 90 m, much coarser than desired Gounsa vegetation cells
@@ -163,4 +207,5 @@ Weaknesses:
 ## key external references
 - Gao et al. (2025), New Phytologist 245:2480–2495. DOI 10.1111/nph.20421
 - Shuman et al. (2024), GMD 17:4643–4670, FATES-SPITFIRE ecosystem assembly.
-- FATES technical documentation, seed dynamics and recruitment sections.
+- FATES technical documentation, seed dynamics, recruitment, disturbance and reduced-complexity sections.
+- NGEET/fates source audit, `EDMortalityFunctionsMod.F90`, `EDPatchDynamicsMod.F90`, `EDPhysiologyMod.F90`, 2026-09-23.
