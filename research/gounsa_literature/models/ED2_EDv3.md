@@ -1,6 +1,6 @@
 # ED2 / EDv3 model lineage
 
-업데이트: 2026-09-23 source audit
+업데이트: 2026-09-23 source audit + ED2+R routing audit
 
 ## 성격
 - Ecosystem Demography cohort model
@@ -77,6 +77,27 @@ Therefore ED2 has meaningful terrain-hydrology structure, not only site metadata
 
 However, this should not be overstated as the same thing as a modern 2-D/3-D explicit hillslope groundwater solver such as ParFlow. The TOPMODEL representation remains an aggregated topographic redistribution approach.
 
+## ED2+R catchment routing precedent
+Pereira et al. (2017) integrated ED2 with a routing scheme and evaluated the resulting **ED2+R** in the Tapajós River basin, Brazilian Amazon.
+
+Published capability:
+```text
+ED2 surface runoff
+ + ED2 subsurface runoff
+ -> lateral propagation through routing network
+ -> river flow
+```
+
+This is direct evidence that ED2 output has been connected across a real catchment and routed laterally at basin scale.
+
+Important limitation for Gounsa:
+- ED2+R routes runoff produced by the terrestrial biosphere model.
+- It should **not** be interpreted as evidence that neighboring-cell lateral groundwater/soil-water redistribution is fed back into each cohort root zone in the same manner as ParFlow-FATES.
+- Therefore it strengthens criterion 4 but does not remove the hydrologic-coupling advantage of FATES+ParFlow or medfateland.
+
+Reference:
+Pereira, F. F., Farinosi, F., Arias, M. E., Lee, E., Briscoe, J., & Moorcroft, P. R. (2017). Technical note: A hydrological routing scheme for the Ecosystem Demography model (ED2+R) tested in the Tapajós River basin in the Brazilian Amazon. Hydrology and Earth System Sciences, 21, 4629–4648. https://doi.org/10.5194/hess-21-4629-2017
+
 ## understory
 Small/short tree cohorts and grass PFTs can occupy lower-light environments and coexist with taller woody cohorts.
 
@@ -92,14 +113,16 @@ ED lineage contains disturbance/fire implementations. Post-disturbance patches a
 - roots and layered soil state
 - variable soil-depth initialization
 - topographic moisture/TOPMODEL structure
+- published catchment runoff-routing coupling in ED2+R
 - succession and disturbance
 
 ## Gounsa weaknesses
 1. internal patches have no x-y coordinate
 2. **no canonical shrub PFT/demographic layer in current source**
 3. terrain hydrology is TOPMODEL-style rather than explicit fine 3-D hillslope flow
-4. dynamic erosion/deposition soil-layer remapping remains new coupling
-5. Korea-specific parameterization would be substantial
+4. ED2+R routes generated runoff but does not prove ParFlow-class lateral root-zone soil-water feedback
+5. dynamic erosion/deposition soil-layer remapping remains new coupling
+6. Korea-specific parameterization would be substantial
 
 ## spatial architecture if retained as comparator
 ```text
@@ -117,28 +140,29 @@ Temporal basis is much stronger than LANDIS-II NECN. Still must verify/implement
 - conservative remapping of soil water/C/N/root pools after erosion/deposition
 - external geomorphic state exchange at acceptable cost
 
-## five-criteria verdict after source audit
+## five-criteria verdict after source + routing audit
 | criterion | verdict |
 |---|---|
 | 1 spatial cohort | PARTIAL-STRONG: geographic site + demographic cohorts, but internal patches implicit |
 | 2 understory succession | **PARTIAL: grass + tree strong, shrub missing natively** |
 | 3 soil/geomorph coupling readiness | STRONG-PARTIAL: variable soil depth, layered water, TOPMODEL, restartable state; geomorphic remapping custom |
-| 4 catchment/topography | STRONG-PARTIAL: terrain/TOPMODEL precedent, not explicit ParFlow-class hillslope flow |
+| 4 catchment/topography | **STRONG:** terrain/TOPMODEL plus published ED2+R basin routing, but not explicit ParFlow-class lateral soil-water feedback |
 | 5 <= daily | STRONG: subhourly biophysics, slower demographic schedules |
 
 ## current verdict
-**Downgraded from top-tier to strong comparator.**
+**Strong comparator, but below FATES under the strict understory criterion.**
 
-ED2 remains scientifically relevant because it combines cohort demography, grass, roots, subhourly ecohydrology and topographic hydrology in one mature code base. However, under the user's strict criterion 2, the absence of a canonical shrub demographic PFT makes it a poorer direct match than FATES and the LPJ-GUESS lineage for Gounsa postfire succession.
+ED2 remains scientifically relevant because it combines cohort demography, grass, roots, subhourly ecohydrology, topographic hydrology, and now a documented catchment-routing coupling in one mature lineage. However, the absence of a canonical shrub demographic PFT remains a decisive mismatch for the intended postfire herb -> shrub -> tree trajectory.
 
 Compared with FATES:
 - potentially less host-stack complexity
 - similarly implicit internal patch spatiality
 - weaker ready understory life-form coverage because shrub is absent in canonical PFT set
+- ED2+R catchment routing exists, but FATES+ParFlow offers more explicit lateral subsurface hydrology feedback
 
 Compared with LPJ-GUESS:
-- stronger native subhourly biophysics and TOPMODEL heritage
-- weaker modern shrub/herb/tree succession coverage and weaker recent fine-catchment/external-hydrology coupling precedent
+- stronger native subhourly biophysics and TOPMODEL/routing heritage
+- weaker modern shrub/herb/tree succession coverage
 
 ## related papers
 - `papers/2019_Longo_ED2_2_ModelDescription.md`
