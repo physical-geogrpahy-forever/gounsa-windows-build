@@ -1,0 +1,2 @@
+Trigger one controlled clean-Windows portable runtime smoke test for the exact validated Gounsa runtime artifacts. No science simulation.
+Attempt 3 with direct packaged-Python http.client loopback verification.
