@@ -1,16 +1,29 @@
 # MEDFATE + medfateland
 
+업데이트: 2026-09-23 deep source audit
+
 ## 현재 판정
 BiomeE/BiomeEP와 유사한 cohort process model을 **실제 GIS 공간단위로 확장한 가장 직접적인 공개 구현 사례 중 하나**.
 
-2026-09-23 고운사 기준 수정 후에는 특히 criterion 3에서 평가가 상승한다. 고운사에서 요구하는 것은 vegetation code 자체가 dynamic soil depth를 소유하는 것이 아니라 외부 soil-topography/geomorphic engine의 토양·수문 상태를 받아 식생 반응에 반영할 수 있는가이기 때문이다.
+고운사에서는 특히 다음 조합이 강점이다.
+```text
+actual geographic cells
++ tree/shrub cohorts
++ explicit herb cohorts in physiology/growth
++ cohort root-depth profiles
++ daily event-loop control
++ lateral/groundwater hydrology
++ explicit option to delegate bulk soil hydrology externally
+```
+
+가장 큰 약점은 **herbaceous recruitment/succession의 비대칭성**이다.
 
 ## 식생 표현
 MEDFATE:
 - tree cohorts
 - shrub cohorts
 - optional species-specific herb cohorts (`herbData`)
-- seed bank / seedling bank
+- seed bank / seedling bank for woody regeneration
 - cohort-specific fine-root depth distribution
 - daily water/carbon/growth
 - woody recruitment and forest dynamics
@@ -18,7 +31,7 @@ MEDFATE:
 개별목 x,y는 추적하지 않는다.
 
 ## 공간 확장
-medfateland v3.0.0:
+medfateland:
 - sf point/cell based spatial units
 - terra raster topology for connected grid cells
 - forest, soil, topography, weather state per spatial unit
@@ -30,12 +43,12 @@ medfateland v3.0.0:
 - channel routing
 - optional SERGHEI coupling
 
-핵심 함수:
+핵심 함수 계열:
 - spwb_spatial / growth_spatial / fordyn_spatial
 - spwb_land / growth_land / fordyn_land
 - spwb_land_day / growth_land_day
 
-`fordyn_land` adds management, seed dispersal, recruitment and resprouting to distributed ecohydrology/growth.
+This is much closer to a controllable Gounsa daily raster workflow than FATES/ELM.
 
 ## 실제 published spatial application
 Balaguer-Romano et al. 2025:
@@ -44,140 +57,226 @@ Balaguer-Romano et al. 2025:
 - 313,000 ha
 - 200 m raster grid
 - daily weather forcing
-- tree + understory shrub species in forest cells
+- tree + understory shrub species
 - growth, mortality and forest succession simulated 2015–2050
-- 200 m resolution was chosen because of computational limitations, not because of a hard model cell-size limit
 
-2026 package documentation:
-- medfateland v3.0.0 uses user-defined `terra::SpatRaster` topology
-- connected watershed example uses 100 m cells
-- no hard-coded minimum cell dimension was found
+Current package topology is user-defined; no hard-coded 10–25 m prohibition was identified. Fine-resolution cost/scale validity remains untested.
 
-Therefore 10–25 m cells are structurally allowed, but **no published validation at 10–25 m was identified**. Fine resolution must be benchmarked for computational cost and scale validity.
+---
 
-## Criterion 3: external soil-topography coupling
-This is now one of the strongest aspects of the framework.
+# 1. external hydrology interface
+Current source makes the external-hydrology option explicit.
 
-Current medfate control documentation explicitly provides `soilDomains="none"`, whose purpose is to allow **bulk soil-water flows to be handled externally**. In addition, one-day growth/water calls can accept topographic and hydrologic forcing such as:
-- elevation
-- slope
-- aspect
+In `spwb_day_c.cpp`, internal bulk soil-water balance is only called when:
+```text
+control.soilDomains != "none"
+```
+
+The one-day water/growth machinery accepts:
 - runon
-- layer-wise `lateralFlows`
-- `waterTableDepth`
+- layer-wise lateralFlows
+- waterTableDepth
+- external source/sink terms
 
-Thus the revised Gounsa criterion 3 should be split as follows:
-
-### 3A external soil-hydrology state coupling: VERY STRONG
-A separate geomorphic/hydrologic engine can own lateral flow and soil-water redistribution while MEDFATE consumes the resulting state/fluxes for cohort physiology and growth.
-
-### 3B dynamic soil geometry coupling: CUSTOM / NEW COUPLING
-Native runs treat soil physical structure and hydraulic properties as static. Erosion/deposition that changes layer thickness or total active soil depth therefore requires an explicit remapping step before continuation.
-
-This distinction means MEDFATE should **not** be penalized merely because soil depth is not natively evolved by the vegetation code.
-
-## 중요한 장점 for Gounsa
-1. cohort-based, not individual-tree
-2. actual geographic cells rather than statistical disturbance patches
-3. dynamic tree and shrub understory
-4. existing herb cohorts can participate in growth simulations
-5. daily water/carbon/growth
-6. vertical fine-root distribution by cohort
-7. seed dispersal among spatial units
-8. lateral water transfer among cells
-9. one-day simulation functions allow external event loop control
-10. state objects can be continued into subsequent calls
-11. external bulk-soil hydrology can explicitly be delegated outside the model
-12. R ecosystem: sf, terra and parallelization align with current workflow
-
-## Herb cohort code audit, 2026-09-23
-Current medfate source/tests show:
-- `forest` objects can contain `herbData` with species, height, cover, Z50 and Z95.
-- `growthInput()` explicitly incorporates tree, shrub and herb root-depth parameters.
-- package tests run growth calculations with `herbData` present.
-
-However, the natural-regeneration code is not symmetric across growth forms:
-- seed production/recruitment is separated into trees and shrubs.
-- `.seedlings2recruits()` creates only tree and shrub recruit cohorts.
-- `herbData` is not generated as a new recruit cohort set in the same woody recruitment pathway.
-- resprouting likewise handles tree and shrub cohorts, not herb recruitment.
-
-Therefore the correct statement is:
-
+Therefore:
+```text
+external hydrology owns bulk soil-water redistribution
+ -> MEDFATE consumes hydrologic forcing/state
+ -> vegetation physiology/growth responds daily
 ```
-existing herb cohorts
- -> water / carbon / growth simulation: YES
+is directly compatible with the code architecture.
 
-herb seed production -> herb recruitment -> new herb cohorts
- -> native fordyn demographic succession: NO / not implemented in the same way as trees and shrubs
+Criterion 3A:
+**VERY STRONG**
+
+---
+
+# 2. dynamic soil layer geometry: exact source finding
+MEDFATE has a direct layer-redefinition function:
+```text
+soil_redefineLayers(x, widths)
 ```
 
-Hence MEDFATE has **dynamic herb physiology/growth**, but not yet a complete endogenous herbaceous succession module comparable to woody recruitment.
+This is useful because layer geometry can actually be rebuilt after a geomorphic event.
 
-`recruitmentMode` supports daily/annual and deterministic/stochastic recruitment formulations for the woody regeneration pathway. This should not be misread as evidence that full herbaceous population turnover is daily; the herb-recruitment gap remains.
+However the source documentation explicitly states:
+> if an initialized `soil` object is supplied, hydraulic parameters are recalculated and the value of state variables is lost.
 
-## Event coupling audit
-medfateland outputs a `state` object for every spatial unit and supports continuation/update of landscape state. This makes interrupted daily/event-loop execution practical.
+Therefore this function is **not** a conservative erosion/deposition remapper.
 
-For Gounsa:
+Correct Gounsa use:
+```text
+old initialized soil state
+ -> save water / C / N / other conserved pools
+ -> compute new layer geometry from erosion/deposition
+ -> call/reimplement layer redefinition
+ -> conservatively map saved state into new layers
+ -> recompute root fractions
+ -> resume daily simulation
 ```
-geomorph event
- -> DEM / connectivity / soil-water / soil-depth state change
- -> edit landscape soil/state
- -> resume one-day/daily vegetation simulation
+
+This is still a new coupling, but the exact insertion point is unusually clear.
+
+Criterion 3B:
+**CUSTOM but implementation-friendly**
+
+---
+
+# 3. root structure
+Current source `src/root.cpp` explicitly reads root-depth parameters from all three life-form tables.
+
+For `herbData` it reads:
+- Z50
+- Z95
+- optional Z100
+
+Trees and shrubs use analogous depth-profile information.
+
+Thus existing herb cohorts are not cosmetic ground cover. They have explicit vertical root profiles participating in soil-water competition.
+
+This is one of MEDFATE's strongest Gounsa features.
+
+After an erosion event, required new rule is still:
+```text
+removed soil volume
+ -> calculate roots physically removed from each cohort profile
+ -> reduce live root/plant state if appropriate
+ -> recompute Z-profile fractions over surviving soil
 ```
-is architecturally possible.
 
-However, dynamic geomorphic soil-depth change is not plug-and-play:
-- MEDFATE stores soil as layer widths plus hydraulic state.
-- `soil_redefineLayers()` can change layer widths, but initialized hydraulic state variables are not preserved automatically across arbitrary geomorphic layer redefinition.
-- vegetation input/state also contains root fractions by layer, rhizosphere water state, internal carbon, litter and soil-carbon state.
+MEDFATE does not natively interpret layer redefinition as physical root severing.
 
-Therefore an erosion/deposition event that changes soil thickness requires an explicit **state remapping algorithm**:
-1. change soil layer widths/depth,
-2. conservatively remap soil water and C/N pools,
-3. recompute cohort root fractions from Z50/Z95/Z100,
-4. preserve internal plant carbon/biomass state,
-5. then resume the daily simulation.
+---
 
-This remains a **new coupling**, but the package state architecture makes it substantially more tractable than in LANDIS-II.
+# 4. herb demographic audit: decisive source evidence
+MEDFATE documentation/NEWS can be misleading if read too broadly because recent releases mention both:
+- seed recruitment with daily/annual environmental filters
+- support for `herbData`
 
-## 10–25 m resolution assessment
-There is no code-level minimum cell-size restriction identified. Raster cell size is supplied by the user through the `terra` topology.
+The source audit resolves this.
 
-Computational scaling is the main issue:
-- 200 m = 25 cells per km²
-- 100 m = 100 cells per km²
-- 25 m = 1,600 cells per km²
-- 10 m = 10,000 cells per km²
+`R/regeneration.R` explicitly removes herb vegetation when constructing the recruitment forest:
+```text
+if("herbData" %in% names(recr_forest)) recr_forest$herbData <- NULL
+if("herbCover" %in% names(recr_forest)) recr_forest$herbCover <- NULL
+```
 
-Thus, relative to the 200 m published application, a 25 m grid has 64 times more cells per unit area and a 10 m grid has 400 times more cells per unit area.
+The recruit-generation pathway then constructs tree/shrub recruit cohorts from the woody recruitment/seedling banks.
 
-medfate 5.0 introduced major speedups and C++ runner infrastructure. medfateland spatial functions expose parallel execution controls and result-storage options. Benchmark-specific speedups should not be extrapolated directly to a 100-year Gounsa run.
+Therefore the correct statement is unambiguous:
+```text
+existing herbData cohorts
+ -> daily water/carbon/growth/root competition: YES
 
-Practical Gounsa test order:
-1. 25 m vegetation grid first,
-2. benchmark 10 m on a small subcatchment,
-3. retain 1–5 m geomorph grid separately,
-4. only adopt 10 m vegetation if outputs materially differ from 25 m.
+herb seed production
+ -> seed bank
+ -> germination
+ -> new herb cohort creation
+ -> herb cohort replacement
+= NOT implemented symmetrically with woody recruitment
+```
 
-## 중요한 한계
-1. standard parameterization is Mediterranean
-2. tree/shrub demographic succession is complete, but herb recruitment succession is not
-3. published applications are much coarser than desired Gounsa cells
-4. storm-scale geomorphology remains external
-5. erosion/deposition-driven soil-depth changes require new state remapping coupling
-6. dynamic root exposure or burial is not native
+This means the current package has **herb physiology**, not a complete native herb demographic succession engine.
 
-## current role
-**Top-tier candidate for direct technical testing.**
+This distinction matters for Gounsa immediately after fire, when early herb species colonisation and replacement may control erosion.
 
-Under the revised criterion 3, MEDFATE + medfateland is currently the most implementation-friendly candidate because actual GIS cells, daily restartable process calls, cohort roots, lateral water exchange, seed dispersal and explicit delegation of bulk-soil hydrology already exist in one public R/C++ framework.
+---
 
-Its decisive unresolved biological issue is criterion 2: if Gounsa requires grass/herb species to colonize, recruit, replace one another and disappear endogenously after fire, that demographic loop needs either a small extension or a separate herb-succession module.
+# 5. event coupling architecture
+MEDFATE/medfateland remains the easiest of the top candidates for explicit day-by-day coupling.
+
+A plausible Gounsa loop is:
+```text
+hourly/event geomorph-hydrology
+ -> aggregate hydrologic state to vegetation cell
+ -> if soil geometry changed: conservative remapper
+ -> MEDFATE one-day growth/water call
+ -> update tree/shrub/herb physiology
+ -> return roots, litter, LAI, biomass
+ -> next event/day
+```
+
+Because state objects are ordinary R/Rcpp data structures, inspection and controlled mutation are much easier than in FATES/ELM.
+
+---
+
+# 6. direct missing module if MEDFATE is selected
+The biological gap is now sufficiently narrow to define explicitly.
+
+Needed herb extension:
+```text
+species-specific herb seed bank
+ -> dispersal / local seed rain
+ -> germination environmental filter
+ -> recruit herbData row/cohort
+ -> daily growth and root profile already handled by MEDFATE
+ -> mortality / disappearance
+```
+
+This is much smaller than writing a whole vegetation model.
+
+The key question is whether implementing and validating this new herb-demography module is scientifically safer than merging LPJ-GUESS branches or operating the FATES host stack.
+
+---
+
+# 7. 10–25 m resolution
+No code-level minimum cell-size restriction was identified.
+
+Cell-count scaling relative to a 200 m application:
+- 25 m: 64× more cells per unit area
+- 10 m: 400× more cells per unit area
+
+Recommended benchmark sequence:
+1. 25 m vegetation grid
+2. 10 m only on small subcatchment
+3. 1–5 m geomorph grid remains separate
+4. adopt finer vegetation grid only if results materially change
+
+---
+
+# 8. five-criteria verdict after source audit
+| criterion | verdict |
+|---|---|
+| 1 spatial cohort | **STRONG**: actual GIS cells + tree/shrub cohorts, no individual-tree burden |
+| 2 explicit understory succession | **STRONG for woody + physiology; PARTIAL for herb demography** |
+| 3 soil/root coupling | **VERY STRONG external interface; custom conservative layer remap needed** |
+| 4 watershed/topography | **STRONG**: lateral surface/subsurface/groundwater/channel framework |
+| 5 <=daily | **STRONG**: daily stateful process calls |
+
+---
+
+# current role
+**Most implementation-friendly top-tier candidate.**
+
+Compared with LPJ-GUESS SEC:
+- easier actual-GIS daily coupling
+- weaker canopy-gap structure
+- herb recruitment missing
+
+Compared with FATES:
+- dramatically easier software/control path
+- actual geographic cells are native and transparent
+- much weaker endogenous herb demography and less mechanistic plant hydraulics
+
+Compared with JULES-RED:
+- much stronger root-by-cohort geometry and cell-specific soil representation
+- easier geomorphic layer manipulation
+- weaker complete tree/shrub/grass demographic symmetry
+
+The production decision therefore hinges on one tradeoff:
+```text
+MEDFATE
+= easiest geomorphic engineering + small new herb-demography module
+
+FATES
+= strongest ready biology + hardest engineering stack
+
+LPJ-GUESS SEC
+= best canopy/cohort architecture + branch integration work
+```
 
 ## key references
 - De Cáceres et al. 2023, GMD 16:3165–3201. DOI 10.5194/gmd-16-3165-2023
 - Balaguer-Romano et al. 2025, Journal of Environmental Management 395:127844. DOI 10.1016/j.jenvman.2025.127844
-- medfate v5.x documentation/source, 2026
-- medfateland v3.0.0 documentation, 2026
+- emf-creaf/medfate source audit, 2026-09-23
+- medfateland current documentation/source, 2026
