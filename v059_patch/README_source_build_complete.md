@@ -1,0 +1,1 @@
+v0.59 source reconstruction/build checkpoint is complete on Linux and Windows. Further scientific backbone changes belong on v0.60 and later branches; v0.59 remains a frozen source/build reference.
