@@ -1,0 +1,95 @@
+name: OpenLISEM 7.5.2 Gounsa virtual trial
+on:
+  push:
+    branches:
+      - openlisem-752-virtual-trial-20261023
+    paths:
+      - "openlisem_virtual_trial/**"
+      - ".github/workflows/openlisem-752-virtual-trial.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  execute-full-openlisem:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PCRaster writer dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy rasterio
+          python -c "import rasterio; print('GDAL:', rasterio.__gdal_version__)"
+      - name: Create complete fictional model inputs
+        run: |
+          python openlisem_virtual_trial/generate_inputs.py
+          if ($LASTEXITCODE -ne 0) { throw "Input generation failed." }
+      - name: Install official OpenLISEM 7.5.2 for Windows
+        run: |
+          $ErrorActionPreference='Stop'
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          $urls=@(
+            'https://downloads.sourceforge.net/project/lisem/lisem_bin/openLisemSetup_7.5.2.exe',
+            'https://sourceforge.net/projects/lisem/files/lisem_bin/openLisemSetup_7.5.2.exe/download'
+          )
+          $good=$false
+          foreach($url in $urls) {
+            try {
+              Invoke-WebRequest -Uri $url -OutFile $installer -MaximumRedirection 10 -UserAgent 'Mozilla/5.0' -TimeoutSec 180
+              if((Get-Item $installer).Length -gt 70000000) {$good=$true;break}
+            } catch { Write-Host "Download attempt failed: $_" }
+          }
+          if(-not $good) { throw 'Official installer download failed' }
+          Get-FileHash $installer -Algorithm SHA256 | Format-List
+          $p=Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          Write-Host "Installer exit code: $($p.ExitCode)"
+          if($p.ExitCode -ne 0) { throw "Installer failed: $($p.ExitCode)" }
+          $candidateDirs=@('C:\openlisem','C:\Program Files\openlisem','C:\Program Files (x86)\openlisem')
+          $found=@()
+          foreach($d in $candidateDirs) {
+            if(Test-Path $d) { $found+=Get-ChildItem $d -Recurse -File -Filter '*lisem*.exe' -ErrorAction SilentlyContinue }
+          }
+          $found | Select-Object FullName,Length | Format-Table
+          $model=$found | Where-Object {$_.Name -ieq 'lisem.exe'} | Select-Object -First 1
+          if(-not $model) {throw 'No lisem.exe found in installed directory'}
+          $model.FullName | Set-Content (Join-Path $env:RUNNER_TEMP 'openlisem_exe.txt')
+      - name: Run OpenLISEM full hydrology and erosion model
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference='Continue'
+          $model=(Get-Content (Join-Path $env:RUNNER_TEMP 'openlisem_exe.txt') -Raw).Trim()
+          $root=Join-Path (Get-Location) 'openlisem_virtual_trial'
+          $logdir=Join-Path $root 'logs'
+          New-Item -ItemType Directory -Force -Path $logdir | Out-Null
+          $status=Join-Path $root 'execution_status.csv'
+          'run,exit_code,totals_exists,totals_bytes' | Set-Content $status
+          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*.run' | Sort-Object Name)) {
+            $label=$run.BaseName
+            Write-Host "START: $label"
+            $log=Join-Path $logdir "$label.log"
+            & $model '-ni' '-f' '-r' $run.FullName *> $log
+            $exit=$LASTEXITCODE
+            $csv=Join-Path (Join-Path $root "results\$label") "totals.csv"
+            $exists=Test-Path $csv
+            $size=if($exists){(Get-Item $csv).Length}else{0}
+            "$label,$exit,$exists,$size" | Add-Content $status
+            Write-Host "RESULT $label exit=$exit totals=$exists bytes=$size"
+            if(-not $exists){Get-Content $log -Tail 30 -ErrorAction SilentlyContinue}
+          }
+      - name: Upload all logs and available output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-openlisem-windows-trial
+          path: |
+            openlisem_virtual_trial/logs/
+            openlisem_virtual_trial/results/
+            openlisem_virtual_trial/execution_status.csv
+            openlisem_virtual_trial/runs/
+          if-no-files-found: warn
+          retention-days: 10
