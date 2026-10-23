@@ -21,6 +21,7 @@ jobs:
           python -m pip install numpy rasterio
           python openlisem_virtual_trial/generate_inputs.py
           python openlisem_fast5m/generate.py
+          New-Item -ItemType Directory -Force -Path openlisem_2d_trial | Out-Null
           @'
           from pathlib import Path
           import re
