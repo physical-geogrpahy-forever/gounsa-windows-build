@@ -75,7 +75,18 @@ for species,attrs in cases.items():
         elif name=="psi1.map":a=np.full((R,C),1.)
         elif name=="soildep1.map":a=np.full((R,C),250.)
         elif name=="coh.map":a=np.full((R,C),4.)
-        save_map(target/origin.name,a,vs)
+        if name=="ldd.map":
+            # GDAL's PCRaster VS_LDD writer silently forces 1m cell size
+            # irrespective of the requested transform. This LDD is the model's
+            # master mask; using georeferenced GeoTIFF preserves the intended dx.
+            with rasterio.open(target/"ldd.tif","w",driver="GTiff",count=1,
+                               width=C,height=R,dtype="uint8",
+                               crs="EPSG:32652",transform=TRANSFORM,nodata=0) as out:
+                out.write(np.asarray(a,dtype="uint8"),1)
+            with rasterio.open(target/"ldd.tif") as out:
+                assert abs(out.res[0]-DX)<1e-8,(out.res,DX)
+        else:
+            save_map(target/origin.name,a,vs)
 
 for species,dt,mode,det in variants:
     label=f"{species}_dt{dt}_{mode}_eff{det}"
@@ -99,6 +110,8 @@ for species,dt,mode,det in variants:
         matches=patt.findall(s)
         assert len(matches)==1,(k,origin,len(matches))
         s=patt.sub(lambda m:k+"="+v,s)
+    s,n=re.subn(r"(?m)^ldd=.*$", "ldd=ldd.tif", s)
+    assert n==1,(label,"LDD assignment missing")
     (ROOT/"runs"/(label+".run")).write_text(s,encoding="utf8")
     (ROOT/"results"/label).mkdir(exist_ok=True)
     (ROOT/"rain"/f"P20_dt{dt}.txt").write_text(
