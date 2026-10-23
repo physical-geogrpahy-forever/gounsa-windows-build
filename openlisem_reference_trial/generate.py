@@ -61,9 +61,16 @@ for species,attrs in cases.items():
             a=np.full((R,C),math.sin(math.atan(.25)))
         elif name=="ldd.map":
             a=np.full((R,C),2,dtype=np.uint8)
-            a[-1,:]=5
+            # IMPORTANT: FlowBoundaryType=1 turns OFF edge outflow at EVERY
+            # LDD code 5. Therefore do NOT set an entire lower row to pits.
+            # Keep one canonical pit; other lower-edge cells stay open.
+            a[-1,:C//2]=6
+            a[-1,C//2+1:]=4
+            a[-1,C//2]=5
         elif name in ("outlet.map","outpoints.map"):
-            a=np.zeros((R,C),dtype=np.int32);a[-1,C//2]=1
+            # 2D comparison uses domain-boundary flux; do not also report
+            # a synthetic in-domain point outlet as external export.
+            a=np.zeros((R,C),dtype=np.int32)
         elif name in ("id.map","landuse.map"):
             a=np.ones((R,C),dtype=np.int32)
         elif name=="per.map":a=np.full((R,C),attrs["cover"])
