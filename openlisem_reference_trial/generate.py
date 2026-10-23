@@ -8,7 +8,7 @@ import rasterio
 from rasterio.transform import from_origin
 
 HERE=Path(__file__).resolve().parent
-BASE=HERE.parent
+BASE=HERE.parent/'openlisem_virtual_trial'
 ROOT=HERE
 R=C=50
 DX=2.0
