@@ -12,7 +12,7 @@ for folder in sorted((ROOT/"results").glob("*")):
     if not p.exists():continue
     try:
         vals={}
-        for line in p.read_text(encoding="utf8-sig",errors="replace").splitlines():
+        for line in p.read_text(encoding="utf-8-sig",errors="replace").splitlines():
             rr=next(csv.reader([line]))
             if len(rr)<2: continue
             try:vals[rr[0].strip()]=float(rr[1].strip())
@@ -57,8 +57,8 @@ for folder in sorted((ROOT/"results").glob("*")):
     except Exception as e:
         print("BAD OUTPUT",folder,repr(e))
 if rows:
-    with (ROOT/"quality.csv").open("w",encoding="utf8-sig",newline="") as fp:
+    with (ROOT/"quality.csv").open("w",encoding="utf-8-sig",newline="") as fp:
         writer=csv.DictWriter(fp,fieldnames=list(rows[0]))
         writer.writeheader();writer.writerows(rows)
     for r in rows:print("QA",r["case"],"rain",round(r["rain_mm"],4),"runoff",round(r["boundary_runoff_mm"],4),"sed_export kg/ha",round(r["export_kg_ha"],6),"max ero t/ha",round(r["max_erosion_t_ha"],3),"stock pass",r["physically_plausible_soil_stock"])
-else:print("NO_VALID_SIMULATIONS")
+else:raise RuntimeError("NO_VALID_SIMULATIONS")
