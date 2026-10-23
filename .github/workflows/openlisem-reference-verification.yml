@@ -1,0 +1,91 @@
+name: OpenLISEM 1ha reference verification
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths:
+      - "openlisem_reference_trial/**"
+      - ".github/workflows/openlisem-reference-verification.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install raster maps dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check numpy rasterio
+      - name: Prepare reference maps using original OpenLISEM generator
+        shell: pwsh
+        run: |
+          python openlisem_virtual_trial/generate_inputs.py
+          if($LASTEXITCODE -ne 0) {throw "Upstream map generator failed"}
+          python openlisem_reference_trial/generate.py
+          if($LASTEXITCODE -ne 0) {throw "1ha reference map generator failed"}
+      - name: Download and install official OpenLISEM 7.5.2
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          $hash=(Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          if($hash -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79') {throw "SHA256 verification failed"}
+          $p=Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($p.ExitCode -ne 0) {throw "Installer exit: $($p.ExitCode)"}
+          if(!(Test-Path 'C:\openlisem\bin\lisem.exe')){throw 'Installed lisem.exe missing'}
+      - name: Run 1ha verification with original full executable
+        shell: pwsh
+        timeout-minutes: 30
+        run: |
+          $ErrorActionPreference='Continue'
+          $model='C:\openlisem\bin\lisem.exe'
+          $root=Join-Path (Get-Location) 'openlisem_reference_trial'
+          $logs=Join-Path $root 'logs'
+          New-Item -ItemType Directory -Force -Path $logs | Out-Null
+          $status=Join-Path $root 'execution_status.csv'
+          'run,exit,totals_exists,output_count,seconds' | Set-Content $status
+          $cases=Get-ChildItem (Join-Path $root 'runs') -Filter '*.run' | Sort-Object Name
+          foreach($run in $cases) {
+            $label=$run.BaseName
+            Write-Host "START $label"
+            $log=Join-Path $logs "$label.stdout.txt"
+            $err=Join-Path $logs "$label.stderr.txt"
+            $clock=[System.Diagnostics.Stopwatch]::StartNew()
+            try {
+              $p=Start-Process -FilePath $model -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($p.WaitForExit(100000)){$exit=$p.ExitCode}
+              else {$p.Kill();$exit='TIMEOUT'}
+            } catch {$exit='START_ERROR';($_|Out-String)|Set-Content $err}
+            $clock.Stop()
+            $dir=Join-Path $root "results\$label"
+            $tot=Test-Path (Join-Path $dir 'totals.csv')
+            $ct=@(Get-ChildItem $dir -File -ErrorAction SilentlyContinue).Count
+            "$label,$exit,$tot,$ct,$([math]::Round($clock.Elapsed.TotalSeconds,2))"|Add-Content $status
+            Write-Host "RESULT $label exit=$exit totals=$tot files=$ct seconds=$([math]::Round($clock.Elapsed.TotalSeconds,2))"
+            if(-not $tot){ Get-Content $log -Tail 25 -ErrorAction SilentlyContinue;Get-Content $err -Tail 25 -ErrorAction SilentlyContinue}
+          }
+      - name: Create physical consistency and convergence QA metrics
+        shell: pwsh
+        if: always()
+        run: |
+          if(Test-Path 'openlisem_reference_trial/results'){
+            python openlisem_reference_trial/quality.py
+          }
+      - name: Archive complete numerical results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlisem-reference-1ha-qa
+          path: |
+            openlisem_reference_trial/results/
+            openlisem_reference_trial/logs/
+            openlisem_reference_trial/runs/
+            openlisem_reference_trial/execution_status.csv
+            openlisem_reference_trial/quality.csv
+          if-no-files-found: warn
+          retention-days: 30
