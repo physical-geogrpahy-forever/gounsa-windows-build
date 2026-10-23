@@ -53,7 +53,9 @@ cases={
  "Miscanthus_dense":(.85,3.0,1.3,1.551,.20),
  "Oak_sprouts_sparse":(.40,1.2,1.8,.343,.12),
  "Miscanthus_canopy_only":(.85,3.0,1.3,1.551,.12),
- "Oak_canopy_only":(.40,1.2,1.8,.343,.12)}
+ "Oak_canopy_only":(.40,1.2,1.8,.343,.12),
+ "Oak_flat":(.40,1.2,1.8,.343,.12),
+ "Miscanthus_flat":(.85,3.0,1.3,1.551,.20)}
 def write_map(path,array,kind="scalar"):
     typ,vs={"scalar":("float32","VS_SCALAR"),"nominal":("int32","VS_NOMINAL"),"ldd":("uint8","VS_LDD")}[kind]
     with rasterio.open(path,"w",driver="PCRaster",width=C,height=R,count=1,dtype=typ,
@@ -68,6 +70,10 @@ for case,values in cases.items():
     dest=ROOT/"maps"/case
     dest.mkdir(exist_ok=True)
     maps=dict(common)
+    if case.endswith("_flat"):
+        # Remove the artificial 1.5% V-shaped cross-slope.
+        # Keep identical downstream 35% gradient and substrate/vegetation.
+        maps["dem"] = 100+0.35*(R-1-Y)*DX
     maps.update({"cover":ones*cover,"lai":ones*lai,"ch":ones*height,
                  "smax":ones*smax,"manning":ones*n})
     for key,val in maps.items():
