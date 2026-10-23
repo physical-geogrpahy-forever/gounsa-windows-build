@@ -1,0 +1,79 @@
+name: OpenLISEM native 2D dynamic-wave feasibility
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths: ['.github/workflows/openlisem-native-2d-feasibility.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-native-2d:
+    runs-on: windows-2022
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate 1ha / 5m official-format spatial input
+        shell: pwsh
+        run: |
+          python -m pip install numpy rasterio
+          python openlisem_virtual_trial/generate_inputs.py
+          python openlisem_fast5m/generate.py
+          @'
+          from pathlib import Path
+          import re
+          root=Path("openlisem_2d_trial")
+          for d in ("runs","results","logs"): (root/d).mkdir(parents=True,exist_ok=True)
+          base=Path("openlisem_reference_trial")/"runs"
+          for s in ("Oak","Miscanthus"):
+              label=f"{s}_2D_10s"
+              old=(base/f"{s}_dt10_exponential_eff1.run").read_text(encoding="utf8")
+              assert "Routing Kin Wave 2D=0" in old
+              old=old.replace("Routing Kin Wave 2D=0","Routing Kin Wave 2D=2")
+              old=old.replace("End time=001:0120","End time=001:0070")
+              old=re.sub(r"(?m)^Result Directory=.*$",lambda m:"Result Directory="+str((root/"results"/label).resolve())+"\\",old)
+              (root/"runs"/f"{label}.run").write_text(old,encoding="utf8")
+              (root/"results"/label).mkdir(exist_ok=True)
+          print("Prepared real OpenLISEM 2D cases.")
+          '@| Set-Content openlisem_2d_trial/generate_2d.py
+          python openlisem_2d_trial/generate_2d.py
+          if($LASTEXITCODE -ne 0){throw "2D runfile generation failed"}
+      - name: Install official release and verify checksum
+        shell: pwsh
+        run: |
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          if((Get-FileHash $installer -Algorithm SHA256).Hash.ToLower() -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw 'checksum mismatch'}
+          $p=Start-Process $installer -ArgumentList @('/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($p.ExitCode -ne 0){throw "Installer error $($p.ExitCode)"}
+      - name: Execute native 2D dynamic-wave hydrology and erosion
+        shell: pwsh
+        timeout-minutes: 20
+        run: |
+          $root=Join-Path (Get-Location) 'openlisem_2d_trial'
+          $status=Join-Path $root 'execution_status.csv'
+          "case,exit,totals_exists,time_seconds"|Set-Content $status
+          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*.run')){
+            $case=$run.BaseName
+            $log=Join-Path $root "logs\$case.log"
+            $err=Join-Path $root "logs\$case.stderr.log"
+            $stopwatch=[System.Diagnostics.Stopwatch]::StartNew()
+            try{
+              $p=Start-Process 'C:\openlisem\bin\lisem.exe' -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($p.WaitForExit(480000)){$exit=$p.ExitCode}else{$p.Kill();$exit='TIMEOUT'}
+            }catch{$exit='START_ERROR';($_|Out-String)|Set-Content $err}
+            $stopwatch.Stop()
+            $tot=Test-Path (Join-Path $root "results\$case\totals.csv")
+            Write-Host "2DRESULT $case exit=$exit totals=$tot seconds=$($stopwatch.Elapsed.TotalSeconds)"
+            "$case,$exit,$tot,$($stopwatch.Elapsed.TotalSeconds)"|Add-Content $status
+          }
+      - name: Upload raw 2D run logs even if solver times out
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openlisem-native-2d-1ha
+          path: |
+            openlisem_2d_trial/
+          retention-days: 30
