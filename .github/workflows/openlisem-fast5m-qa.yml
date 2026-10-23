@@ -1,0 +1,74 @@
+name: OpenLISEM 5m grid 1ha fast QA
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths: ["openlisem_fast5m/**",".github/workflows/openlisem-fast5m-qa.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Prepare one-hectare PCRaster scenarios
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check numpy rasterio
+          python openlisem_virtual_trial/generate_inputs.py
+          if($LASTEXITCODE -ne 0){throw "Base map generator failed"}
+          python openlisem_fast5m/generate.py
+          if($LASTEXITCODE -ne 0){throw "Reference map generator failed"}
+      - name: Install verified official Windows model
+        shell: pwsh
+        run: |
+          $installer=Join-Path $env:RUNNER_TEMP 'OpenLISEM_752.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          if((Get-FileHash $installer -Algorithm SHA256).Hash.ToLower() -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw 'SHA mismatch'}
+          $p=Start-Process $installer -ArgumentList @('/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($p.ExitCode -ne 0){throw "Installer failed"}
+      - name: Run six complete 5m-grid simulations
+        shell: pwsh
+        run: |
+          $root=Join-Path (Get-Location) 'openlisem_reference_trial'
+          New-Item -Force -ItemType Directory (Join-Path $root 'logs')|Out-Null
+          $status=Join-Path $root 'execution_status.csv'
+          'run,exit,totals_exists,files,seconds'|Set-Content $status
+          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*.run'|Sort-Object Name)){
+            $label=$run.BaseName
+            $sw=[System.Diagnostics.Stopwatch]::StartNew()
+            $log=Join-Path $root "logs\$label.log"
+            $err=Join-Path $root "logs\$label.err"
+            try{
+              $p=Start-Process 'C:\openlisem\bin\lisem.exe' -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($p.WaitForExit(110000)){$exit=$p.ExitCode}else{$p.Kill();$exit='TIMEOUT'}
+            }catch{$exit='FAIL';($_|Out-String)|Set-Content $err}
+            $sw.Stop()
+            $results=Join-Path $root "results\$label"
+            $yes=Test-Path (Join-Path $results 'totals.csv')
+            $files=@(Get-ChildItem $results -File -ErrorAction SilentlyContinue).Count
+            "$label,$exit,$yes,$files,$([math]::Round($sw.Elapsed.TotalSeconds,1))"|Add-Content $status
+            Write-Host "RESULT $label exit=$exit totals=$yes n=$files"
+            if(-not $yes){Get-Content $log -Tail 30 -ErrorAction SilentlyContinue;Get-Content $err -Tail 30 -ErrorAction SilentlyContinue}
+          }
+      - name: Diagnose mass balance and soil depths
+        shell: pwsh
+        if: always()
+        run: |
+          python openlisem_reference_trial/quality.py
+      - name: Archive all results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openlisem-fast-1ha-5m
+          path: |
+            openlisem_reference_trial/results
+            openlisem_reference_trial/logs
+            openlisem_reference_trial/runs
+            openlisem_reference_trial/quality.csv
+            openlisem_reference_trial/execution_status.csv
+          retention-days: 30
