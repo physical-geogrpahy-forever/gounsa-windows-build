@@ -38,7 +38,7 @@ jobs:
           New-Item -Force -ItemType Directory (Join-Path $root 'logs')|Out-Null
           $status=Join-Path $root 'execution_status.csv'
           'run,exit,totals_exists,files,seconds'|Set-Content $status
-          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*dt10_exponential_eff1.run'|Sort-Object Name)){
+          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*.run'|Sort-Object Name)){
             $label=$run.BaseName
             $sw=[System.Diagnostics.Stopwatch]::StartNew()
             $log=Join-Path $root "logs\$label.log"
