@@ -1,4 +1,4 @@
-"""Fast 5m-grid 1ha OpenLISEM check, generated from same benchmark script."""
+"""Fast 5m-grid 1ha OpenLISEM check; preserve native LDD georeferencing via GeoTIFF."""
 from pathlib import Path
 import re
 HERE=Path(__file__).resolve().parent
