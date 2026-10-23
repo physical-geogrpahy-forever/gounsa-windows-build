@@ -8,8 +8,8 @@ assert "R=C=50" in s and "DX=2.0" in s
 s=s.replace("R=C=50","R=C=20").replace("DX=2.0","DX=5.0")
 # Restore a single valid outlet observation point while retaining the
 # non-pit open lower boundary elsewhere. Only diagnoses native init behaviour.
-old="a=np.zeros((R,C),dtype=np.int32)\n        elif name==\"per.map\""
-new="a=np.zeros((R,C),dtype=np.int32);a[-1,C//2]=1\n        elif name==\"per.map\""
+old="a=np.zeros((R,C),dtype=np.int32)\n        elif name in (\"id.map\",\"landuse.map\")"
+new="a=np.zeros((R,C),dtype=np.int32);a[-1,C//2]=1\n        elif name in (\"id.map\",\"landuse.map\")"
 assert s.count(old)==1
 s=s.replace(old,new)
 selection="""variants=[
