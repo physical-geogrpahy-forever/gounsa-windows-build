@@ -19,3 +19,13 @@ s,n=re.subn(r"variants=\[.*?\]\ndef save_map",selection,s,flags=re.S)
 assert n==1,n
 namespace={"__name__":"__main__","__file__":str(source_file)}
 exec(compile(s,str(source_file),"exec"),namespace)
+
+# Physics control: switch to the unmodified native kinematic-wave route for
+# a steep-slope comparison. No new hydraulic or erosion equations are used.
+run_root=HERE.parent/"openlisem_reference_trial"/"runs"
+for p in run_root.glob("*.run"):
+    text=p.read_text(encoding="utf8")
+    old="Routing Kin Wave 2D=2"
+    assert text.count(old)==1,(p,old)
+    p.write_text(text.replace(old,"Routing Kin Wave 2D=0"),encoding="utf8")
+print("Native OpenLISEM kinematic-wave runs:",len(list(run_root.glob("*.run"))))
