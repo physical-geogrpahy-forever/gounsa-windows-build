@@ -31,7 +31,7 @@ for m in re.finditer(r'DEFmaps\.append\("(.*?)"\)',head):
 names=dict(defaults)
 assert all(k in names for k in ("dem","grad","ldd","ID","cover","lai","ch","smax","manning","ksat1","coh"))
 
-R,C,DX=25,15,2.0
+R,C,DX=25,15,1.0
 tr=from_origin(337000,4062000,DX,DX)
 Y,X=np.mgrid[0:R,0:C]
 z=100+0.35*(R-1-Y)*DX+0.015*np.abs(X-(C-1)/2)*DX
@@ -42,7 +42,7 @@ ldd[R-1,C-1]=5
 outlet=np.zeros((R,C),dtype=np.int32)
 outlet[R-1,C-1]=1
 common={"dem":z,"grad":ones*math.sin(math.atan(.35)),
-        "rr":ones,"litter":zeros,"ksat1":ones*8,"psi1":ones*15,
+        "rr":ones,"litter":zeros,"ksat1":ones*2,"psi1":ones*1,
         "thetas1":ones*.45,"thetai1":ones*.25,"soildep1":ones*250,
         "stonefrc":ones*.1,"coh":ones*4,"cohadd":zeros,
         "aggrstab":ones*50,"d50":ones*100,"d90":ones*300,
