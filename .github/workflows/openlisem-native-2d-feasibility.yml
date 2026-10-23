@@ -29,14 +29,18 @@ jobs:
           for d in ("runs","results","logs"): (root/d).mkdir(parents=True,exist_ok=True)
           base=Path("openlisem_reference_trial")/"runs"
           for s in ("Oak","Miscanthus"):
-              label=f"{s}_2D_10s"
-              old=(base/f"{s}_dt10_exponential_eff1.run").read_text(encoding="utf8")
-              assert "Routing Kin Wave 2D=0" in old
-              old=old.replace("Routing Kin Wave 2D=0","Routing Kin Wave 2D=2")
-              old=old.replace("End time=001:0120","End time=001:0070")
-              old=re.sub(r"(?m)^Result Directory=.*$",lambda m:"Result Directory="+str((root/"results"/label).resolve())+"\\",old)
-              (root/"runs"/f"{label}.run").write_text(old,encoding="utf8")
-              (root/"results"/label).mkdir(exist_ok=True)
+              for dt in (5,10,20):
+                  label=f"{s}_2D_{dt}s"
+                  old=(base/f"{s}_dt10_exponential_eff1.run").read_text(encoding="utf8")
+                  assert "Routing Kin Wave 2D=0" in old
+                  old=old.replace("Routing Kin Wave 2D=0","Routing Kin Wave 2D=2")
+                  old=old.replace("End time=001:0120","End time=001:0070")
+                  old=old.replace("Timestep=10",f"Timestep={dt}")
+                  old=old.replace("Rainfall file=P20_dt10.txt",f"Rainfall file=P20_dt{dt}.txt")
+                  old=re.sub(r"(?m)^Rainfall Bias Correction=.*$",f"Rainfall Bias Correction={3600/(3600+dt)}",old)
+                  old=re.sub(r"(?m)^Result Directory=.*$",lambda m:"Result Directory="+str((root/"results"/label).resolve())+"\\",old)
+                  (root/"runs"/f"{label}.run").write_text(old,encoding="utf8")
+                  (root/"results"/label).mkdir(exist_ok=True)
           print("Prepared real OpenLISEM 2D cases.")
           '@| Set-Content openlisem_2d_trial/generate_2d.py
           python openlisem_2d_trial/generate_2d.py
