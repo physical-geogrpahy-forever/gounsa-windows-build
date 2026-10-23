@@ -22,7 +22,15 @@ for folder in sorted((ROOT/"results").glob("*")):
         inter=v("Total interception(mm):")
         infil=v("Total infiltration (mm):")
         boundary=v("Water across boundary (mm):")
-        water=v("Water in overland flow (h<50) (mm):")+v("Water in flood (h>50) (mm):")
+        # Kinematic-wave runs report export at the LDD pit, not as a 2D
+        # domain-boundary crossing. Use the right native totals keys.
+        wave_config=(folder/(folder.name+".run")).read_text(encoding="utf8")
+        kin="Routing Kin Wave 2D=0" in wave_config
+        if kin:
+            boundary=v("Total outflow (overland+channel) (mm):")
+            water=v("Water in overland flow (mm):")+v("Water in flood (mm):")
+        else:
+            water=v("Water in overland flow (h<50) (mm):")+v("Water in flood (h>50) (mm):")
         water+=v("Surface storage (mm):")+v("Water in channels (mm):")
         det=v("Flow detachment (land) (ton):")
         splash=v("Splash detachment (land) (ton):")
