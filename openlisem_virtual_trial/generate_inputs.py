@@ -55,7 +55,11 @@ cases={
  "Miscanthus_canopy_only":(.85,3.0,1.3,1.551,.12),
  "Oak_canopy_only":(.40,1.2,1.8,.343,.12),
  "Oak_flat":(.40,1.2,1.8,.343,.12),
- "Miscanthus_flat":(.85,3.0,1.3,1.551,.20)}
+ "Miscanthus_flat":(.85,3.0,1.3,1.551,.20),
+ "Oak_v_corrected":(.40,1.2,1.8,.343,.12),
+ "Miscanthus_v_corrected":(.85,3.0,1.3,1.551,.20),
+ "Oak_flat_corrected":(.40,1.2,1.8,.343,.12),
+ "Miscanthus_flat_corrected":(.85,3.0,1.3,1.551,.20)}
 def write_map(path,array,kind="scalar"):
     typ,vs={"scalar":("float32","VS_SCALAR"),"nominal":("int32","VS_NOMINAL"),"ldd":("uint8","VS_LDD")}[kind]
     with rasterio.open(path,"w",driver="PCRaster",width=C,height=R,count=1,dtype=typ,
@@ -70,7 +74,7 @@ for case,values in cases.items():
     dest=ROOT/"maps"/case
     dest.mkdir(exist_ok=True)
     maps=dict(common)
-    if case.endswith("_flat"):
+    if "_flat" in case:
         # Remove the artificial 1.5% V-shaped cross-slope.
         # Keep identical downstream 35% gradient and substrate/vegetation.
         maps["dem"] = 100+0.35*(R-1-Y)*DX
@@ -78,7 +82,22 @@ for case,values in cases.items():
                  "smax":ones*smax,"manning":ones*n})
     for key,val in maps.items():
         if key in names: write_map(dest/names[key],val)
-    for key,val in noms.items():
+    nom_local=dict(noms)
+    if case.endswith("_corrected"):
+        ldd_local=np.full((R,C),2,dtype=np.uint8)
+        if "_flat" in case:
+            # Surface flow goes to the lower boundary with no lateral DEM gradient.
+            # LDD bottom-row pits represent the terminal boundary cells.
+            ldd_local[-1,:]=5
+        else:
+            # The V-shaped swale drains toward centre column c=7, not right edge.
+            ldd_local[-1,:C//2]=6
+            ldd_local[-1,C//2+1:]=4
+            ldd_local[-1,C//2]=5
+        out_local=np.zeros((R,C),dtype=np.int32)
+        out_local[-1,C//2]=1
+        nom_local.update({"ldd":ldd_local,"outlet":out_local,"outpoint":out_local})
+    for key,val in nom_local.items():
         if key in names: write_map(dest/names[key],val,"ldd" if key=="ldd" else "nominal")
     for key,name in defaults:
         p=dest/name
