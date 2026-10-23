@@ -29,6 +29,10 @@ jobs:
         run: |
           python openlisem_virtual_trial/generate_inputs.py
           if ($LASTEXITCODE -ne 0) { throw "Input generation failed." }
+      - name: Create sensitivity runs (time step, sediment algorithms)
+        run: |
+          python openlisem_virtual_trial/make_sensitivity.py
+          if ($LASTEXITCODE -ne 0) { throw "Diagnostic generator failed." }
       - name: Install official OpenLISEM 7.5.2 for Windows
         run: |
           $ErrorActionPreference='Stop'
