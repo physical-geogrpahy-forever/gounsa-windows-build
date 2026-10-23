@@ -1,0 +1,77 @@
+name: OpenLISEM root and soil cohesion physical audit
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths:
+      - 'openlisem_cohesion_audit/**'
+      - '.github/workflows/openlisem-cohesion-physical-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulation:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reproduce 1ha 5m input and vegetation scenarios
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check numpy rasterio
+          if($LASTEXITCODE -ne 0){throw "Python GIS dependencies failed"}
+          python openlisem_virtual_trial/generate_inputs.py
+          if($LASTEXITCODE -ne 0){throw "Base inputs failed"}
+          python openlisem_fast5m/generate.py
+          if($LASTEXITCODE -ne 0){throw "1ha generator failed"}
+          python openlisem_cohesion_audit/generate.py
+          if($LASTEXITCODE -ne 0){throw "Soil/root scenarios failed"}
+      - name: Install checksum-matched official OpenLISEM 7.5.2
+        shell: pwsh
+        run: |
+          $p=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $p -MaximumRedirection 10 -TimeoutSec 180
+          $hash=(Get-FileHash $p -Algorithm SHA256).Hash.ToLower()
+          if($hash -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw 'Official release checksum mismatch'}
+          $proc=Start-Process $p -ArgumentList @('/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($proc.ExitCode -ne 0){throw "Installer failed $($proc.ExitCode)"}
+          if(!(Test-Path 'C:\openlisem\bin\lisem.exe')){throw 'Original lisem.exe missing'}
+      - name: Run original model for 16 full-event simulations
+        shell: pwsh
+        run: |
+          $root=Join-Path (Get-Location) 'openlisem_cohesion_audit'
+          $logdir=Join-Path $root 'logs'
+          $status=Join-Path $root 'execution_status.csv'
+          'case,exit,status'|Set-Content $status
+          foreach($run in @(Get-ChildItem (Join-Path $root 'runs') -Filter '*.run'|Sort-Object Name)){
+            $case=$run.BaseName
+            $log=Join-Path $logdir "$case.log"
+            $err=Join-Path $logdir "$case.err"
+            $start=[System.Diagnostics.Stopwatch]::StartNew()
+            try {
+              $proc=Start-Process 'C:\openlisem\bin\lisem.exe' -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($proc.WaitForExit(60000)){$exit=$proc.ExitCode}else{$proc.Kill();$exit='TIMEOUT'}
+            }catch{$exit='ERROR';($_|Out-String)|Set-Content $err}
+            $out=Test-Path (Join-Path (Join-Path $root "results\$case") 'totals.csv')
+            "$case,$exit,$out"|Add-Content $status
+            Write-Host "RESULT $case exit=$exit totals=$out seconds=$([math]::Round($start.Elapsed.TotalSeconds,2))"
+          }
+      - name: Audit native numerical outputs
+        shell: pwsh
+        run: |
+          python openlisem_cohesion_audit/quality.py
+          if($LASTEXITCODE -ne 0){throw 'Native output QA failed'}
+      - name: Archive raw and analyzed results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlisem-original-root-cohesion-audit
+          path: |
+            openlisem_cohesion_audit/results
+            openlisem_cohesion_audit/logs
+            openlisem_cohesion_audit/runs
+            openlisem_cohesion_audit/quality.csv
+            openlisem_cohesion_audit/execution_status.csv
+          retention-days: 30
