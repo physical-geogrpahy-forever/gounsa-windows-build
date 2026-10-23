@@ -1,4 +1,4 @@
-"""Fast 5m-grid 1ha OpenLISEM check; preserve native LDD georeferencing via GeoTIFF."""
+"""Fast 5m-grid OpenLISEM: preserve LDD cell size and avoid closed lower boundary."""
 from pathlib import Path
 import re
 HERE=Path(__file__).resolve().parent
