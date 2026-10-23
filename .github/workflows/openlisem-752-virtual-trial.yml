@@ -64,11 +64,23 @@ jobs:
             $label=$run.BaseName
             Write-Host "START: $label"
             $log=Join-Path $logdir "$label.log"
-            & $model '-ni' '-f' '-r' $run.FullName *> $log
-            $exit=$LASTEXITCODE
-            $csv=Join-Path (Join-Path $root "results\$label") "totals.csv"
+            $err=Join-Path $logdir "$label.stderr.log"
+            $args=@('-ni','-f','-r',('"' + $run.FullName + '"'))
+            try {
+              $p=Start-Process -FilePath $model -ArgumentList $args -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($p.WaitForExit(90000)) { $exit=$p.ExitCode }
+              else { $p.Kill(); $exit='TIMEOUT'; Write-Host "$label exceeded 90s" }
+            } catch {
+              $exit='START_ERROR'
+              $_ | Out-String | Set-Content $err
+            }
+            $resdir=Join-Path $root "results\$label"
+            $output=Get-ChildItem $resdir -File -Recurse -ErrorAction SilentlyContinue
+            $csv=Join-Path $resdir "totals.csv"
             $exists=Test-Path $csv
             $size=if($exists){(Get-Item $csv).Length}else{0}
+            Write-Host "Output file count: $(@($output).Count)"
+            if(Test-Path $err){Get-Content $err -Tail 12 -ErrorAction SilentlyContinue}
             "$label,$exit,$exists,$size" | Add-Content $status
             Write-Host "RESULT $label exit=$exit totals=$exists bytes=$size"
             if(-not $exists){Get-Content $log -Tail 30 -ErrorAction SilentlyContinue}
