@@ -1,0 +1,40 @@
+name: Proposed SHETRAN in-model stemflow flux proof
+on:
+  push:
+    branches: [shetran-v475-sediment-audit-20261025]
+    paths: [".github/workflows/shetran-stemflow-core-unit-test.yml","shetran_audit/stemflow_spatial_core.f90","shetran_audit/test_stemflow.f90"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-gfortran:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile scientific mass-conserving component
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd shetran_audit
+          gfortran --version | sed -n '1p'
+          gfortran -std=f2008 -O0 -g -Wall -Wextra -fcheck=all \
+            -ffpe-trap=invalid,zero,overflow \
+            stemflow_spatial_core.f90 test_stemflow.f90 -o stemflow_unit_test
+      - name: Execute independent water-balance and contrasting-footprint tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd shetran_audit
+          ./stemflow_unit_test | tee unit_test_results.txt
+          grep -q 'PASS STEMFLOW PARTITION UNIT TEST' unit_test_results.txt
+          grep -q 'PASS DELAYED TRUNK DRAINAGE UNIT TEST' unit_test_results.txt
+      - name: Preserve outputs and source
+        uses: actions/upload-artifact@v4
+        with:
+          name: shetran-proposed-stemflow-core-unit-tested-NOT-integrated
+          path: |
+            shetran_audit/unit_test_results.txt
+            shetran_audit/stemflow_spatial_core.f90
+            shetran_audit/test_stemflow.f90
+          retention-days: 30
