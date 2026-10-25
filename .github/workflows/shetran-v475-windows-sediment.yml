@@ -1,0 +1,77 @@
+name: SHETRAN v4.7.5 official Windows sediment example
+on:
+  push:
+    branches: [shetran-v475-sediment-audit-20261025]
+    paths: [.github/workflows/shetran-v475-windows-sediment.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-official:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download official signed release and original source example
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri 'https://github.com/nclwater/Shetran-public/releases/download/V4.7.5/SHETRAN_for_Windows.zip' -OutFile 'shetran-win-v475.zip'
+          Expand-Archive -Path 'shetran-win-v475.zip' -DestinationPath 'release' -Force
+          Get-FileHash -Algorithm SHA256 shetran-win-v475.zip | Format-List | Out-String | Tee-Object -FilePath official_binary_sha256.txt
+          Get-ChildItem release -Recurse -File | Select-Object FullName,Length | Format-Table -AutoSize
+          git clone --depth 1 https://github.com/nclwater/Shetran.git official-source
+          if($LASTEXITCODE -ne 0){throw "Upstream clone failed"}
+          git -C official-source rev-parse HEAD | Out-File official_source_commit.txt
+      - name: Run Cobres sediment-enabled model with official executable
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bins = @(Get-ChildItem -Path release -Recurse -Filter *.exe | Where-Object {
+            $_.Name -match 'shetran' -and $_.Name -notmatch 'prepare'
+          })
+          $bins | Select-Object FullName,Length | Format-Table
+          if($bins.Count -ne 1){throw "Expected exactly one main SHETRAN executable. Found $($bins.Count)"}
+          $bin=$bins[0].FullName
+          $dir=Join-Path (Get-Location) 'official-source/examples/Cobres/model'
+          Push-Location $dir
+          try {
+            cmd /c ('"' + $bin + '" -f rundata_cob.txt > shetran-windows.stdout.log 2>&1')
+            $exit=$LASTEXITCODE
+            Write-Host "MODEL_EXIT_CODE=$exit"
+            if(Test-Path shetran-windows.stdout.log) {Get-Content shetran-windows.stdout.log -Tail 50}
+            if($exit -ne 0){throw "Native SHETRAN exit code $exit"}
+          } finally {Pop-Location}
+      - name: Verify real hydrology and sediment output files
+        shell: pwsh
+        run: |
+          $root='official-source/examples/Cobres/model'
+          Get-ChildItem $root -Filter 'output*' | Select-Object Name,Length | Format-Table
+          foreach($p in @('output_cob_pri.txt','output_cob_spr.txt')) {
+            $fp=Join-Path $root $p
+            if(!(Test-Path $fp)){throw "Required output missing: $p"}
+            if((Get-Item $fp).Length -lt 200){throw "Output unexpectedly empty: $p"}
+            Write-Host "PASS_OUTPUT=$p"
+            Get-Content $fp -TotalCount 18
+            Get-Content $fp -Tail 15
+          }
+      - name: Preserve official native evidence and model inputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHETRAN-v475-windows-official-Cobres-sediment
+          path: |
+            official_binary_sha256.txt
+            official_source_commit.txt
+            official-source/examples/Cobres/model/shetran-windows.stdout.log
+            official-source/examples/Cobres/model/output_cob_pri.txt
+            official-source/examples/Cobres/model/output_cob_spr.txt
+            official-source/examples/Cobres/model/output_cob_mb.csv
+            official-source/examples/Cobres/model/output_cob_discharge_hourly.txt
+            official-source/examples/Cobres/model/output_cob_discharge_everytimestep.txt
+            official-source/examples/Cobres/model/input_cob_syd.txt
+            official-source/examples/Cobres/model/input_cob_etd.txt
+            official-source/examples/Cobres/model/rundata_cob.txt
+          if-no-files-found: warn
+          retention-days: 30
