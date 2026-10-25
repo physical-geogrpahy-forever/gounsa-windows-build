@@ -1,0 +1,131 @@
+name: EUROSEM single executable LAI interception versus original
+on:
+  push:
+    branches: [eurosem-single-model-lai-20261025]
+    paths:
+      - ".github/workflows/eurosem-lai-comparison.yml"
+      - "eurosem_lai_1998/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch source and apply minimal compatibility repairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/TheSoilman/EUROSEM.git eu
+          cd eu
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in Path('.').glob('*.for'):p.write_bytes(p.read_bytes().replace(bytes([26]),b''))
+          p=Path('eplanel.for')
+          s=p.read_text()
+          for old,new in (
+            ("      INTRT = 0\n      LCH = 0\n      contrib = 1.",
+             "      INTRT = 0\n      LCH = 0\n      NKIR = 0\n      contrib = 1."),
+            ("        MM=NB(JJ)-1","        MM=NB(JJ)-1\n        MB=NI+1")
+          ):
+              assert s.count(old)==1,old
+              s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('test.par')
+          s=p.read_text()
+          lines=s.splitlines()
+          m=[i for i,t in enumerate(lines) if t.split()==['2','0','0','0','0','0','0']]
+          assert len(m)==1,m
+          lines[m[0]]=' 2      1         0        0        0        0       0'
+          p.write_text('\n'.join(lines)+'\n')
+          PY
+          python3 ../eurosem_lai_1998/patch_interception.py
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o eurosem.exe
+      - name: Create original-fallback, LAI-low and LAI-high input experiments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          src=Path('eu')
+          for event in ('standard','heavy'):
+              for shape in ('original','LAI_1','LAI_4'):
+                  case=Path('cases')/(event+'_'+shape)
+                  case.mkdir(parents=True,exist_ok=True)
+                  for fn in ('eurosem.exe','test.par','test.pcp'):
+                      shutil.copy2(src/fn,case/fn)
+                  if event=='heavy':
+                      p=case/'test.pcp'
+                      text=p.read_text()
+                      assert '30.0         10.0' in text and '100.          10.0' in text
+                      text=text.replace('30.0         10.0','30.0         60.0')
+                      text=text.replace('100.          10.0','100.          60.0')
+                      p.write_text(text)
+                  if shape!='original':
+                      LAI=float(shape.split('_')[1])
+                      # illustrative NOT Gounsa vegetation properties
+                      (case/'LAI.PAR').write_text(
+                          f'1 {LAI:.2f} 0.20 0.046\n2 {LAI:.2f} 0.20 0.046\n')
+                  (case/'stdin.txt').write_text(
+                      '\nEUROSEM LAI PROCESS AUDIT\nn\ntest.par\ntest.pcp\nstat.out\ndyn.out\ndiag.out\nn\n')
+                  print('PREPARED',case)
+          PY
+      - name: Run original process chain for all six controlled cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          for case in cases/*; do
+            echo "MODEL_START $case"
+            (cd "$case" && timeout 55s ./eurosem.exe < stdin.txt > stdout.txt 2>&1)
+            echo "MODEL_FINISHED $case"
+          done
+      - name: Measure canopy flux closure and hydrological response
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,csv,json,math
+          data=[]
+          for folder in sorted(Path('cases').glob('*')):
+              t=(folder/'diag.out').read_text(errors='replace')
+              stat=(folder/'stat.out').read_text(errors='replace')
+              assert 'INTERCEPTION DATA FOR ELEMENT' in t,folder
+              chunk=t.split('INTERCEPTION DATA FOR ELEMENT')[1]
+              lines=chunk.splitlines()
+              header=next(i for i,z in enumerate(lines) if 'VEGSTORE' in z)
+              record=None
+              for line in lines[header+2:]:
+                  vals=re.findall(r'[-+]?\d+(?:\.\d+)?(?:[Ee][-+]?\d+)?',line)
+                  if len(vals)>=7 and float(vals[1])>0:
+                      record=[float(z) for z in vals[:7]]
+                      break
+              assert record,(folder,lines[:16])
+              _,gross,direct,drip,stem,stored,err=record
+              closure=gross-direct-drip-stem-stored
+              assert abs(closure)<0.01,(folder,closure)
+              massline=[x for x in stat.splitlines() if 'TOTAL BASIN RUNOFF' in x]
+              lossline=[x for x in stat.splitlines() if 'NET EROSION/DEPOSITION' in x]
+              data.append({'case':folder.name,'gross_mm':gross,'direct_throughfall_mm':direct,
+                  'canopy_drip_mm':drip,'stemflow_mm':stem,'canopy_storage_change_mm':stored,
+                  'partition_residual_mm':closure,'runoff_line':massline[-1].strip() if massline else '',
+                  'erosion_line':lossline[-1].strip() if lossline else ''})
+              print('EUROSEM_NATIVE',data[-1])
+          out=Path('cases')/'summary.csv'
+          with out.open('w',newline='') as f:
+              w=csv.DictWriter(f,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
+          Path('cases/summary.json').write_text(json.dumps(data,indent=2))
+          PY
+      - name: Archive actual Fortran output and LAI-augmented source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eurosem-original-versus-lai-integrated-test
+          path: |
+            cases/
+            eu/eurseml.for
+            eu/eplanel.for
+          retention-days: 21
