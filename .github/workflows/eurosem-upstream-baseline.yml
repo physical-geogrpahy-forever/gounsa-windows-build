@@ -32,6 +32,12 @@ jobs:
           new="      INTRT = 0\n      LCH = 0\n      NKIR = 0\n      contrib = 1."
           assert s.count(old)==1
           p.write_text(s.replace(old,new))
+          old2="        MM=NB(JJ)-1"
+          new2="        MM=NB(JJ)-1\n        MB=NI+1"
+          patched=p.read_text()
+          assert patched.count(old2)==1
+          p.write_text(patched.replace(old2,new2))
+          print('RUNTIME_FIX initialize upstream junction MB=NI+1')
           print('RUNTIME_FIX initialize no-rill NKIR=0')
           PY
           gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o eurosem.exe
