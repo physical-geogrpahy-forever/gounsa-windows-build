@@ -1,0 +1,90 @@
+name: SWEHR original-model nonzero rainfall and erosion experiment
+on:
+  push:
+    branches: [swehr-alternative-validation-20261025]
+    paths:
+      - ".github/workflows/swehr-rainfall-erosion-trial.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download unchanged 2017 source and compile it
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/csdms-contrib/swehr.git SWEHR_original
+          gcc -std=gnu99 -O2 -fopenmp SWEHR_original/SWEHR.c -lm -o SWEHR_original/swehr
+          echo "UPSTREAM_COMMIT=$(git -C SWEHR_original rev-parse HEAD)"
+      - name: Prepare paired bundled dry and controlled rainfall examples
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p swehr_paired/dry swehr_paired/rainfall
+          cp SWEHR_original/*.txt SWEHR_original/swehr swehr_paired/dry/
+          cp SWEHR_original/*.txt SWEHR_original/swehr swehr_paired/rainfall/
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('swehr_paired/rainfall')
+          inp=(p/'input.txt').read_text().split()
+          assert len(inp)==14,inp
+          inp[6]='9000'    # McGuire et al. 2016 raindrop detachability (kg/m3)
+          inp[7]='410000'  # McGuire et al. 2016 deposited-layer redetachability (kg/m3)
+          (p/'input.txt').write_text('\t'.join(inp)+'\n')
+          rain=[20e-3/3600 if k<10 else 0 for k in range(60)]
+          (p/'rain.txt').write_text(' '.join(f'{v:.12g}' for v in rain)+'\n')
+          print('RAIN_FORCING',rain[:12],'cum_input_mm',sum(rain[:10])*60*1000)
+          PY
+      - name: Run full 600-second simulations using same SWEHR executable
+        shell: bash
+        run: |
+          set -euo pipefail
+          export OMP_NUM_THREADS=1
+          for mode in dry rainfall; do
+            echo "SWEHR_RUN_BEGIN $mode"
+            ( cd "swehr_paired/$mode" && timeout 90s ./swehr > ../$mode.stdout.log 2>&1 )
+            echo "SWEHR_RUN_COMPLETED $mode"
+          done
+      - name: Quantify spatial response and numerical health
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import math,json
+          root=Path('swehr_paired')
+          outputs=['topoout.txt','depth.txt','m.txt','stage.txt','maxdepth.txt','vel.txt','c.txt']
+          record={}
+          for mode in ('dry','rainfall'):
+              record[mode]={}
+              for name in outputs:
+                  path=root/mode/name
+                  assert path.exists() and path.stat().st_size,(mode,name)
+                  values=[float(x) for x in path.read_text().replace(',',' ').split()]
+                  missing=[i for i,x in enumerate(values) if not math.isfinite(x)]
+                  finite=[x for x in values if math.isfinite(x)]
+                  assert finite,(mode,name)
+                  record[mode][name]={'count':len(values),'nan_count':len(missing),'nan_positions':missing[:10],
+                      'min':min(finite),'max':max(finite),'mean':sum(finite)/len(finite)}
+              print('SWEHR_NUMERIC_HEALTH',mode,record[mode])
+          for nm in ('topoout.txt','depth.txt','m.txt','stage.txt'):
+              a=record['dry'][nm];b=record['rainfall'][nm]
+              print('SWEHR_DIFFERENCE',nm, 'mean_rain_minus_dry',b['mean']-a['mean'],'nan_dry',a['nan_count'],'nan_rain',b['nan_count'])
+          assert record['rainfall']['depth.txt']['nan_count']==0
+          assert record['rainfall']['topoout.txt']['nan_count']==0
+          # Treat any NaN in a physically meaningful output as a validation warning,
+          # not as a successful numerical test. Preserve the data for diagnosis.
+          (root/'numeric_qa.json').write_text(json.dumps(record,indent=2))
+          PY
+      - name: Preserve raw paired simulation evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swehr-paired-dry-rainfall-2017
+          path: |
+            swehr_paired/
+          retention-days: 21
