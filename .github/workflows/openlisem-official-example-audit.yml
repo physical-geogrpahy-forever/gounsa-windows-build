@@ -1,0 +1,110 @@
+name: Verify official Ganspoel example on OpenLISEM 7.5.2
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths:
+      - ".github/workflows/openlisem-official-example-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-example:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download official Ganspoel dataset from SourceForge mirrors
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $root = Join-Path $env:RUNNER_TEMP 'ganspoel-official'
+          New-Item -ItemType Directory -Force $root | Out-Null
+          $pkg=Join-Path $root 'Ganspoel_Hydrology.7z'
+          $urls=@(
+            'https://downloads.sourceforge.net/project/lisem/Example%20Datasets/Ganspoel_Hydrology.7z',
+            'https://sourceforge.net/projects/lisem/files/Example%20Datasets/Ganspoel_Hydrology.7z/download',
+            'https://netcologne.dl.sourceforge.net/project/lisem/Example%20Datasets/Ganspoel_Hydrology.7z',
+            'https://phoenixnap.dl.sourceforge.net/project/lisem/Example%20Datasets/Ganspoel_Hydrology.7z'
+          )
+          $expected='a9be4d2627932dfaf91a2ab7d1af0b222950783c375afff3076addfb86d50639'
+          foreach($url in $urls) {
+            Write-Host "TRY: $url"
+            try {
+              Invoke-WebRequest -Uri $url -OutFile $pkg -MaximumRedirection 10 -TimeoutSec 70 -UserAgent 'Mozilla/5.0'
+              $hash=(Get-FileHash $pkg -Algorithm SHA256).Hash.ToLower()
+              Write-Host "SIZE: $((Get-Item $pkg).Length) SHA256: $hash"
+              if($hash -eq $expected) { Write-Host 'OFFICIAL_ARCHIVE_HASH_VALID=TRUE'; break }
+            } catch { Write-Host "DOWNLOAD_ERROR $($_.Exception.Message)" }
+          }
+          if((Test-Path $pkg) -and ((Get-FileHash $pkg -Algorithm SHA256).Hash.ToLower() -eq $expected)) {
+            $seven=Get-Command 7z.exe -ErrorAction SilentlyContinue
+            if(-not $seven) {$seven=Get-Command 'C:\Program Files\7-Zip\7z.exe' -ErrorAction SilentlyContinue}
+            if(-not $seven){throw '7zip executable missing'}
+            & $seven.Source x $pkg "-o$root\extracted" -y
+            if($LASTEXITCODE -ne 0){throw "7z extraction failed ($LASTEXITCODE)"}
+            $files=@(Get-ChildItem "$root\extracted" -Recurse -File)
+            $files | ForEach-Object {Write-Host ("DATAFILE " + $_.FullName.Replace($root,'').Replace('\','/'))}
+            Write-Host "FILE_COUNTS total=$($files.Count) run=$(@($files | Where-Object {$_.Extension -ieq '.run'}).Count) map=$(@($files | Where-Object {$_.Extension -ieq '.map'}).Count) tif=$(@($files | Where-Object {$_.Extension -match 'tif|tiff'}).Count)"
+            $files | Where-Object {$_.Extension -match 'run|txt|ini|cfg'} | Select-Object -First 25 | ForEach-Object {
+              Write-Host "CONFIGFILE $($_.Name)"
+              try{ Get-Content $_.FullName -TotalCount 35 | ForEach-Object {Write-Host "  $_"} } catch {}
+            }
+          } else {
+            Write-Host "OFFICIAL_ARCHIVE_UNAVAILABLE; all mirror attempts failed or integrity mismatch"
+          }
+      - name: Install checksum-verified official Classic 7.5.2
+        run: |
+          $ErrorActionPreference='Stop'
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          $hash=(Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          Write-Host "OFFICIAL_BIN_SHA256=$hash"
+          if($hash -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw "installer SHA256 mismatch"}
+          $p=Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($p.ExitCode -ne 0){throw "Installer failure: $($p.ExitCode)"}
+          if(!(Test-Path 'C:\openlisem\bin\lisem.exe')){throw 'lisem.exe not found'}
+      - name: Check original example run-file compatibility and execute when possible
+        run: |
+          $ErrorActionPreference='Continue'
+          $root=Join-Path $env:RUNNER_TEMP 'ganspoel-official'
+          $report=Join-Path $root 'execution_status.txt'
+          if(!(Test-Path (Join-Path $root 'extracted'))) {
+            'MODEL_RUN_SKIPPED: source dataset unavailable' | Set-Content $report
+            Get-Content $report
+            exit 0
+          }
+          $runs=@(Get-ChildItem (Join-Path $root 'extracted') -Recurse -File -Filter '*.run')
+          if($runs.Count -eq 0) {
+            'MODEL_RUN_SKIPPED: official Hazard example contains no Classic .run file; conversion to Classic required' | Set-Content $report
+            Get-Content $report
+            exit 0
+          }
+          foreach($run in ($runs | Select-Object -First 2)) {
+            Write-Host "EXAMPLE_RUNFILE $($run.FullName)"
+            $s=Get-Content $run.FullName -Raw
+            if($s -notmatch '(?m)^Map Directory=|^\s*Map Directory\s*=') {
+              Write-Host "EXAMPLE_RUNFILE_INCOMPATIBLE: no Classic map-directory setting"
+              continue
+            }
+            $outdir=Join-Path $root ('results_' + $run.BaseName)
+            New-Item -ItemType Directory -Force $outdir | Out-Null
+            $log=Join-Path $root ($run.BaseName + '.stdout.txt')
+            $err=Join-Path $root ($run.BaseName + '.stderr.txt')
+            $p=Start-Process 'C:\openlisem\bin\lisem.exe' -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+            if($p.WaitForExit(90000)) {Write-Host "MODEL_RUN_EXIT=$($p.ExitCode)"} else {$p.Kill();Write-Host 'MODEL_RUN_TIMEOUT'}
+            Get-Content $log -Tail 35 -ErrorAction SilentlyContinue
+            Get-Content $err -Tail 35 -ErrorAction SilentlyContinue
+          }
+      - name: Publish official-data audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlisem-official-ganspoel-752-audit
+          path: |
+            ${{ runner.temp }}/ganspoel-official/execution_status.txt
+            ${{ runner.temp }}/ganspoel-official/*.stdout.txt
+            ${{ runner.temp }}/ganspoel-official/*.stderr.txt
+          if-no-files-found: warn
+          retention-days: 14
