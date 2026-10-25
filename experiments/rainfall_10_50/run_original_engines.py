@@ -2,7 +2,8 @@
 """Use unmodified published engines with their distributed example geometries.
 Only rainfall and explicitly tagged exploratory detachment parameters vary."""
 from pathlib import Path
-import subprocess, shutil, json, csv, traceback
+import subprocess, shutil, json, csv, traceback, sys
+FAST='--fast' in sys.argv
 import numpy as np
 
 ROOT=Path(__file__).resolve().parent
@@ -32,6 +33,12 @@ def swehr_run(src,base,rain,detach):
     for f in ("topoin.txt","particlesizein.txt","particlepercentin.txt"):
         shutil.copy(src/f,wd/f)
     original=list(map(float,(src/"input.txt").read_text().split()))
+    if FAST:
+        coords=list(map(float,(src/"topoin.txt").read_text().split()))
+        assert len(coords)==3*51
+        short=[v for col in range(3) for v in coords[col*51:col*51+7]]
+        (wd/"topoin.txt").write_text(" ".join(map(str,short))+"\n")
+        original[1]=7.0  # cropped official example: 3 by 7
     assert len(original)==14
     original[5]=3600.0                # total run [s]
     original[6]=0.0 if detach=="original_zero" else 1.0   # a: original=0
@@ -40,7 +47,7 @@ def swehr_run(src,base,rain,detach):
     original[11]=60.0                 # interval 60 s
     (wd/"input.txt").write_text(" ".join(map(str,original))+"\n")
     (wd/"rain.txt").write_text(" ".join([f"{rain/3600000:.13g}"]*60)+"\n")
-    code,log=shell([str(base)],wd,timeout=110)
+    code,log=shell([str(base)],wd,timeout=24 if FAST else 110)
     (wd/"console.log").write_text(log)
     record=dict(engine="SWEHR native C",scenario=detach,rain_mm_h=rain,run_code=code,
                 original_parameters=detach=="original_zero",workdir=wd.name)
@@ -95,7 +102,7 @@ def main():
     info["swehr_compile_rc"]=code
     if code==0:
         for r in DEPTHS:
-            for det in ("original_zero","exploratory_a1_ad1"):
+            for det in (("exploratory_a1_ad1",) if FAST else ("original_zero","exploratory_a1_ad1")):
                 try: records.append(swehr_run(swehr,ROOT/"SWEHR",r,det))
                 except Exception as e: records.append(dict(engine="SWEHR native C",scenario=det,rain_mm_h=r,error=repr(e)))
     files=sorted(str(x) for x in euro.glob("*.for"))
