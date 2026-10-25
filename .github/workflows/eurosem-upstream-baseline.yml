@@ -24,7 +24,8 @@ jobs:
           set -euo pipefail
           cd upstream-eurosem
           gfortran --version | head -n1
-          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-none -fno-range-check -O0 -w             Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for             -o eurosem.exe 2>&1 | tee ../compile-original.txt
+          python3 -c "from pathlib import Path; [(p.write_bytes(p.read_bytes().replace(bytes([26]),b'')),print('NORMALIZED',p.name)) for p in Path('.').glob('*.for')]"
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -w             Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for             -o eurosem.exe 2>&1 | tee ../compile-original.txt
       - name: Execute published test.par and test.pcp without changing source
         run: |
           set -euo pipefail
