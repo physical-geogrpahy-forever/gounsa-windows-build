@@ -1,0 +1,85 @@
+name: SWEHR 1.0 upstream source and example smoke test
+on:
+  push:
+    branches: [swehr-alternative-validation-20261025]
+    paths:
+      - ".github/workflows/swehr-original-example-smoke.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  swehr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone source and bundled official sample data from CSDMS
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/csdms-contrib/swehr.git swehr-upstream
+          cd swehr-upstream
+          echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" | tee ../swehr-version.txt
+          git status --short
+          ls -lah
+      - name: Compile actual SWEHR original code with GCC
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd swehr-upstream
+          gcc --version | head -n 1
+          gcc -std=gnu99 -O2 -fopenmp -Wno-deprecated-non-prototype -Wno-implicit-int SWEHR.c -lm -o swehr 2>&1 | tee ../swehr-build.log
+          file swehr
+          sha256sum swehr
+      - name: Run unmodified CSDMS example
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd swehr-upstream
+          export OMP_NUM_THREADS=1
+          timeout 160s ./swehr 2>&1 | tee ../swehr-run.log
+          find . -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+      - name: Inspect finite results, expected outputs, and rainfall response
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd swehr-upstream
+          python3 - <<'PY'
+          import math, pathlib, json
+          required=['topoout.txt','depth.txt','uh.txt','vh.txt','ch.txt','m.txt','c.txt','vel.txt','stage.txt','maxvel.txt','maxdepth.txt']
+          rows={}
+          for name in required:
+              path=pathlib.Path(name)
+              assert path.exists() and path.stat().st_size, f'missing output {name}'
+              vals=[]
+              for word in path.read_text().replace(',',' ').split():
+                  try: vals.append(float(word))
+                  except ValueError: pass
+              assert vals, f'no numeric output in {name}'
+              nonfinite=sum(not math.isfinite(z) for z in vals)
+              assert not nonfinite,f'{name}: {nonfinite} nonfinite values'
+              rows[name]={'count':len(vals),'min':min(vals),'max':max(vals),'sum':sum(vals)}
+          for nm in ('depth.txt','m.txt','maxdepth.txt'):
+              assert rows[nm]['min']>=-1e-8,f'unphysical negative {nm}'
+          pathlib.Path('../swehr-numeric-qa.json').write_text(json.dumps(rows,indent=2))
+          for k,v in rows.items(): print('SWEHR_QA',k,v)
+          PY
+      - name: Upload build and scientific-reproducibility outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swehr-original-2017-example-run
+          path: |
+            swehr-version.txt
+            swehr-build.log
+            swehr-run.log
+            swehr-numeric-qa.json
+            swehr-upstream/input.txt
+            swehr-upstream/rain.txt
+            swehr-upstream/topoout.txt
+            swehr-upstream/depth.txt
+            swehr-upstream/m.txt
+            swehr-upstream/vel.txt
+            swehr-upstream/stage.txt
+            swehr-upstream/maxdepth.txt
+          retention-days: 21
