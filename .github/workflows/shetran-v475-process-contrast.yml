@@ -1,0 +1,55 @@
+name: SHETRAN V4.7.5 canopy and erosion process sensitivity
+on:
+  push:
+    branches: [shetran-v475-sediment-audit-20261025]
+    paths: ['.github/workflows/shetran-v475-process-contrast.yml','shetran_audit/native_cobres_process_test.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-2022
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download exact official release and developer sediment example
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $ProgressPreference='SilentlyContinue'
+          Invoke-WebRequest -Uri 'https://github.com/nclwater/Shetran-public/releases/download/V4.7.5/SHETRAN_for_Windows.zip' -OutFile 'SHETRAN_for_Windows_V4.7.5.zip'
+          Expand-Archive SHETRAN_for_Windows_V4.7.5.zip -DestinationPath official-release
+          git clone --depth 1 https://github.com/nclwater/Shetran.git upstream
+          if($LASTEXITCODE -ne 0){throw "Upstream clone failed"}
+          git -C upstream rev-parse HEAD | Out-File upstream_commit.txt
+          (Get-FileHash SHETRAN_for_Windows_V4.7.5.zip -Algorithm SHA256).Hash | Out-File release_sha256.txt
+      - name: Execute 20 isolated native sediment and canopy simulations
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $bins=@(Get-ChildItem official-release -Recurse -Filter *.exe | Where-Object {$_.Name -match 'shetran' -and $_.Name -notmatch 'prepare'})
+          if($bins.Count -ne 1){throw "Main exe ambiguity: $($bins.Count)"}
+          python shetran_audit/native_cobres_process_test.py --exe "$($bins[0].FullName)" --source upstream/examples/Cobres/model --out shetran_trials
+          if($LASTEXITCODE -ne 0){throw "Process response audit failed"}
+      - name: Preserve numeric series, audit summary, inputs and source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHETRAN-v475-20-native-process-audit
+          path: |
+            upstream_commit.txt
+            release_sha256.txt
+            shetran_trials/all_cases.csv
+            shetran_trials/*/audit.json
+            shetran_trials/*/scenario.json
+            shetran_trials/*/shetran.stdout.log
+            shetran_trials/*/output_cob_mb.csv
+            shetran_trials/*/output_cob_sediment_all.csv
+            shetran_trials/*/output_cob_sediment_fine.csv
+            shetran_trials/rain30/input_cob_etd.txt
+            shetran_trials/rain30/input_cob_syd.txt
+            shetran_trials/rain30/input_wet_prd.txt
+          retention-days: 30
