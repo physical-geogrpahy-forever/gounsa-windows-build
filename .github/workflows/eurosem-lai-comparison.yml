@@ -57,6 +57,11 @@ jobs:
                   case.mkdir(parents=True,exist_ok=True)
                   for fn in ('eurosem.exe','test.par','test.pcp'):
                       shutil.copy2(src/fn,case/fn)
+                  par=case/'test.par'
+                  partext=par.read_text()
+                  assert '88.      1.0       0.7' in partext
+                  par.write_text(partext.replace('88.      1.0       0.7',
+                     '88.      0.25      0.7'))
                   if event=='heavy':
                       p=case/'test.pcp'
                       text=p.read_text()
