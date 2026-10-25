@@ -25,16 +25,21 @@ jobs:
           cd upstream-eurosem
           gfortran --version | head -n1
           python3 -c "from pathlib import Path; [(p.write_bytes(p.read_bytes().replace(bytes([26]),b'')),print('NORMALIZED',p.name)) for p in Path('.').glob('*.for')]"
-          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -w             Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for             -o eurosem.exe 2>&1 | tee ../compile-original.txt
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w             Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for             -o eurosem.exe 2>&1 | tee ../compile-original.txt
       - name: Execute published test.par and test.pcp without changing source
         run: |
           set -euo pipefail
           cd upstream-eurosem
           rm -f EUROM.FIL
           printf '\nEUROSEM 1998 ORIGINAL BASELINE\nn\ntest.par\ntest.pcp\nstat.out\ndyn.out\ndiag.out\nn\n' > input_answers.txt
+          set +e
           timeout 50s ./eurosem.exe < input_answers.txt > ../original-stdout.txt 2>&1
-          cat ../original-stdout.txt | tail -50
-          ls -lh *.out
+          rc=$?
+          set -e
+          echo "EUROSEM_ORIGINAL_EXIT=$rc"
+          cat ../original-stdout.txt | tail -90
+          find . -maxdepth 1 -type f -name '*.out' -exec ls -lh {} \;
+          if [ "$rc" -ne 0 ]; then exit "$rc"; fi
       - name: Verify native canopy partition outputs and basic numerical finiteness
         run: |
           set -euo pipefail
