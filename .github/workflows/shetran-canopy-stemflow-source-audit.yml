@@ -1,0 +1,49 @@
+name: SHETRAN canopy stemflow implementation audit sources
+on:
+  push:
+    branches: [shetran-v475-sediment-audit-20261025]
+    paths: [.github/workflows/shetran-canopy-stemflow-source-audit.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact official SHETRAN implementation sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/nclwater/Shetran.git upstream
+          git -C upstream rev-parse HEAD | tee upstream-SHA.txt
+          python3 - <<'PY'
+          import pathlib,re,json
+          root=pathlib.Path("upstream/src")
+          index={}
+          pat=re.compile(r'\b(stemflow|stem.flow|canopy|cstore|cstcap|clai|plai|pnetto|draina|lrain|rainfall|rhpt|infiltration|infiltr|SYOVER|BALSED)\b',re.I)
+          for file in root.rglob("*"):
+              if file.suffix.lower() not in (".f90",".f",".for"):continue
+              ls=file.read_text(errors='replace').splitlines()
+              hits=[(i+1,line[:220]) for i,line in enumerate(ls) if pat.search(line)]
+              if hits:index[str(file.relative_to('upstream'))]=hits[:500]
+          pathlib.Path("upstream/process-index.json").write_text(json.dumps(index,indent=2))
+          print("SEARCHED_FILES",sum(1 for f in root.rglob("*") if f.suffix.lower() in (".f90",".f",".for")))
+          print("STEMFLOW_REFERENCES",[(p,[(n,l) for n,l in items if re.search("stemflow|stem.flow",l,re.I)]) for p,items in index.items() if any(re.search("stemflow|stem.flow",l,re.I) for n,l in items)])
+          PY
+      - name: Provide exact source files and Cobres sediment inputs for local review
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHETRAN-all-source-for-stemflow-spatial-infiltration-audit
+          path: |
+            upstream-SHA.txt
+            upstream/process-index.json
+            upstream/src
+            upstream/examples/Cobres/model/rundata_cob.txt
+            upstream/examples/Cobres/model/input_cob_etd.txt
+            upstream/examples/Cobres/model/input_cob_syd.txt
+            upstream/README.md
+            upstream/COMPILING.md
+            upstream/CMakeLists.txt
+          retention-days: 30
