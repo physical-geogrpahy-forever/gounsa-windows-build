@@ -1,0 +1,33 @@
+name: Original EUROSEM SWEHR rainfall 10-50 sensitivity
+on:
+  push:
+    branches: [rainfall-sensitivity-original-models-20261025]
+    paths:
+      - 'experiments/rainfall_10_50/**'
+      - '.github/workflows/original_rainfall_10_50.yml'
+  workflow_dispatch:
+jobs:
+  native-models:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare C and Fortran compilers
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gfortran
+          python3 -m pip install --break-system-packages numpy
+      - name: Download and run unmodified C and Fortran engines on source examples
+        run: python3 experiments/rainfall_10_50/run_original_engines.py
+      - name: Summarize original engine results
+        if: always()
+        run: |
+          cat experiments/rainfall_10_50/outputs/metadata.json || true
+          cat experiments/rainfall_10_50/outputs/results.csv || true
+          tail -50 experiments/rainfall_10_50/outputs/eurosem_build.log || true
+      - name: Preserve logs and outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-rainfall-10-50-native-results
+          path: experiments/rainfall_10_50/outputs/
