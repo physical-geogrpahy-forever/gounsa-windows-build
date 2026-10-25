@@ -1,0 +1,79 @@
+name: OpenLISEM 7.5.2 controlled factory versus advanced audit
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths:
+      - ".github/workflows/openlisem-factory-options-audit.yml"
+      - "openlisem_default_option_audit/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-native:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate spatial maps and one-hectare reference inputs
+        run: |
+          python -m pip install --disable-pip-version-check numpy rasterio
+          python openlisem_virtual_trial/generate_inputs.py
+          if($LASTEXITCODE -ne 0){throw 'upstream generator failed'}
+          python openlisem_reference_trial/generate.py
+          if($LASTEXITCODE -ne 0){throw 'reference generator failed'}
+          python openlisem_default_option_audit/generate.py generate
+          if($LASTEXITCODE -ne 0){throw 'controlled generator failed'}
+      - name: Install checksum-verified official binary
+        run: |
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          $hash=(Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          Write-Host "OFFICIAL_BINARY_SHA256 $hash"
+          if($hash -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw 'incorrect binary'}
+          $proc=Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($proc.ExitCode -ne 0){throw "installer $($proc.ExitCode)"}
+      - name: Run twelve full original OpenLISEM 7.5.2 controls
+        run: |
+          $root=Join-Path (Get-Location) 'openlisem_default_option_audit'
+          'run,exit_code,totals_found'|Set-Content (Join-Path $root 'status.csv')
+          $model='C:\openlisem\bin\lisem.exe'
+          foreach($r in (Get-ChildItem (Join-Path $root 'runs') -Filter '*.run' | Sort-Object Name)) {
+            $case=$r.BaseName
+            $log=Join-Path $root "logs\$case.stdout.txt"
+            $err=Join-Path $root "logs\$case.stderr.txt"
+            $dir=Join-Path $root "results\$case"
+            try {
+              $proc=Start-Process -FilePath $model -ArgumentList @('-ni','-f','-r',('"' + $r.FullName + '"')) -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+              if($proc.WaitForExit(95000)){$code=$proc.ExitCode}else{$proc.Kill();$code='TIMEOUT'}
+            }catch{$code='START_ERROR';($_|Out-String)|Set-Content $err}
+            $has=Test-Path (Join-Path $dir 'totals.csv')
+            Write-Host "CONTROL_RESULT $case exit=$code totals=$has"
+            "$case,$code,$has"|Add-Content (Join-Path $root 'status.csv')
+            if(-not $has) {Get-Content $err -Tail 15 -ErrorAction SilentlyContinue}
+          }
+      - name: Summarize measured model results
+        if: always()
+        run: |
+          if(Test-Path 'openlisem_default_option_audit/design.csv'){
+            python openlisem_default_option_audit/generate.py summarize
+          }
+      - name: Upload raw reproducibility evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openlisem-752-factory-vs-advanced-audit
+          path: |
+            openlisem_default_option_audit/status.csv
+            openlisem_default_option_audit/audit_table.csv
+            openlisem_default_option_audit/design.csv
+            openlisem_default_option_audit/runs/
+            openlisem_default_option_audit/logs/
+            openlisem_default_option_audit/results/*/totals.csv
+            openlisem_default_option_audit/results/*/soilloss.map
+          retention-days: 21
