@@ -105,28 +105,37 @@ def prepare_case(label,rate,cfg):
     return p
 
 def numeric_table(path:Path):
-    if not path.exists() or path.stat().st_size<100:raise AssertionError("missing/empty: "+str(path))
-    rows=list(csv.reader(path.open(errors='replace',newline='')))
-    heading=rows[0]
-    # Some outputs are comma separated and some are space separated.
-    maxima=[];positive=0;count=0;numeric_rows=0
-    for row in rows[1:]:
-        try: vals=[float(x.strip()) for x in row if x.strip()]
-        except ValueError:continue
-        if not vals: continue
-        if not all(math.isfinite(z) for z in vals):raise AssertionError(f"NaN/Inf in {path}")
-        numeric_rows+=1
-        # Drop first time column; do not confuse it with sediment mass.
-        s=vals[1:]
-        if s:
-            count+=len(s)
-            maxima.extend(s)
-            positive+=sum(v>0 for v in s)
-    assert numeric_rows>2,(path,heading,rows[:4])
-    return {"file":path.name,"header":heading[:15],
-            "numeric_rows":numeric_rows,"nonzero_positive":positive,
-            "min_field_value":min(maxima) if maxima else None,
-            "max_field_value":max(maxima) if maxima else None}
+    if not path.exists() or path.stat().st_size<100:
+        raise AssertionError("missing/empty: "+str(path))
+    rows=list(csv.reader(path.open(errors="replace",newline='')))
+    # Official v4.7.5 CSV: descriptive line, field-name line, hourly samples.
+    assert len(rows)>4 and len(rows[0])==1 and len(rows[1])>=3,(path,rows[:3])
+    heading=[x.strip() for x in rows[1]]
+    assert heading[1]=="Time(hours)" and "kg/s" in heading[2],(path,heading)
+    points=[]
+    for row in rows[2:]:
+        if len(row)<3:continue
+        try:
+            hour=float(row[1])
+            discharge=float(row[2])
+        except ValueError:
+            raise AssertionError((path,row))
+        if not math.isfinite(hour) or not math.isfinite(discharge):
+            raise AssertionError((path,"NaN/Inf",row))
+        if discharge < -1e-10:raise AssertionError((path,"negative sediment discharge",row))
+        points.append((hour,discharge))
+    assert len(points)>100,(path,len(points))
+    integration=0.0
+    for (start,q),(end,_) in zip(points,points[1:]):
+        dt=end-start
+        assert 0 < dt <=24,(path,start,end)
+        integration+=max(0.0,q)*dt*3600.0  # hourly mean kg/s -> kg
+    return {"file":path.name,"header":heading,
+            "numeric_rows":len(points),
+            "nonzero_positive":sum(q>0 for _,q in points),
+            "max_field_value":max(q for _,q in points),
+            "cumulative_sediment_export_kg":integration,
+            "last_time_hour":points[-1][0]}
 
 def report_result(p:Path,label:str,rate,cfg,elapsed):
     balance=p/"output_cob_mb.csv"
@@ -149,7 +158,9 @@ def report_result(p:Path,label:str,rate,cfg,elapsed):
       land_storage_mm=values.get("Land_Surface_Storage"),
       sed_all_max_field=sed["max_field_value"],sed_all_positive_fields=sed["nonzero_positive"],
       sed_all_numeric_rows=sed["numeric_rows"],
-      sed_fine_max_field=fine["max_field_value"],sed_fine_positive_fields=fine["nonzero_positive"])
+      sed_all_export_kg=sed["cumulative_sediment_export_kg"],
+      sed_fine_max_field=fine["max_field_value"],sed_fine_positive_fields=fine["nonzero_positive"],
+      sed_fine_export_kg=fine["cumulative_sediment_export_kg"])
     (p/"audit.json").write_text(json.dumps({"summary":result,"all_sediment":sed,"fine_sediment":fine},indent=2))
     print("SHETRAN_NATIVE_RESULT",json.dumps(result),flush=True)
     return result
