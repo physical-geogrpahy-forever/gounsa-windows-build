@@ -24,6 +24,16 @@ jobs:
           set -euo pipefail
           cd eurosem-original
           python3 -c "from pathlib import Path; [(p.write_bytes(p.read_bytes().replace(bytes([26]),b'')),print('NORMALIZED',p.name)) for p in Path('.').glob('*.for')]"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('eplanel.for')
+          s=p.read_text()
+          old="      INTRT = 0\n      LCH = 0\n      contrib = 1."
+          new="      INTRT = 0\n      LCH = 0\n      NKIR = 0\n      contrib = 1."
+          assert s.count(old)==1
+          p.write_text(s.replace(old,new))
+          print('RUNTIME_FIX initialize no-rill NKIR=0')
+          PY
           gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o eurosem.exe
       - name: Correct archived example topology and run
         shell: bash
