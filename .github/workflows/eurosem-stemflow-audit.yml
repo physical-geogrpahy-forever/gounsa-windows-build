@@ -1,0 +1,128 @@
+name: EUROSEM 1998 manual versus code stemflow audit
+on:
+  push:
+    branches: [eurosem-single-model-lai-20261025]
+    paths: [".github/workflows/eurosem-stemflow-audit.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile both original code and 1998 manual-consistent stemflow versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/TheSoilman/EUROSEM.git eu
+          cd eu
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in Path('.').glob('*.for'):p.write_bytes(p.read_bytes().replace(bytes([26]),b''))
+          p=Path('eplanel.for')
+          s=p.read_text()
+          for old,new in (
+            ("      INTRT = 0\n      LCH = 0\n      contrib = 1.","      INTRT = 0\n      LCH = 0\n      NKIR = 0\n      contrib = 1."),
+            ("        MM=NB(JJ)-1","        MM=NB(JJ)-1\n        MB=NI+1")
+          ):
+              assert s.count(old)==1
+              s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('test.par')
+          lines=p.read_text().splitlines()
+          ind=[i for i,z in enumerate(lines) if z.split()==['2','0','0','0','0','0','0']]
+          assert len(ind)==1,ind
+          lines[ind[0]]=' 2      1         0        0        0        0       0'
+          p.write_text('\n'.join(lines)+'\n')
+          PY
+          python3 ../eurosem_lai_1998/patch_interception.py
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o eurosem-code.exe
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('eurseml.for')
+          s=p.read_text()
+          old='       DRIPD(KM)=dripst(KM)-STEMD(KM)'
+          assert s.count(old)==1
+          s=s.replace(old,'       STEMD(KM)=0.5*STEMD(KM)\n'+old)
+          p.write_text(s)
+          print('CORRECTION: apply manual equations (6) and (7), factor 0.5')
+          PY
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -g -fcheck=all -fbacktrace -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o eurosem-manual.exe
+      - name: Prepare paired source-code and corrected-manual simulations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          for event in ('standard','heavy'):
+              for LAI in ('fallback','4'):
+                  for version in ('code','manual'):
+                      d=Path('tests')/(event+'_'+LAI+'_'+version)
+                      d.mkdir(parents=True,exist_ok=True)
+                      for fn in ('test.par','test.pcp'):shutil.copy2(Path('eu')/fn,d/fn)
+                      shutil.copy2(Path('eu')/('eurosem-'+version+'.exe'),d/'eurosem.exe')
+                      p=d/'test.par'
+                      s=p.read_text()
+                      assert '88.      1.0       0.7' in s
+                      p.write_text(s.replace('88.      1.0       0.7','88.      0.25      0.7'))
+                      if event=='heavy':
+                          p=d/'test.pcp'
+                          s=p.read_text()
+                          assert '30.0         10.0' in s and '100.          10.0' in s
+                          p.write_text(s.replace('30.0         10.0','30.0         60.0').replace('100.          10.0','100.          60.0'))
+                      if LAI=='4':(d/'LAI.PAR').write_text('1 4.0 0.20 0.046\n2 4.0 0.20 0.046\n')
+                      (d/'stdin.txt').write_text('\nEUROSEM manual stemflow check\nn\ntest.par\ntest.pcp\nstat.out\ndyn.out\ndiag.out\nn\n')
+          PY
+      - name: Run complete EUROSEM for every version and canopy case
+        shell: bash
+        run: |
+          set -euo pipefail
+          for dir in tests/*; do
+              (cd "$dir" && timeout 45s ./eurosem.exe < stdin.txt > stdout.log 2>&1)
+              echo "DONE $dir"
+          done
+      - name: Quantify manual versus implemented stemflow and erosion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,json
+          arr=[]
+          for d in sorted(Path('tests').glob('*')):
+              t=(d/'diag.out').read_text(errors='replace')
+              part=t.split('INTERCEPTION DATA FOR ELEMENT')[1]
+              lines=part.splitlines()
+              i=next(i for i,l in enumerate(lines) if 'VEGSTORE' in l)
+              parsed=None
+              for l in lines[i+2:]:
+                  v=re.findall(r'[-+]?\d+(?:\.\d+)?',l)
+                  if len(v)>=7 and float(v[1])>0:
+                      parsed=list(map(float,v[:7]));break
+              assert parsed,d
+              _,rain,free,drip,stem,storage,err=parsed
+              assert abs(rain-free-drip-stem-storage)<0.01,d
+              stat=(d/'stat.out').read_text(errors='replace')
+              loss=next((s.strip() for s in stat.splitlines() if 'NET EROSION/DEPOSITION' in s),'')
+              runoff=next((s.strip() for s in stat.splitlines() if 'TOTAL BASIN RUNOFF' in s),'')
+              row=dict(case=d.name,rain_mm=rain,free_mm=free,drip_mm=drip,stem_mm=stem,storage_mm=storage,loss=loss,runoff=runoff)
+              arr.append(row)
+              print('STEMFLOW_COMPARE',row)
+          Path('tests/results.json').write_text(json.dumps(arr,indent=2))
+          PY
+      - name: Archive full original versus manual process outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eurosem-stemflow-manual-code-comparison
+          path: |
+            tests/results.json
+            tests/*/diag.out
+            tests/*/stat.out
+            tests/*/stdout.log
+            tests/*/LAI.PAR
+            eu/eurseml.for
+          retention-days: 21
