@@ -52,7 +52,7 @@ def swehr_run(src,base,rain,detach):
     record=dict(engine="SWEHR native C",scenario=detach,rain_mm_h=rain,run_code=code,
                 original_parameters=detach=="original_zero",workdir=wd.name)
     if code==0:
-        topo=arr(wd/"topoin.txt").ravel()
+        topo=arr(wd/"topoin.txt").reshape((int(original[0]),int(original[1]))).T.ravel()  # input i-major; output j-major
         tout=arr(wd/"topoout.txt").ravel()
         mm=arr(wd/"m.txt")
         depth=arr(wd/"depth.txt")
@@ -105,8 +105,18 @@ def main():
             for det in (("exploratory_a1_ad1",) if FAST else ("original_zero","exploratory_a1_ad1")):
                 try: records.append(swehr_run(swehr,ROOT/"SWEHR",r,det))
                 except Exception as e: records.append(dict(engine="SWEHR native C",scenario=det,rain_mm_h=r,error=repr(e)))
-    files=sorted(str(x) for x in euro.glob("*.for"))
-    code,log=shell(["gfortran","-std=legacy","-fallow-argument-mismatch","-ffixed-line-length-none",
+    # Historical Lahey F77 files include DOS Ctrl-Z markers and annotations after fixed column 72.
+    # Reformat ONLY legacy source-file encoding/column-72 layout; preserve all calculation statements.
+    compat=ROOT/"source_eurosem_fixed72"
+    compat.mkdir(exist_ok=True)
+    files=[]
+    for f in sorted(euro.glob("*.for")):
+        lines=f.read_bytes().decode("latin1").splitlines()
+        clean="\n".join(ln[:72] for ln in lines if "\x1a" not in ln)+"\n"
+        target=compat/f.name
+        target.write_text(clean)
+        files.append(str(target))
+    code,log=shell(["gfortran","-std=legacy","-fallow-argument-mismatch","-fno-range-check",
                    "-o",str(ROOT/"EUROSEM")]+files,ROOT,90)
     (OUT/"eurosem_build.log").write_text(log)
     info["eurosem_compile_rc"]=code
