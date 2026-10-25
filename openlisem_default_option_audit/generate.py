@@ -34,7 +34,7 @@ def generate():
         with rasterio.open(p) as ds:
             assert np.allclose(ds.read(1),grain)
     base=(REF/'runs'/'Oak_dt10_exponential_eff1.run').read_text(encoding='utf8')
-    assert 'Routing Kin Wave 2D=0' in base
+    assert 'Routing Kin Wave 2D=2' in base  # generated precursor uses native dynamic wave
     rows=[]
     for grain in (99,100):
         for mode in ('factory','advanced','altSV'):
@@ -44,6 +44,7 @@ def generate():
                 dest.mkdir(exist_ok=True)
                 s=base
                 mods={
+                    'Routing Kin Wave 2D':0,
                     'Timestep':dt,
                     'Deposition continuous':int(mode!='factory'),
                     'Deposition exponential':int(mode!='factory'),
