@@ -21,7 +21,7 @@ jobs:
             -o SHETRAN_for_Linux_V4.7.5.zip
           sha256sum SHETRAN_for_Linux_V4.7.5.zip | tee official_binary_sha256.txt
           unzip -q SHETRAN_for_Linux_V4.7.5.zip -d release
-          find release -maxdepth 6 -type f | head -55
+          find release -maxdepth 6 -type f | sed -n '1,55p'
           git clone --depth 1 https://github.com/nclwater/Shetran.git official-source
           git -C official-source rev-parse HEAD | tee official_source_commit.txt
           find official-source/examples/Cobres/model -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
@@ -48,7 +48,7 @@ jobs:
           set -euo pipefail
           BIN="$(cat binary_path.txt)"
           cd official-source/examples/Cobres/model
-          timeout 300s "$BIN" -f rundata_cob.txt > ../../../../shetran-native.stdout.log 2>&1
+          timeout 300s "$BIN" -f rundata_cob.txt > ../../../shetran-native.stdout.log 2>&1
           code=$?
           echo "NATIVE_EXIT=$code"
           tail -90 ../../../../shetran-native.stdout.log
