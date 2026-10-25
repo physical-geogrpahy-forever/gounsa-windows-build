@@ -1,0 +1,102 @@
+name: EUROSEM LAI Windows native executable test
+on:
+  push:
+    branches: [eurosem-single-model-lai-20261025]
+    paths:
+      - ".github/workflows/eurosem-lai-windows.yml"
+      - "eurosem_lai_1998/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-native:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc-fortran
+            git
+      - name: Fetch Lancaster archived program and repair legacy indexing
+        shell: pwsh
+        run: |
+          git clone --depth 1 https://github.com/TheSoilman/EUROSEM.git eu
+          if($LASTEXITCODE -ne 0){throw "Clone failed"}
+          python eurosem_lai_1998/prepare_source.py
+          if($LASTEXITCODE -ne 0){throw "Compatibility repair failed"}
+          Push-Location eu
+          python ../eurosem_lai_1998/patch_interception.py
+          if($LASTEXITCODE -ne 0){throw "LAI source patch failed"}
+          @("1 4.0 0.20 0.046","2 4.0 0.20 0.046") | Set-Content LAI.PAR -Encoding Ascii
+          Pop-Location
+      - name: Compile actual Windows executable
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd eu
+          gfortran --version | head -n1
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-72 -fno-range-check -O0 -w Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for -o EUROSEM_LAI.exe
+          sha256sum EUROSEM_LAI.exe
+      - name: Execute native Windows example
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd eu
+          printf '\nEUROSEM LAI Windows test\nn\ntest.par\ntest.pcp\nstat.out\ndyn.out\ndiag.out\nn\n' > stdin.txt
+          ./EUROSEM_LAI.exe < stdin.txt > stdout.log 2>&1
+          test -s diag.out
+          test -s stat.out
+          grep 'INTERCEPTION DATA FOR ELEMENT' diag.out
+          tail -24 stat.out
+      - name: Audit real canopy partition
+        shell: pwsh
+        run: |
+          @'
+          from pathlib import Path
+          import re,json
+          t=Path('eu/diag.out').read_text(errors='replace')
+          rows=[]
+          for block in t.split('INTERCEPTION DATA FOR ELEMENT')[1:]:
+              lines=block.splitlines()
+              pos=next(i for i,x in enumerate(lines) if 'VEGSTORE' in x)
+              for line in lines[pos+2:]:
+                  a=re.findall(r'[-+]?\d+(?:\.\d+)?',line)
+                  if len(a)>=7 and float(a[1])>0:
+                      vals=list(map(float,a[:7]))
+                      balance=vals[1]-sum(vals[2:6])
+                      assert abs(balance)<0.01,balance
+                      rows.append(dict(rain_mm=vals[1],free_mm=vals[2],
+                                       drip_mm=vals[3],stem_mm=vals[4],
+                                       storage_mm=vals[5],error_mm=balance))
+                      break
+          assert len(rows)==2,rows
+          Path('eu/windows-qa.json').write_text(json.dumps(rows,indent=2))
+          print('WINDOWS_NATIVE_OUTPUT',rows)
+          '@ | python -
+          if($LASTEXITCODE -ne 0){throw "Windows verification failed"}
+      - name: Upload exe and reproducibility data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EUROSEM_LAI_Windows_1998_gfortran
+          path: |
+            eu/EUROSEM_LAI.exe
+            eu/LAI.PAR
+            eu/test.par
+            eu/test.pcp
+            eu/eurseml.for
+            eu/eplanel.for
+            eu/stdin.txt
+            eu/stdout.log
+            eu/windows-qa.json
+            eu/stat.out
+            eu/dyn.out
+            eu/diag.out
+          retention-days: 21
