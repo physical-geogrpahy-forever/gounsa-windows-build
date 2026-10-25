@@ -13,7 +13,7 @@ DEPTHS=(10,20,30,40,50)
 records=[]
 
 def shell(args,cwd,timeout=120,input_text=None):
-    p=subprocess.run(args,cwd=cwd,text=True,input=input_text,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=timeout)
+    p=subprocess.run(args,cwd=cwd,text=True,encoding="latin1",input=input_text,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=timeout)
     return p.returncode,p.stdout[-18000:]
 
 def clone(url,dest):
