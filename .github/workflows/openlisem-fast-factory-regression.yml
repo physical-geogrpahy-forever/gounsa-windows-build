@@ -1,0 +1,98 @@
+name: OpenLISEM fast original-binary factory regression
+on:
+  push:
+    branches: [openlisem-752-virtual-trial-20261023]
+    paths: [".github/workflows/openlisem-fast-factory-regression.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Make reproducible small-grid native OpenLISEM inputs
+        run: |
+          python -m pip install --disable-pip-version-check numpy rasterio
+          python openlisem_virtual_trial/generate_inputs.py
+          @'
+          from pathlib import Path
+          import re,csv
+          root=Path('openlisem_fast_factory_regression')
+          for sub in ('runs','results','logs','rain'): (root/sub).mkdir(parents=True,exist_ok=True)
+          src=(Path('openlisem_virtual_trial')/'runs'/'Oak_flat_corrected_P20.run').read_text('utf8')
+          def change(t,key,val):
+              result,num=re.subn(r'(?m)^'+re.escape(key)+r'=.*$',lambda m:key+'='+str(val),t)
+              assert num==1,(key,num)
+              return result
+          runs=[]
+          for mode in ('factory','legacy','advanced','alternative'):
+              for dt in (2,10):
+                  label=f'{mode}_dt{dt}'
+                  out=root/'results'/label
+                  out.mkdir(exist_ok=True)
+                  s=src
+                  opts={'Routing Kin Wave 2D':0,'Timestep':dt,
+                      'Deposition continuous':int(mode!='legacy'),
+                      'Deposition exponential':int(mode in ('advanced','alternative')),
+                      'Settling Velocity':3 if mode=='alternative' else 1,
+                      'Map Directory':str((Path('openlisem_virtual_trial')/'maps'/'Oak_flat_corrected').resolve())+'\\',
+                      'Result Directory':str(out.resolve())+'\\',
+                      'Rainfall Directory':str((root/'rain').resolve())+'\\',
+                      'Rainfall file':f'P20_dt{dt}.txt',
+                      'Rainfall Bias Correction':3600/(3600+dt)}
+                  for k,v in opts.items():s=change(s,k,v)
+                  if mode=='alternative':s+='\nSettlingVelocity=3\n'
+                  (root/'runs'/(label+'.run')).write_text(s,encoding='utf8')
+                  runs.append((label,mode,dt))
+          for dt in (2,10):
+              (root/'rain'/f'P20_dt{dt}.txt').write_text(
+                  '# 20 mm/h for 60min\n2\ntime\ngauge 1\n001:0000 20.0\n001:0060 0\n001:0120 0\n',encoding='ascii')
+          print('FAST_AUDIT_INPUTS',runs)
+          '@ | Set-Content -Path openlisem_fast_factory_regression/gen.py -Encoding utf8
+          python openlisem_fast_factory_regression/gen.py
+          if($LASTEXITCODE -ne 0){throw 'input generator failed'}
+      - name: Install official 7.5.2
+        run: |
+          $installer=Join-Path $env:RUNNER_TEMP 'openLisemSetup_7.5.2.exe'
+          Invoke-WebRequest 'https://github.com/vjetten/openlisem/releases/download/v7.5.2/openLisemSetup_7.5.2.exe' -OutFile $installer -MaximumRedirection 10 -TimeoutSec 180
+          $hash=(Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          if($hash -ne 'f8a5722ed0b370f32fb3dae5c55465427abe75b1155b50bf12aa5516d6b4ca79'){throw 'Binary integrity failure'}
+          $p=Start-Process $installer -ArgumentList @('/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES','/SP-','/DIR=C:\openlisem') -Wait -PassThru
+          if($p.ExitCode -ne 0){throw "installer $($p.ExitCode)"}
+      - name: Run eight small-grid original-executable controls
+        run: |
+          $root=Join-Path (Get-Location) 'openlisem_fast_factory_regression'
+          'name,exit,totals' | Set-Content (Join-Path $root 'status.csv')
+          foreach($run in (Get-ChildItem (Join-Path $root 'runs') -Filter '*.run' | Sort-Object Name)){
+            $label=$run.BaseName
+            $log=Join-Path $root "logs\$label.out.txt"
+            $err=Join-Path $root "logs\$label.err.txt"
+            $p=Start-Process 'C:\openlisem\bin\lisem.exe' -ArgumentList @('-ni','-f','-r',('"' + $run.FullName + '"')) -RedirectStandardOutput $log -RedirectStandardError $err -PassThru
+            if($p.WaitForExit(20000)){$code=$p.ExitCode}else{$p.Kill();$code='TIMEOUT'}
+            $exists=Test-Path (Join-Path $root "results\$label\totals.csv")
+            Write-Host "FAST_NATIVE_RESULT $label exit=$code totals=$exists"
+            "$label,$code,$exists" | Add-Content (Join-Path $root 'status.csv')
+            if($exists){
+              $path=Join-Path $root "results\$label\totals.csv"
+              Get-Content $path | Select-String 'Average soil loss|Total outflow \(overland|Total Precipitation|Total soil loss \(ton\)' | ForEach-Object {Write-Host "FAST_NATIVE_MEASURE $label $($_.Line)"}
+            }
+          }
+      - name: Upload fast audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlisem-native-752-fast-factory-regression
+          path: |
+            openlisem_fast_factory_regression/status.csv
+            openlisem_fast_factory_regression/runs/
+            openlisem_fast_factory_regression/logs/
+            openlisem_fast_factory_regression/results/*/totals.csv
+          retention-days: 21
