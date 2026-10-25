@@ -1,5 +1,5 @@
 """Controlled OpenLISEM 7.5.2 audit on identical synthetic inputs.
-This is NOT an upstream official dataset. Does not implement a custom physical model.
+This is NOT an upstream official dataset. Factory modes: continuous=1, exponential=0. Does not implement a custom physical model.
 Only varies source-code routing modes, D50, and timestep in native executable.
 """
 import csv, re, shutil, sys
@@ -37,7 +37,7 @@ def generate():
     assert 'Routing Kin Wave 2D=2' in base  # generated precursor uses native dynamic wave
     rows=[]
     for grain in (99,100):
-        for mode in ('factory','advanced','altSV'):
+        for mode in ('factory','legacy','advanced','altSV'):
             for dt in (2,10):
                 tag=f'g{grain}_{mode}_dt{dt}'
                 dest=ROOT/'results'/tag
@@ -46,8 +46,8 @@ def generate():
                 mods={
                     'Routing Kin Wave 2D':0,
                     'Timestep':dt,
-                    'Deposition continuous':int(mode!='factory'),
-                    'Deposition exponential':int(mode!='factory'),
+                    'Deposition continuous':int(mode!='legacy'),
+                    'Deposition exponential':int(mode in ('advanced','altSV')),
                     'Settling Velocity':3 if mode=='altSV' else 1,
                     'Detachment efficiency':1,
                     'Map Directory':str((ROOT/'maps'/f'd50_{grain}').resolve())+'\\',
