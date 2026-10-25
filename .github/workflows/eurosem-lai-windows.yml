@@ -55,6 +55,33 @@ jobs:
           test -s stat.out
           grep 'INTERCEPTION DATA FOR ELEMENT' diag.out
           tail -24 stat.out
+      - name: Build self-contained Windows executable directory
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd eu
+          mkdir -p portable
+          cp EUROSEM_LAI.exe LAI.PAR test.par test.pcp stdin.txt portable/
+          for dll in libgfortran-5.dll libquadmath-0.dll libgcc_s_seh-1.dll libwinpthread-1.dll libgomp-1.dll; do
+            if [ -f "/mingw64/bin/$dll" ]; then cp "/mingw64/bin/$dll" portable/; fi
+          done
+          ls -lh portable/
+      - name: Run portable folder without MSYS2 on PATH
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path (Get-Location) 'eu\portable'
+          $old=$env:PATH
+          try {
+            $env:PATH="$root;$env:SystemRoot\System32;$env:SystemRoot"
+            Push-Location $root
+            cmd /c "EUROSEM_LAI.exe < stdin.txt > portable.stdout.txt 2>&1"
+            $ret=$LASTEXITCODE
+            Pop-Location
+            if($ret -ne 0){throw "Portable Windows executable returned $ret"}
+            if(!(Test-Path (Join-Path $root 'diag.out'))){throw 'Portable output missing'}
+            Write-Host "PORTABLE_WINDOWS_EXECUTION_PASS=TRUE"
+          } finally { $env:PATH=$old }
       - name: Audit real canopy partition
         shell: pwsh
         run: |
@@ -88,6 +115,7 @@ jobs:
           name: EUROSEM_LAI_Windows_1998_gfortran
           path: |
             eu/EUROSEM_LAI.exe
+            eu/portable/
             eu/LAI.PAR
             eu/test.par
             eu/test.pcp
