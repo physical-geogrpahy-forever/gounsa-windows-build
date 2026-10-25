@@ -18,7 +18,7 @@ jobs:
           sudo apt-get install -y gfortran
           python3 -m pip install --break-system-packages numpy
       - name: Download and run unmodified C and Fortran engines on source examples
-        run: python3 experiments/rainfall_10_50/run_original_engines.py
+        run: python3 experiments/rainfall_10_50/run_original_engines.py --fast
       - name: Summarize original engine results
         if: always()
         run: |
