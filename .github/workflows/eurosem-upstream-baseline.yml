@@ -1,0 +1,75 @@
+name: EUROSEM 1998 upstream source and official example
+on:
+  push:
+    branches: [eurosem-single-model-lai-20261025]
+    paths: ['.github/workflows/eurosem-upstream-baseline.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eurosem-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone Lancaster EUROSEM archival source and published example
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/TheSoilman/EUROSEM.git upstream-eurosem
+          cd upstream-eurosem
+          echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" | tee ../upstream-version.txt
+          ls -lah
+      - name: Compile unmodified original Fortran 77 EUROSEM
+        run: |
+          set -euo pipefail
+          cd upstream-eurosem
+          gfortran --version | head -n1
+          gfortran -std=legacy -fallow-argument-mismatch -ffixed-line-length-none -fno-range-check -O0 -w             Euroa.for emainl.for eplanel.for eurozl.for eurseml.for eusedl.for             -o eurosem.exe 2>&1 | tee ../compile-original.txt
+      - name: Execute published test.par and test.pcp without changing source
+        run: |
+          set -euo pipefail
+          cd upstream-eurosem
+          rm -f EUROM.FIL
+          printf '\nEUROSEM 1998 ORIGINAL BASELINE\nn\ntest.par\ntest.pcp\nstat.out\ndyn.out\ndiag.out\nn\n' > input_answers.txt
+          timeout 50s ./eurosem.exe < input_answers.txt > ../original-stdout.txt 2>&1
+          cat ../original-stdout.txt | tail -50
+          ls -lh *.out
+      - name: Verify native canopy partition outputs and basic numerical finiteness
+        run: |
+          set -euo pipefail
+          cd upstream-eurosem
+          python3 - <<'PY'
+          import pathlib,re,math,json
+          files=['stat.out','dyn.out','diag.out']
+          info={}
+          for name in files:
+              p=pathlib.Path(name)
+              assert p.exists() and p.stat().st_size>50,(name,'no real output')
+              s=p.read_text(errors='replace')
+              values=[float(t.replace('D','E')) for t in re.findall(r'(?<![A-Za-z])[-+]?\d+\.\d+(?:[EeDd][-+]?\d+)?',s)]
+              bad=sum(not math.isfinite(v) for v in values)
+              info[name]={'size':p.stat().st_size,'parsed_numbers':len(values),'nonfinite':bad}
+              print('EUROSEM_FILE',name,info[name])
+          found=[line for line in pathlib.Path('diag.out').read_text(errors='replace').splitlines() if 'INTERCEPTION' in line or 'STEM' in line or 'DRIP' in line]
+          print('EUROSEM_CANOPY_LINES',found[:12])
+          assert 'INTERCEPTION DATA FOR ELEMENT' in pathlib.Path('diag.out').read_text(errors='replace')
+          pathlib.Path('../original-qa.json').write_text(json.dumps(info,indent=2))
+          PY
+      - name: Archive unmodified model inputs and native outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eurosem-1998-original-test-baseline
+          path: |
+            upstream-version.txt
+            compile-original.txt
+            original-stdout.txt
+            original-qa.json
+            upstream-eurosem/input_answers.txt
+            upstream-eurosem/test.par
+            upstream-eurosem/test.pcp
+            upstream-eurosem/stat.out
+            upstream-eurosem/dyn.out
+            upstream-eurosem/diag.out
+          if-no-files-found: warn
+          retention-days: 21
