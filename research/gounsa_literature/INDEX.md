@@ -1,10 +1,10 @@
 # Gounsa Literature Index
 
-업데이트: 2026-09-23
+업데이트: 2026-10-25
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (369)
+## Papers (377)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -152,11 +152,15 @@
 - `papers/2007_RiekeZapp_RockFragmentsConcentratedFlowArmour.md`
 - `papers/2007_Sato_SEIB_DGVM.md`
 - `papers/2007_Sharmeen_Willgoose_LongTermArmour.md`
+- `papers/2007_Xiao_HydrologicProcessesResidentialScale.md`
+- `papers/2008_Apip_DistributedSedimentRunoffLumping.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2008_Ma_Shao_StonySoilDualPorosity.md`
+- `papers/2009_Charlier_BananaStemflowRunoff.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Cohen_mARM.md`
+- `papers/2009_Liang_StemflowThreeDimensionalSoilWater.md`
 - `papers/2010_Cohen_mARM3D.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Jomaa_HairsineRose_SplashWidth.md`
@@ -352,10 +356,13 @@
 - `papers/2025_Zhou_PnET_CN_Succession.md`
 - `papers/2025_Zhou_SedimentSourceSinkSuccession.md`
 - `papers/2026_Bemis_CriticalZoneSuccession.md`
+- `papers/2026_Beven_VanStan_StemflowPreferentialFlowReview.md`
 - `papers/2026_Braga_SERGHEI_SE_Finite_Volume_Evaluation.md`
 - `papers/2026_Bruns_FORMIND_mHM.md`
 - `papers/2026_Chen_BiomeE_Succession.md`
+- `papers/2026_Chen_MaizeInRowInterRowErosion.md`
 - `papers/2026_deVries_ForSTEM.md`
+- `papers/2026_DiPrima_TreesControlHillslopeSubsurfaceFlow.md`
 - `papers/2026_Emtehani_LISEMHazard_SedimentDeposition.md`
 - `papers/2026_FireLands_Preprint.md`
 - `papers/2026_Ghose_SORTIE_SpatialValidation.md`
@@ -365,6 +372,7 @@
 - `papers/2026_Jia_ParFlow_LPJGUESS.md`
 - `papers/2026_Jia_PF_LPJG.md`
 - `papers/2026_Kantzenbach_GRASSMIND_BODIUM.md`
+- `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Song_SlopeDependentRockFragmentErosion.md`
@@ -437,7 +445,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (23)
+## Decisions (24)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -462,3 +470,4 @@
 - `decisions/2026-09-23_STRICT_SPATIAL_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_VEGETATION_SHORTLIST_AFTER_SEC_FATES_AUDIT.md`
+- `decisions/2026-10-25_CANOPY_STEMFLOW_RUNOFF_EROSION_RESEARCH.md`
