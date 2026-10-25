@@ -25,6 +25,12 @@ jobs:
           cat experiments/rainfall_10_50/outputs/metadata.json || true
           cat experiments/rainfall_10_50/outputs/results.csv || true
           tail -50 experiments/rainfall_10_50/outputs/eurosem_build.log || true
+          for r in 10 20 30 40 50; do
+            echo "========= EUROSEM RAIN $r STATIC OUTPUT ========="
+            cat "experiments/rainfall_10_50/outputs/eurosem_${r}/static_tail.log" || true
+            echo "========= EUROSEM RAIN $r DYNAMIC OUTPUT ========="
+            cat "experiments/rainfall_10_50/outputs/eurosem_${r}/dynamic_tail.log" || true
+          done
       - name: Preserve logs and outputs
         if: always()
         uses: actions/upload-artifact@v4
