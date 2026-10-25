@@ -50,7 +50,7 @@ def swehr_run(src,base,rain,detach):
     code,log=shell([str(base)],wd,timeout=24 if FAST else 110)
     (wd/"console.log").write_text(log)
     record=dict(engine="SWEHR native C",scenario=detach,rain_mm_h=rain,run_code=code,
-                original_parameters=detach=="original_zero",workdir=wd.name)
+                original_parameters=detach=="original_zero",probe_patch=FAST,workdir=wd.name)
     if code==0:
         topo=arr(wd/"topoin.txt").reshape((int(original[0]),int(original[1]))).T.ravel()  # input i-major; output j-major
         tout=arr(wd/"topoout.txt").ravel()
@@ -97,7 +97,23 @@ def main():
     euro=ROOT/"source_eurosem"
     info["swehr_commit"]=clone("https://github.com/csdms-contrib/swehr.git",swehr)
     info["eurosem_commit"]=clone("https://github.com/TheSoilman/EUROSEM.git",euro)
-    code,log=shell(["gcc","-O2","-std=gnu99","-o",str(ROOT/"SWEHR"),str(swehr/"SWEHR.c"),"-lm"],ROOT)
+    # Diagnostic probe points in the original example are hardwired to y=1,10,...,50.
+    # On the 7-row test crop ONLY, map those OUTPUT PROBES to valid grid coordinates.
+    # No infiltration, momentum or sediment balance equations are altered.
+    swehr_source=swehr/"SWEHR.c"
+    if FAST:
+        old=swehr_source.read_text()
+        new=old
+        new=new.replace("outlety2=10;","outlety2=6;")
+        for ii,yy in enumerate((1,2,3,4,5,6),start=1):
+            import re
+            new,ct=re.subn(r"(YPOINT\["+str(ii)+r"\]=)\d+;",r"\g<1>"+str(yy)+";",new)
+            assert ct==1, (ii,ct)
+        assert new!=old
+        swehr_source=ROOT/"SWEHR_compat_probe_points.c"
+        swehr_source.write_text(new)
+        (OUT/"swehr_compat_changes.txt").write_text("Only output probe positions YPOINT[1..6] and outlety2 changed for 7-row test crop; physical equations preserved.\n")
+    code,log=shell(["gcc","-O2","-std=gnu99","-o",str(ROOT/"SWEHR"),str(swehr_source),"-lm"],ROOT)
     (OUT/"swehr_build.log").write_text(log)
     info["swehr_compile_rc"]=code
     if code==0:
