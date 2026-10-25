@@ -24,27 +24,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p swehr_paired/dry swehr_paired/rainfall
-          cp SWEHR_original/*.txt SWEHR_original/swehr swehr_paired/dry/
-          cp SWEHR_original/*.txt SWEHR_original/swehr swehr_paired/rainfall/
+          for mode in dry_zero dry_cal rain_zero rain_cal; do
+            mkdir -p "swehr_paired/$mode"
+            cp SWEHR_original/*.txt SWEHR_original/swehr "swehr_paired/$mode/"
+          done
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('swehr_paired/rainfall')
-          inp=(p/'input.txt').read_text().split()
-          assert len(inp)==14,inp
-          inp[6]='9000'    # McGuire et al. 2016 raindrop detachability (kg/m3)
-          inp[7]='410000'  # McGuire et al. 2016 deposited-layer redetachability (kg/m3)
-          (p/'input.txt').write_text('\t'.join(inp)+'\n')
-          rain=[20e-3/3600 if k<10 else 0 for k in range(60)]
-          (p/'rain.txt').write_text(' '.join(f'{v:.12g}' for v in rain)+'\n')
-          print('RAIN_FORCING',rain[:12],'cum_input_mm',sum(rain[:10])*60*1000)
+          for mode in ('dry_zero','dry_cal','rain_zero','rain_cal'):
+              p=Path('swehr_paired')/mode
+              if mode.endswith('_cal'):
+                  inp=(p/'input.txt').read_text().split()
+                  assert len(inp)==14,inp
+                  inp[6]='9000'
+                  inp[7]='410000'
+                  (p/'input.txt').write_text(' '.join(inp)+'\n')
+              if mode.startswith('rain_'):
+                  rain=[20e-3/3600 if k<10 else 0 for k in range(60)]
+                  (p/'rain.txt').write_text(' '.join(f'{v:.12g}' for v in rain)+'\n')
+              print('FORCING',mode,'a_ad=',(p/'input.txt').read_text().split()[6:8],
+                    'rain_mm=',sum(float(v) for v in (p/'rain.txt').read_text().split()[:10])*60*1000)
           PY
       - name: Run full 600-second simulations using same SWEHR executable
         shell: bash
         run: |
           set -euo pipefail
           export OMP_NUM_THREADS=1
-          for mode in dry rainfall; do
+          for mode in dry_zero dry_cal rain_zero rain_cal; do
             echo "SWEHR_RUN_BEGIN $mode"
             ( cd "swehr_paired/$mode" && timeout 90s ./swehr > ../$mode.stdout.log 2>&1 )
             echo "SWEHR_RUN_COMPLETED $mode"
@@ -59,7 +64,7 @@ jobs:
           root=Path('swehr_paired')
           outputs=['topoout.txt','depth.txt','m.txt','stage.txt','maxdepth.txt','vel.txt','c.txt']
           record={}
-          for mode in ('dry','rainfall'):
+          for mode in ('dry_zero','dry_cal','rain_zero','rain_cal'):
               record[mode]={}
               for name in outputs:
                   path=root/mode/name
@@ -72,10 +77,12 @@ jobs:
                       'min':min(finite),'max':max(finite),'mean':sum(finite)/len(finite)}
               print('SWEHR_NUMERIC_HEALTH',mode,record[mode])
           for nm in ('topoout.txt','depth.txt','m.txt','stage.txt'):
-              a=record['dry'][nm];b=record['rainfall'][nm]
-              print('SWEHR_DIFFERENCE',nm, 'mean_rain_minus_dry',b['mean']-a['mean'],'nan_dry',a['nan_count'],'nan_rain',b['nan_count'])
-          assert record['rainfall']['depth.txt']['nan_count']==0
-          assert record['rainfall']['topoout.txt']['nan_count']==0
+              for a_mode,b_mode in (('dry_zero','rain_zero'),('dry_cal','rain_cal'),('dry_zero','dry_cal'),('rain_zero','rain_cal')):
+                  a=record[a_mode][nm];b=record[b_mode][nm]
+                  print('SWEHR_PAIRED_CHANGE',nm,b_mode,'minus',a_mode,'mean=',b['mean']-a['mean'],
+                        'nan_before',a['nan_count'],'nan_after',b['nan_count'])
+          assert record['rain_cal']['depth.txt']['nan_count']==0
+          assert record['rain_cal']['topoout.txt']['nan_count']==0
           # Treat any NaN in a physically meaningful output as a validation warning,
           # not as a successful numerical test. Preserve the data for diagnosis.
           (root/'numeric_qa.json').write_text(json.dumps(record,indent=2))
