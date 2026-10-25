@@ -1309,3 +1309,18 @@ This is not a generic ranking of forest models.
 
 Latest decision:
 - `decisions/2026-09-22_LIDAR_VEGETATION_ENGINE_SELECTION.md`
+
+
+---
+
+# 2026-10-25 신규 확인: 수관 강우 분배 → 침투/유출 → 침식의 연쇄
+
+**신규 판정 문서:** [수관-수간유하-유출-침식 문헌 점검](decisions/2026-10-25_CANOPY_STEMFLOW_RUNOFF_EROSION_RESEARCH.md)
+
+- **세 강우성분을 모두 계산하는 모형은 이미 존재**: EUROSEM(Morgan et al. 1998)은 직접 통과우/잎 배수/수간유하와 차단저류를 계산하여 infiltration, runoff, rainfall detachment, flow detachment와 연결함. Apip et al. (2008)도 같은 연쇄를 계승. 단, 두 연구는 SF를 유효강우로 합산하여 나무별 국지 집중의 효과가 지표 격자에서 유지되지 않으며 genuine 2D 지표유동을 구성하지 않음.
+- **국지 SF → runoff 검증 선례**: Charlier et al. (2009)은 수간유하 집중 구획을 따로 두어 18개 사건 수문곡선을 검증. 단, 침식 및 자유로운 2D 없음.
+- **식생 생태수문**: de Wergifosse et al. (2020)의 HETEROFOR는 canopy storage/throughfall/stemflow와 층별 토양수분 1시간 계산을 제공하지만 **지표유출을 구현하지 않음**.
+- **산불 후 2D 침식**: McGuire et al. (2016)은 Rutter 기반 차단, Green-Ampt 침투, 2D shallow-water, rainfall/flow detachment 및 size-selective sediment transport를 결합했지만 **줄기별 SF 집중과 수관적하 운동에너지는 별도 구현이 확인되지 않음**. 원 연구의 산불 직후 실제 사상에서는 수관이 전소하여 interception 자체를 끄고 검증함.
+- **반대 경로 중요**: Liang et al. (2009), Beven & Van Stan (2026), Di Prima et al. (2026)은 줄기 기부의 preferential infiltration을 강조. Chen et al. (2026)은 줄기열 내부 SF 공급은 크지만 inter-row 침식이 더 큰 관측을 보고. SF 증가를 항상 유출과 침식 증가로 환산하는 것은 부당함.
+- **강우박리 에너지**: Li & Tian (2026)은 자유통과/튀김/적하 빗방울의 KE를 구분. 자유 TF와 적하 TF를 합산한 체적 하나만으로 rainfall detachment를 정하지 말 것.
+- **미해결 결합**: 나무/초본 패치별 시간별 물수지와 위치별 TF·SF·drip KE를 2D 침투-유출-침식 엔진에 질량보존으로 전달. 이는 **새로운 coupling**이며 출판된 단일 모형 기능이라고 표기하지 않음. LPJ-GUESS 뿌리량과 침식저항의 별도 결합 문제는 종전대로 유지.
