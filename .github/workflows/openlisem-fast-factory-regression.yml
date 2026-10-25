@@ -41,6 +41,7 @@ jobs:
                   out.mkdir(exist_ok=True)
                   s=src
                   opts={'Routing Kin Wave 2D':0,'Timestep':dt,
+                      'Advanced Options': 0 if mode=='factory' else 1,
                       'Deposition continuous':int(mode!='legacy'),
                       'Deposition exponential':int(mode in ('advanced','alternative')),
                       'Settling Velocity':3 if mode=='alternative' else 1,
