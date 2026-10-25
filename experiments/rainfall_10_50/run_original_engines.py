@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Use unmodified published engines with their distributed example geometries.
+Only rainfall and explicitly tagged exploratory detachment parameters vary."""
+from pathlib import Path
+import subprocess, shutil, json, csv, traceback
+import numpy as np
+
+ROOT=Path(__file__).resolve().parent
+OUT=ROOT/"outputs"
+OUT.mkdir(exist_ok=True)
+DEPTHS=(10,20,30,40,50)
+records=[]
+
+def shell(args,cwd,timeout=120,input_text=None):
+    p=subprocess.run(args,cwd=cwd,text=True,input=input_text,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=timeout)
+    return p.returncode,p.stdout[-18000:]
+
+def clone(url,dest):
+    if not dest.exists():
+        code,log=shell(["git","clone","--depth","1",url,str(dest)],ROOT,120)
+        if code: raise RuntimeError(log)
+    code,sha=shell(["git","rev-parse","HEAD"],dest)
+    return sha.strip()
+
+def arr(path):
+    a=np.loadtxt(path)
+    return np.asarray(a,dtype=float)
+
+def swehr_run(src,base,rain,detach):
+    wd=OUT/f"swehr_{detach}_{rain:02d}"
+    wd.mkdir(parents=True,exist_ok=True)
+    for f in ("topoin.txt","particlesizein.txt","particlepercentin.txt"):
+        shutil.copy(src/f,wd/f)
+    original=list(map(float,(src/"input.txt").read_text().split()))
+    assert len(original)==14
+    original[5]=3600.0                # total run [s]
+    original[6]=0.0 if detach=="original_zero" else 1.0   # a: original=0
+    original[7]=0.0 if detach=="original_zero" else 1.0   # ad: original=0
+    original[10]=60.0                 # 60 rainfall samples
+    original[11]=60.0                 # interval 60 s
+    (wd/"input.txt").write_text(" ".join(map(str,original))+"\n")
+    (wd/"rain.txt").write_text(" ".join([f"{rain/3600000:.13g}"]*60)+"\n")
+    code,log=shell([str(base)],wd,timeout=110)
+    (wd/"console.log").write_text(log)
+    record=dict(engine="SWEHR native C",scenario=detach,rain_mm_h=rain,run_code=code,
+                original_parameters=detach=="original_zero",workdir=wd.name)
+    if code==0:
+        topo=arr(wd/"topoin.txt").ravel()
+        tout=arr(wd/"topoout.txt").ravel()
+        mm=arr(wd/"m.txt")
+        depth=arr(wd/"depth.txt")
+        mxdep=arr(wd/"maxdepth.txt")
+        record.update(max_water_depth_m=float(np.nanmax(mxdep)), mean_final_water_depth_m=float(np.nanmean(depth)),
+                      max_bed_elevation_change_m=float(np.nanmax(abs(tout-topo))),
+                      bed_volume_change_m3=float(np.nansum(tout-topo)*original[2]**2),
+                      deposited_sediment_kg_m2_sum=float(np.nansum(mm)))
+    return record
+
+def eurosem_run(src,binary,rain):
+    wd=OUT/f"eurosem_{rain:02d}"
+    wd.mkdir(exist_ok=True)
+    par=(src/"test.par").read_text(errors="replace")
+    pcp=(src/"test.pcp").read_text(errors="replace")
+    assert "30.0         10.0" in pcp
+    assert "100.          10.0" in pcp
+    pcp=pcp.replace("30.0         10.0",f"60.0         {rain:.1f}")
+    pcp=pcp.replace("100.          10.0",f"100.          {rain:.1f}")
+    (wd/"test.par").write_text(par)
+    (wd/"test.pcp").write_text(pcp)
+    (wd/"EUROM.FIL").write_text("\n".join(["dynamic.out","diag.out","","test.par","test.pcp","static.out",""])+"\n")
+    try: code,log=shell([str(binary)],wd,timeout=70,input_text="1\nRainfall sensitivity\nn\ny\n")
+    except subprocess.TimeoutExpired as e:
+        code=124
+        log=str(e)
+    (wd/"console.log").write_text(log)
+    rec=dict(engine="EUROSEM original Fortran",scenario="original_test_parameters",rain_mm_h=rain,run_code=code,workdir=wd.name)
+    if (wd/"static.out").exists():
+        s=(wd/"static.out").read_text(errors="replace")
+        (wd/"static_tail.log").write_text(s[-14000:])
+        rec["static_file_bytes"]=len(s)
+    if (wd/"dynamic.out").exists():
+        s=(wd/"dynamic.out").read_text(errors="replace")
+        (wd/"dynamic_tail.log").write_text(s[-14000:])
+        rec["dynamic_file_bytes"]=len(s)
+    return rec
+
+def main():
+    info={}
+    swehr=ROOT/"source_swehr"
+    euro=ROOT/"source_eurosem"
+    info["swehr_commit"]=clone("https://github.com/csdms-contrib/swehr.git",swehr)
+    info["eurosem_commit"]=clone("https://github.com/TheSoilman/EUROSEM.git",euro)
+    code,log=shell(["gcc","-O2","-std=gnu99","-o",str(ROOT/"SWEHR"),str(swehr/"SWEHR.c"),"-lm"],ROOT)
+    (OUT/"swehr_build.log").write_text(log)
+    info["swehr_compile_rc"]=code
+    if code==0:
+        for r in DEPTHS:
+            for det in ("original_zero","exploratory_a1_ad1"):
+                try: records.append(swehr_run(swehr,ROOT/"SWEHR",r,det))
+                except Exception as e: records.append(dict(engine="SWEHR native C",scenario=det,rain_mm_h=r,error=repr(e)))
+    files=sorted(str(x) for x in euro.glob("*.for"))
+    code,log=shell(["gfortran","-std=legacy","-fallow-argument-mismatch","-ffixed-line-length-none",
+                   "-o",str(ROOT/"EUROSEM")]+files,ROOT,90)
+    (OUT/"eurosem_build.log").write_text(log)
+    info["eurosem_compile_rc"]=code
+    if code==0:
+        for r in DEPTHS:
+            try: records.append(eurosem_run(euro,ROOT/"EUROSEM",r))
+            except Exception as e: records.append(dict(engine="EUROSEM original Fortran",rain_mm_h=r,error=repr(e)))
+    (OUT/"metadata.json").write_text(json.dumps(info,indent=2))
+    (OUT/"results.json").write_text(json.dumps(records,indent=2))
+    if records:
+        keys=sorted({k for d in records for k in d})
+        with (OUT/"results.csv").open("w",newline="") as f:
+            dw=csv.DictWriter(f,keys);dw.writeheader();dw.writerows(records)
+    print("SOURCE_META",json.dumps(info))
+    print("SIM_RESULTS",json.dumps(records))
+    if info["eurosem_compile_rc"]!=0: print("EUROSEM_BUILD_FAILURE",log[-6000:])
+
+if __name__=="__main__": main()
