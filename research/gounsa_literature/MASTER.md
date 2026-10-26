@@ -1,5 +1,8 @@
 # Gounsa Literature Master
 
+> **2026-10-26 긴급 정정: 고운사 유수침식 모형 채택 상태 = 미확정.** 이전 채팅에서 제안된 "SHETRAN 제외 → SWEHR이면 된다"는 결론을 명시적으로 철회한다. 원본 SWEHR 2017 공개 C에는 2016 연구논문의 Rutter 수관차단과 수관충격 차폐가 구현되었다고 입증되지 않으며, 기존 38개 사례는 임의 계수를 넣은 수정 포크일 뿐 원본 식생 모델이나 현장 결과가 아니다. SHETRAN 4.7.2의 native 강우사상 실행 성공은 고운사 세류 침식과 공간별 DEM 변화의 검증이 아니다. EUROSEM은 본질적 2D 유동 요구조건을 충족하지 않는다. Iber+는 학술 검증 연구가 있지만 연구자의 요구인 온전한 공개 소스 및 필요한 식생 결합 인터페이스가 확인되지 않아 오늘의 채택 판정을 내릴 수 없다. **유효한 단일 주 엔진이 확보되었다고 주장 금지.** 근거: [SWEHR 원본 코드 부재 확인](decisions/2026-10-26_OFFICIAL_SWEHR_V1_0_ORIGINAL_CODE_PROVENANCE.md), [SHETRAN 적합성 재검토](decisions/2026-10-26_SHETRAN_FIT_FOR_PURPOSE_REASSESSMENT.md), [Iber+ 등 기존 비교](decisions/2026-10-26_EUROSEM_SWEHR_IBERPLUS_COMPARISON.md).
+
+
 업데이트: 2026-10-26
 
 이 문서는 고운사 산불 후 식생-지형 상호작용 모델 문헌검토의 **단일 통합 요약본**이다.
