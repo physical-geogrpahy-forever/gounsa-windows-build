@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (439)
+## Papers (442)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -247,6 +247,7 @@
 - `papers/2018_Werner_LPJGUESS_EarthShape_Landforms.md`
 - `papers/2019_Belyazid_ForSAFEVeg.md`
 - `papers/2019_EscobarRuiz_SHETRAN_ProxyCatchment.md`
+- `papers/2019_Harmon_RSimTerrain_DynamicHydrology.md`
 - `papers/2019_Lehmann_STEP_TRAMM_RootDecayRegrowth.md`
 - `papers/2019_Lehsten_LPJ_GM_1_0.md`
 - `papers/2019_Liu_RootSystems_RillErodibility.md`
@@ -256,6 +257,7 @@
 - `papers/2019_Millares_Gullying_Basin_Scale.md`
 - `papers/2019_Welivitiya_SSSPAM_CoupledSoilscapeLandform.md`
 - `papers/2019_Xia_ForestLitter_HydrologyErosion.md`
+- `papers/2019_Zhu_Parallelized_SEIMS_Framework.md`
 - `papers/2020_Argles_RED_v1.md`
 - `papers/2020_Bart_RHESSys_WMFire.md`
 - `papers/2020_deWergifosse_HETEROFOR_Water.md`
@@ -421,6 +423,7 @@
 - `papers/2026_deVries_ForSTEM.md`
 - `papers/2026_DiPrima_TreesControlHillslopeSubsurfaceFlow.md`
 - `papers/2026_Emtehani_LISEMHazard_SedimentDeposition.md`
+- `papers/2026_FinaudGuyot_SW2D_Porosity_ShallowWater.md`
 - `papers/2026_FireLands_Preprint.md`
 - `papers/2026_Ghose_SORTIE_SpatialValidation.md`
 - `papers/2026_Gutierrez_ATYS_VegetationMorphodynamics.md`
@@ -446,7 +449,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (90)
+## Models (93)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -479,6 +482,7 @@
 - `models/FORMIND_mHM_GRASSMIND.md`
 - `models/ForSAFE_Veg_2D.md`
 - `models/GOplus.md`
+- `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/HETEROFOR.md`
 - `models/HydroPol2D.md`
 - `models/Iber.md`
@@ -490,6 +494,7 @@
 - `models/LandscapeDNDC_PSIM.md`
 - `models/LAPSUS.md`
 - `models/LAVESI_FIRE.md`
+- `models/LISEM_Integrated_VanDenBout_Source_Audit.md`
 - `models/LM4_1_PPA.md`
 - `models/LPJ_GM.md`
 - `models/LPJ_GUESS_BRANCH_MERGE_AUDIT_2026.md`
@@ -521,6 +526,7 @@
 - `models/RReShar_Regelib.md`
 - `models/SCION_FLORA.md`
 - `models/SEIB_DGVM.md`
+- `models/SEIMS.md`
 - `models/SERGHEI_SE.md`
 - `models/SHETRAN.md`
 - `models/SIBERIA.md`
@@ -539,7 +545,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (64)
+## Decisions (65)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -589,6 +595,7 @@
 - `decisions/2026-10-26_OPENLISEM_NUMERICAL_GO_NOGO_GATES.md`
 - `decisions/2026-10-26_OPENLISEM_THREE_CRITERIA_SOURCE_AND_STEEP_SLOPE_AUDIT.md`
 - `decisions/2026-10-26_POST_OPENLISEM_CANDIDATE_SOURCE_SCREENING.md`
+- `decisions/2026-10-26_POST_TIMEOUT_NEW_2D_ENGINES_SERGHEI_LISEM_SEIMS.md`
 - `decisions/2026-10-26_RAINFALL_EROSION_PHYSICAL_VALIDITY_AUDIT.md`
 - `decisions/2026-10-26_SHETRAN_20MMH_DETACHMENT_DECOMPOSITION.md`
 - `decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md`
