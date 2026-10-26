@@ -79,15 +79,19 @@ for r in [10,20,30,40,50]:
         net=re.findall(r"NET EROSION/DEPOSITION\s+([-+]?\d+(?:\.\d+)?)\s+kg",static,re.I)
         results["gross_interrill_kg_per_element"]=[float(z) for z in gross]
         results["net_erosion_kg_per_element"]=[float(z) for z in net]
+        if "basin_area_m2" in results and gross:
+            results["summed_gross_detachment_t_ha"]=sum(map(float,gross))/results["basin_area_m2"]*10
+        if "basin_runoff_mm" in results and "basin_area_m2" in results:
+            results["basin_runoff_m3"]=results["basin_runoff_mm"]*1e-3*results["basin_area_m2"]
         x.update(results)
         x["issue"]="Nonempty" if "rain_depth_mm" in x else "No parseable native summary"
         # Note: output success not assumed, even for populated files
     except Exception as e: x["issue"]=repr(e)
     rows.append(x)
-report+=["","## EUROSEM native summary and QA","| Rain (mm/h) | Rain depth native (mm) | Infiltration (mm) | Runoff (mm) | Water balance (%) | Gross interrill element masses (kg) | Output status |",
-"|---:|---:|---:|---:|---:|---|---|"]
+report+=["","## EUROSEM native summary and QA","| Rain (mm/h) | Rain depth native (mm) | Infiltration (mm) | Runoff (mm) | Water balance (%) | Gross detachment element masses (kg) | Net element erosion (kg) | Summed gross t/ha | Output status |",
+"|---:|---:|---:|---:|---|---|---:|---|"]
 for x in rows:
-    if x["engine"]=="EUROSEM":report.append(f"| {x['rain_intensity_mm_h']} | {x.get('rain_depth_mm','-')} | {x.get('infiltration_mm','-')} | {x.get('basin_runoff_mm','-')} | {x.get('balance_error_pct','-')} | {x.get('gross_interrill_kg_per_element','-')} | {x['issue']} |")
+    if x["engine"]=="EUROSEM":report.append(f"| {x['rain_intensity_mm_h']} | {x.get('rain_depth_mm','-')} | {x.get('infiltration_mm','-')} | {x.get('basin_runoff_mm','-')} | {x.get('balance_error_pct','-')} | {x.get('gross_interrill_kg_per_element','-')} | {x.get('net_erosion_kg_per_element','-')} | {x.get('summed_gross_detachment_t_ha','-')} | {x['issue']} |")
 report+=["","## Interpretability constraints",
 "- A return code of zero is not equivalent to a valid sediment balance or repeatable model result.",
 "- SWEHR source uses a transmissive lower boundary and three solid boundaries; all water and particle fluxes must be integrated to validate budgets.",
