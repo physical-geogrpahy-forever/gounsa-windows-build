@@ -1420,3 +1420,7 @@ Latest decision:
 - 원본 Fortran 및 공식 출력 검증: 침식 `GNU`와 표층 퇴적 `DLS`를 구분, 다음 사상 DEM에 `delta z = -sum(GNU * dt) + DLS_end-DLS_start`를 외부 신규 결합으로 전달하는 구조는 조건부 가능.
 - 원본 `FRRESP` 출력 44번에 초기화/기준시각 문제가 있으므로 단독 지형갱신량으로 사용 금지. `SY51/52/53` 초기 `DLS/FBETA/FDEL`과 수문 hotstart 정합성 및 미구현 `BALSED` 외부 감사 필요.
 - 상세 근거: `decisions/2026-10-26_SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT.md` 및 `models/SHETRAN.md`. 원본 예제 실행과 수지 검증 아직 미실시.
+
+
+### 2026-10-26 SHETRAN 전체 실행경로 감사 추가
+[SHETRAN 4.7.2 원본 전체 호출경로 감사](decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md)를 최신 상세 근거로 우선한다. 검토한 공식 Fortran: FRINIT/INFR/VSIN/ETIN/TMSTEP/OCQDQ/SYMAIN/SYCOLM/SYBED/FRRESP/HDF5/Hotstart. 확인된 필수 검증: 최초 유사계산 시간간격 누락, `GNU`의 `DLSMAX` threshold lag, 기존 output44 초기화 및 시간 재설정 오류, 외부 sediment boundary 미구현, BALSED 빈 함수, 수문 hotstart의 sediment 미포함, VS08 재생성으로 잔존 토심 소실 미표현. **SHETRAN 후보 유지, 최종채택 및 수치검증 주장 보류.**
