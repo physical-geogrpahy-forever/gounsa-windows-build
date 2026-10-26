@@ -49,3 +49,6 @@ OpenLISEM은 세 필수 조건을 *기능 및 적용 선례 수준에서* 전부
 - ../papers/2025_Opedes_OpenLISEM_MountElgon_Trenches.md
 - ../models/OpenLISEM.md
 - 2026-10-26_FULL_OPEN_SOURCE_NATIVE_2D_VEGETATION_EROSION_MODELS.md
+
+## 후속 정정 — 기존 실패 검증 이력의 우선 적용
+위 결과는 기능 및 출판 적용 선례를 검증한 것이지 7.5.2 실행 수치 안정성을 통과한 결과가 아니다. 2026-10-23 개발진 7.5.2 **Windows 원본 실행 성공**과 **유사유출량 시간간격 비수렴**, **유한 토층보다 큰 침식**, **GetSV() 기본 침전속도 계산 결함**, **침식가능 토사량 제한 비활성**을 같은 날 수행된 과거 QA에서 이미 입증했다. 2026-10-25 재시험도 native factory/advanced options와 유출구 문제를 드러냈다. 그러므로 앞서 '최우선 Windows 예제 실행 단계로 되돌리자'고 한 운영 추천은 **철회**한다. 구동 가능한 사실과 과학적으로 신뢰할 만한 침식 산출이 나온다는 주장은 서로 다르다. 실제 원본 수행 여부 미확인이라는 기존 문구는 **이번 새 세션만 놓고 설명한 것이고 과거 전체 검증 이력을 표현한 것은 아니었으므로 수정**한다. 상세 원본 및 수치는 [과거 실패 원인 복구](2026-10-26_OPENLISEM_752_PREVIOUS_NUMERICAL_FAILURE_RECOVERY.md)를 최우선 판정으로 따른다.
