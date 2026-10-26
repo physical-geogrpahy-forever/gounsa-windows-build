@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           EXE="$(pwd)/original/build/debug/bin/shetran"
-          for MMH in 10 30 50; do
+          for MMH in 10 20 30 40 50; do
             DIR="/tmp/shetran-native-cobres-rain${MMH}"
             mkdir -p "$DIR"
             cp -a original/examples/Cobres/model/. "$DIR/"
@@ -138,7 +138,7 @@ jobs:
       - name: Quantify original native sediment HDF5 and hourly integration discrepancy
         run: |
           python audit/experiments/analyze_shetran_native_cobres.py /tmp/shetran-native-cobres
-          for MMH in 10 30 50; do
+          for MMH in 10 20 30 40 50; do
             python audit/experiments/analyze_shetran_native_cobres.py "/tmp/shetran-native-cobres-rain${MMH}"
           done
       - uses: actions/upload-artifact@v4
