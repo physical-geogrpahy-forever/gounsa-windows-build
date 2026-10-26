@@ -34,7 +34,7 @@ def main():
     exe=ROOT/"EUROSEM_QA"
     compile_flags=["-O0","-g","-std=legacy","-fcheck=bounds","-finit-local-zero",
                    "-fallow-argument-mismatch","-fno-range-check"]
-    rc,log=cmd(["gfortran",*compile_flags,"-o",str(exe),*fs],ROOT,120)
+    rc,log=cmd(["gfortran",*compile_flags,"-o",str(exe),*fs],ROOT,timeout=120)
     (workspace/"compile.log").write_text(log)
     if rc:raise RuntimeError(log[-7000:])
     par=(src/"test.par").read_text(errors="replace")
