@@ -1,0 +1,90 @@
+name: Spatial SWEHR independent mechanism and stemflow tests
+on:
+  push:
+    branches: [spatial-vegetation-runoff-erosion-20261026]
+    paths:
+      - '.github/workflows/spatial_swehr_controls.yml'
+  workflow_dispatch:
+jobs:
+  process:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scenario: grass_dense
+            rain: 30
+            stemflow: off
+            mechanism: canopy_only
+          - scenario: grass_dense
+            rain: 30
+            stemflow: off
+            mechanism: hydraulic_only
+          - scenario: grass_dense
+            rain: 30
+            stemflow: off
+            mechanism: detachment_only
+          - scenario: oak_sparse
+            rain: 30
+            stemflow: off
+            mechanism: canopy_only
+          - scenario: oak_sparse
+            rain: 30
+            stemflow: off
+            mechanism: hydraulic_only
+          - scenario: oak_sparse
+            rain: 30
+            stemflow: off
+            mechanism: detachment_only
+          - scenario: barrier_equal
+            rain: 30
+            stemflow: off
+            mechanism: hydraulic_only
+          - scenario: island_equal
+            rain: 30
+            stemflow: off
+            mechanism: hydraulic_only
+          - scenario: grass_dense
+            rain: 10
+            stemflow: on
+            mechanism: all
+          - scenario: grass_dense
+            rain: 20
+            stemflow: on
+            mechanism: all
+          - scenario: grass_dense
+            rain: 40
+            stemflow: on
+            mechanism: all
+          - scenario: grass_dense
+            rain: 50
+            stemflow: on
+            mechanism: all
+          - scenario: oak_sparse
+            rain: 10
+            stemflow: on
+            mechanism: all
+          - scenario: oak_sparse
+            rain: 20
+            stemflow: on
+            mechanism: all
+          - scenario: oak_sparse
+            rain: 40
+            stemflow: on
+            mechanism: all
+          - scenario: oak_sparse
+            rain: 50
+            stemflow: on
+            mechanism: all
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 experiments/rainfall_10_50/spatial_patch_swehr.py --scenario ${{ matrix.scenario }} --rain ${{ matrix.rain }} --stemflow ${{ matrix.stemflow }} --mechanism ${{ matrix.mechanism }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: controlled-${{ matrix.scenario }}-${{ matrix.rain }}-${{ matrix.stemflow }}-${{ matrix.mechanism }}
+          path: |
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/qa_result.json
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/vegetation_map.csv
+          if-no-files-found: warn
