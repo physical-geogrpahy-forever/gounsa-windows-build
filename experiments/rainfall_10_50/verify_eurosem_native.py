@@ -44,7 +44,7 @@ def main():
         if f.name=="eurseml.for":
             # Observe original interception, throughfall, drip, stemflow WITHOUT
             # replacing the original INTERC equations.
-            h="\\n".join(lines)+"\\n"
+            h="\n".join(lines)+"\n"
             probe="""      WRITE(*,5005) RAIN(1),TFALL(1),DRIPD(1),STEMD(1),
      & DINTRT(1)*1000.
  5005 FORMAT('CANOPY_QA ',5(E15.7,1X))
