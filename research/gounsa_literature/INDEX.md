@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (389)
+## Papers (391)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -160,6 +160,7 @@
 - `papers/2008_Kinner_Moody_SteepBurnedHillslopeRainfall.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2008_Ma_Shao_StonySoilDualPorosity.md`
+- `papers/2008_Mayor_FlowlengthRunoffSourceConnectivity.md`
 - `papers/2009_Charlier_BananaStemflowRunoff.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
@@ -297,6 +298,7 @@
 - `papers/2023_Adams_FireCWD_SedimentStorage.md`
 - `papers/2023_Argles_JULES_RED_Harwood.md`
 - `papers/2023_Argles_JULES_RED_Sitka.md`
+- `papers/2023_Crompton_PatchHillslope_2DConnectivity.md`
 - `papers/2023_DeCaceres_MEDFATE.md`
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
 - `papers/2023_GarciaAlen_Iber_SoilMoistureAssimilation.md`
@@ -457,7 +459,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (28)
+## Decisions (29)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -487,3 +489,4 @@
 - `decisions/2026-10-26_SWEHR_EUROSEM_SOURCE_CLOSURE_VERIFICATION.md`
 - `decisions/2026-10-26_OAK_MISCANTHUS_NATIVE_MODEL_SENSITIVITY.md`
 - `decisions/2026-10-26_OAK_MISCANTHUS_REAUDIT.md`
+- `decisions/2026-10-26_DENSE_MISCANTHUS_SPARSE_OAK_SPATIAL_COMPARISON.md`
