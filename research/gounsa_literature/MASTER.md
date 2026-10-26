@@ -1414,3 +1414,9 @@ Latest decision:
 ## 2026-10-26 SHETRAN 강우사상별 DEM 갱신 입출력 완전 추적
 
 [원본 SHETRAN HDF5, FR39, SY51–SY53 및 hotstart 제약 검증](decisions/2026-10-26_SHETRAN_INTEREVENT_DEM_UPDATE_NATIVE_OUTPUT_AUDIT.md): 본 연구는 **원본 내부에 사상별 지형갱신이 없음**을 모델 탈락사유로 삼지 않는다. original `s_v_er=GNU×86400000`[mm/day] (원토양 강우/유수 박리), `s_t_dp=DLS×1000`[mm] (표면 퇴적층 두께), `s_dis`[kg/s]가 공식 V4 HDF5에서 확인됨. `SYCOLM`은 입경별 수송, 재퇴적, DLS와 FDEL 업데이트 원형 포함. `FRmod.f90`의 과거 출력 id44는 `GNUCUM − (DLS−DLSSRT)×1000`[mm] 원형 순유실량을 계산하지만 **PREVTM과 GNUCUM 초기화 보장 없음**으로 원 출력 수치 신뢰 금지. 다음 강우의 DEM은 외부 `z[n+1]=z[n]−∫GNUdt+(DLS_end−DLS_start)`로 갱신 가능하며, 원본 terrain FR37–FR39 `ZGRUND` 입력, 유사 초기상태 SY51 DLS, SY52 FBETA, SY53 FDEL이 존재. **원본 hotstart에 FBETA/FDEL/DLS 부재**, 따라서 단순 DEM 편집으로 보존적인 완전 다사상 재시작이 된다고 주장 금지. FR39 native `10G7.0` 고정 7글자 입력은 mm 이하 갱신값 손실 위험. 원본은 바꾸지 않고 **독립 event-to-event postprocessor** `experiments/shetran_original_event_bridge.py` 및 4개 unit test를 실제 구현, GitHub Actions 통과: [CI](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40280065364). Sampled GNU 적분이므로 정확한 sediment substep-integrated native ledger를 재현한 것은 아님. 출력은 new FRD, next DEM/depth/DLS와 `restart_ready=false` 오류진단. 아직 unmodified native SHETRAN Cobres 실행 또는 실제 출력 기반 사상 연결 검증은 없음.
+
+
+## 2026-10-26 SHETRAN 강우사상별 DEM 갱신 검토
+- 원본 Fortran 및 공식 출력 검증: 침식 `GNU`와 표층 퇴적 `DLS`를 구분, 다음 사상 DEM에 `delta z = -sum(GNU * dt) + DLS_end-DLS_start`를 외부 신규 결합으로 전달하는 구조는 조건부 가능.
+- 원본 `FRRESP` 출력 44번에 초기화/기준시각 문제가 있으므로 단독 지형갱신량으로 사용 금지. `SY51/52/53` 초기 `DLS/FBETA/FDEL`과 수문 hotstart 정합성 및 미구현 `BALSED` 외부 감사 필요.
+- 상세 근거: `decisions/2026-10-26_SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT.md` 및 `models/SHETRAN.md`. 원본 예제 실행과 수지 검증 아직 미실시.
