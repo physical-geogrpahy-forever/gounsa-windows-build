@@ -1,11 +1,47 @@
-name: SWEHR mass balance tests
+name: SWEHR mass budget validation
 on:
   push:
     branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - 'experiments/rainfall_10_50/verify_swehr_closure.py'
+      - '.github/workflows/swehr_mass_budget.yml'
   workflow_dispatch:
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: zero_closed
+            arg: '--rain 0 --seconds 120 --ks 0 --erosion off --boundary closed'
+          - tag: wet_closed
+            arg: '--rain 30 --seconds 120 --ks 0 --erosion off --boundary closed'
+          - tag: wet_open_infil
+            arg: '--rain 30 --seconds 120 --ks 0.000002 --erosion off --boundary open'
+          - tag: sed_open_short
+            arg: '--rain 30 --seconds 120 --ks 0.000002 --erosion on --boundary open'
+          - tag: rain_10
+            arg: '--rain 10 --seconds 3600 --ks 0.000002 --erosion on --boundary open'
+          - tag: rain_20
+            arg: '--rain 20 --seconds 3600 --ks 0.000002 --erosion on --boundary open'
+          - tag: rain_30
+            arg: '--rain 30 --seconds 3600 --ks 0.000002 --erosion on --boundary open'
+          - tag: rain_40
+            arg: '--rain 40 --seconds 3600 --ks 0.000002 --erosion on --boundary open'
+          - tag: rain_50
+            arg: '--rain 50 --seconds 3600 --ks 0.000002 --erosion on --boundary open'
     steps:
       - uses: actions/checkout@v4
-      - run: python3 experiments/rainfall_10_50/verify_swehr_closure.py --rain 0 --seconds 120 --ks 0 --erosion off --boundary closed
+      - name: Run conserved SWEHR equations
+        run: python3 experiments/rainfall_10_50/verify_swehr_closure.py ${{ matrix.arg }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swehr-closure-${{ matrix.tag }}
+          path: |
+            experiments/rainfall_10_50/runtime/**/qa_result.json
+            experiments/rainfall_10_50/runtime/**/run.log
+            experiments/rainfall_10_50/runtime/**/build.log
+            experiments/rainfall_10_50/runtime/**/original_source_sha.txt
