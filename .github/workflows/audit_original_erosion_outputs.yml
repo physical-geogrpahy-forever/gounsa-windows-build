@@ -1,0 +1,32 @@
+name: Audit Original Sediment Output Physically
+on:
+  push:
+    branches: [rainfall-sensitivity-original-models-20261025]
+    paths:
+      - 'experiments/rainfall_10_50/audit_existing_outputs.py'
+      - '.github/workflows/audit_original_erosion_outputs.yml'
+  workflow_dispatch:
+jobs:
+  scientific-audit:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --break-system-packages numpy
+      - name: Retrieve original full-grid 3x51 native SWEHR outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: original-rainfall-10-50-native-results
+          run-id: 40202181315
+          github-token: ${{ github.token }}
+          path: qa_inputs
+      - name: Audit original native runs
+        run: |
+          python3 experiments/rainfall_10_50/audit_existing_outputs.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-erosion-physical-audit
+          path: qa_reports/
