@@ -25,7 +25,11 @@ def main():
         cmd=[sys.executable,str(R/("verify_eurosem_native.py" if a.engine=="eurosem" else "verify_swehr_closure.py")),
            "--rain",str(rain),"--tag","postfire_"+name]
         if a.engine=="eurosem":
-            for k,x in v.items():cmd+=["--"+k.replace("_","-"),str(x)]
+            for k,x in v.items():
+                # The EUROSEM PLANTH ASCII input is CENTIMETRES; the input reader divides by 100.
+                # Scenario values are conceptual heights in metres, so convert before native input.
+                native_value=x*100.0 if k=="plant_height" else x
+                cmd+=["--"+k.replace("_","-"),str(native_value)]
             folder=R/f"eurosem_QA_postfire_{name}_r{rain:02d}_rep1"
         else:
             # as in the earlier archive, intensity-constant 1h canopy-storage loss.
