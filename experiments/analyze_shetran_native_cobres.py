@@ -62,6 +62,8 @@ with h5py.File(path) as f:
     native_initial_loose_m=float(sy_file[ix+1].split()[0].replace("D","E"))
     initial_snapshot=loose_a[:,0].copy()
     net_dls=(loose_a[:,-1]/1000.0-native_initial_loose_m)
+    approximate_delta_z=net_dls-right
+
     snapshots=[{"hour":float(times[i]),"erosion_mm_day":stats(rate_a[:,i]),
                 "loose_depth_mm":stats(loose_a[:,i])}
                 for i in sorted(set([0,1,2,3,6,len(times)-1])) if i<len(times)]
@@ -86,6 +88,10 @@ with h5py.File(path) as f:
         "hdf5_time_zero_loose_minus_sy51_mm":stats(initial_snapshot-1000.0*native_initial_loose_m),
         "sampled_erosion_loose_snapshots":snapshots,
         "net_dls_change_from_native_sy51_m":stats(net_dls),
+        "estimated_net_elevation_change_m_FROM_SAMPLED_RATES_NOT_NATIVE_EXACT":stats(approximate_delta_z),
+        "cells_approximate_surface_lowering":int(np.count_nonzero(approximate_delta_z<0)),
+        "cells_approximate_surface_rising":int(np.count_nonzero(approximate_delta_z>0)),
+        "event_end_overshoot_minutes":float((times[-1]-48.0)*60.0),
         "cells_nonzero_erosion_right_endpoint":int(np.count_nonzero(right>0)),
         "cells_nonzero_dls_delta":int(np.count_nonzero(np.abs(net_dls)>1e-8)),
         "blockers":[
