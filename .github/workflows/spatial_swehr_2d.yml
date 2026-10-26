@@ -15,6 +15,30 @@ jobs:
       matrix:
         include:
           - scenario: grass_dense
+            rain: 10
+            stemflow: off
+          - scenario: oak_sparse
+            rain: 10
+            stemflow: off
+          - scenario: barrier_equal
+            rain: 10
+            stemflow: off
+          - scenario: island_equal
+            rain: 10
+            stemflow: off
+          - scenario: grass_dense
+            rain: 20
+            stemflow: off
+          - scenario: oak_sparse
+            rain: 20
+            stemflow: off
+          - scenario: barrier_equal
+            rain: 20
+            stemflow: off
+          - scenario: island_equal
+            rain: 20
+            stemflow: off
+          - scenario: grass_dense
             rain: 30
             stemflow: off
           - scenario: oak_sparse
@@ -26,6 +50,36 @@ jobs:
           - scenario: island_equal
             rain: 30
             stemflow: off
+          - scenario: grass_dense
+            rain: 40
+            stemflow: off
+          - scenario: oak_sparse
+            rain: 40
+            stemflow: off
+          - scenario: barrier_equal
+            rain: 40
+            stemflow: off
+          - scenario: island_equal
+            rain: 40
+            stemflow: off
+          - scenario: grass_dense
+            rain: 50
+            stemflow: off
+          - scenario: oak_sparse
+            rain: 50
+            stemflow: off
+          - scenario: barrier_equal
+            rain: 50
+            stemflow: off
+          - scenario: island_equal
+            rain: 50
+            stemflow: off
+          - scenario: grass_dense
+            rain: 30
+            stemflow: on
+          - scenario: oak_sparse
+            rain: 30
+            stemflow: on
     steps:
       - uses: actions/checkout@v4
       - name: Run native 2D spatial map input and finite volume ledgers
@@ -40,3 +94,7 @@ jobs:
             experiments/rainfall_10_50/spatial_patch_experiments/runs/**/vegetation_map.csv
             experiments/rainfall_10_50/spatial_patch_experiments/runs/**/run.log
             experiments/rainfall_10_50/spatial_patch_experiments/runs/**/build.log
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/depth.txt
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/topoout.txt
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/maxdepth.txt
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/m.txt
