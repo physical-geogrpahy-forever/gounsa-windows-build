@@ -1431,3 +1431,10 @@ Latest decision:
 - s_v_er 최대 0,2.708,105.330,430.591 mm/day; HDF5 시계열 오른쪽 끝 적산 최대 총침식 0,0.143,15.724,29.702 mm (내부 정확 적산이 아니라 근사). 초기 DLS=30mm, HDF5 t=0=0mm 출력 오류 주의. 종료시간 48h 초과 18.9~37.9분.
 - 20/40mm/h 추가 자동 native 실험은 진행 중이며, 완결 전까지 통과로 쓰지 않는다.
 - **고운사 final model 채택 X**: native erosion/sediment budget, 일관된 sediment restart, VS08 잔존토심, grid-link-bank DEM event coupling은 미검증.
+
+
+### 2026-10-26 원본 SHETRAN 강우 5강도 native 시험 종결
+- [native QA 결정 기록](decisions/2026-10-26_SHETRAN_472_NATIVE_COBRES_RAIN_QA.md): 실제 pinned SHETRAN Fortran 4.7.2.0 빌드 및 건조, 10,20,30,40,50 mm/h 3시간 강우 + 건조 후속 실행, HDF5 sediment 기록 분석이 [CI run 40287116566](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40287116566)에서 전부 성공. 이전 문서의 '20,40 진행 중' 기록은 이 최신 판정으로 대체.
+- 강우강도 10/20/30/40/50 mm/h 최대 침식률 각각 2.708/67.260/105.330/133.284/430.591 mm/day. 시간별 HDF5 근사 최대 누적 원토양 박리 각각 0.143/6.770/15.724/23.506/29.702 mm. 이는 native 내부 exact GNU 적산이 아님.
+- 원본 초기 SY51 DLS 30mm인데 native HDF5 t=0 DLS=0mm로 출력되는 초기화 이전 snapshot 확인. 원본 종료시각 48h를 최종 시간이 18.90~51.73분 초과. 정확한 외부 사상 경계 연동에서 해결 필수.
+- SHETRAN native 침식 계산 구동 성공과 **원본 유사질량수지 폐합, 정확한 강우사상 종료, 퇴적층 상태 전체 재시작, DEM/토심 재입력에 따른 유동 피드백 검증은 별개**. 고운사 최종 모델 확정 불가.
