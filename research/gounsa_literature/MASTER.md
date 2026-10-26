@@ -1362,3 +1362,8 @@ Latest decision:
 - 생산모형 선택 **Iber+ 중심 event erosion + SSSPAM/mARM**을 SWEHR로 바꾸는 결정이 아님. 필요한 새 결합은 공간보존적 stemflow/leaf drip forcing, 토양수분과 root macropore, 수관 및 뿌리 상태 각각이다.
 
 산출물: [네이티브 민감도 종합 Actions](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40258842917), [소스 스크립트](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50).
+
+
+## 2026-10-26 종별 생태 특성과 PLANTH 단위 오류 정정
+
+[식생 특성 재검증](decisions/2026-10-26_OAK_MISCANTHUS_REAUDIT.md): 참나무 맹아의 줄기와 기존 뿌리, 억새의 포기별 지하경 및 가는뿌리 차이, 생육기와 비생육기의 차이를 원문으로 재검토함. 이전 EUROSEM에 2.5m라고 입력한 PLANTH=2.5는 원래 **2.5cm**였으며 원본 input routine은 /100으로 내부 m 변환. 구 수치 중 적하 운동에너지 관련 해석 오류를 폐기함. 6개 계절별 가상 구조×강우 5강도×두 엔진을 다시 실행함. EUROSEM은 TF/drip/SF 분리하지만 SF 국지침투 공간 집중 미구현, SWEHR는 canopy interception으로 차감한 유효강우를 균일하게 공급함. 두 식생 침식 억제 우열을 현장 수치 없이 주장 금지. 수정 실행: https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40261338013
