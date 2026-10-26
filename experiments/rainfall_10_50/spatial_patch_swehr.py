@@ -104,8 +104,6 @@ def spatial_patch(source):
     source=replace_once(source,
        "    idum=-2999;",
        """    double **QA_WFACTOR, **QA_DFACTOR;
-    QA_WFACTOR=matrix(1,nx,1,ny);
-    QA_DFACTOR=matrix(1,nx,1,ny);
     idum=-2999;""")
     # After original parameter masks initialized in Remaining Set Up.
     hook="""            JSMASK[i][j]=Jentrain;
@@ -116,6 +114,8 @@ def spatial_patch(source):
         }
 
     // NEW COUPLING (not native SWEHR): spatial canopy/stemflow/hydraulic fields.
+    QA_WFACTOR=matrix(1,nx,1,ny);
+    QA_DFACTOR=matrix(1,nx,1,ny);
     FILE *fpspatial=fopen("./spatial_fields.txt","r");
     if (!fpspatial) {fprintf(stderr,"Cannot open spatial fields");exit(3);}
     for(i=1;i<=nx;i++) for(j=1;j<=ny;j++) {
