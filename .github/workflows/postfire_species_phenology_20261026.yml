@@ -1,0 +1,26 @@
+name: Postfire seasonal comparison
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - experiments/rainfall_10_50/run_postfire_phenology_20261026.py
+      - .github/workflows/postfire_species_phenology_20261026.yml
+  workflow_dispatch:
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [eurosem, swehr]
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y gfortran gcc
+      - run: python3 experiments/rainfall_10_50/run_postfire_phenology_20261026.py --engine ${{ matrix.engine }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postfire-phenology-${{ matrix.engine }}
+          path: experiments/rainfall_10_50/phenology_20261026/
+          if-no-files-found: warn
