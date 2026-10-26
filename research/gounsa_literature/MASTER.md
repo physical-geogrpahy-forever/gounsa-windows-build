@@ -1324,3 +1324,16 @@ Latest decision:
 - **반대 경로 중요**: Liang et al. (2009), Beven & Van Stan (2026), Di Prima et al. (2026)은 줄기 기부의 preferential infiltration을 강조. Chen et al. (2026)은 줄기열 내부 SF 공급은 크지만 inter-row 침식이 더 큰 관측을 보고. SF 증가를 항상 유출과 침식 증가로 환산하는 것은 부당함.
 - **강우박리 에너지**: Li & Tian (2026)은 자유통과/튀김/적하 빗방울의 KE를 구분. 자유 TF와 적하 TF를 합산한 체적 하나만으로 rainfall detachment를 정하지 말 것.
 - **미해결 결합**: 나무/초본 패치별 시간별 물수지와 위치별 TF·SF·drip KE를 2D 침투-유출-침식 엔진에 질량보존으로 전달. 이는 **새로운 coupling**이며 출판된 단일 모형 기능이라고 표기하지 않음. LPJ-GUESS 뿌리량과 침식저항의 별도 결합 문제는 종전대로 유지.
+
+
+---
+
+# 2026-10-26 실제 원본 실행 침식량 물리적 타당성 점검
+
+최신 판정: [강우 10~50 mm/h 침식량 유효성 감사](decisions/2026-10-26_RAINFALL_EROSION_PHYSICAL_VALIDITY_AUDIT.md)
+
+- **SWEHR 공개코드 3×51 원본 예제**: 0.25m 격자, 초기 Ks=0, a=ad=0, F=0.004. 강우 10~50 mm/h 1시간 재실행에서 격자 높이 감소 총 약 0.0191 m³ vs 높이 증가 약 0.549~0.553 m³; 10~50 강우에 사실상 같은 최대 약 100.61mm 국지 고도 감소. 지형 전처리, 초기조건, 경계유사수지 검증 불가로 **모두 결과 기각**, McGuire et al. 2016 원 논문 자체의 모델 검증 결과와 구별.
+- **EUROSEM 원본 2-element test**: 10mm/h gross erosion 0, 20mm/h gross 383.9kg / net 각 1.511kg, global water balance -0.0299%; 30mm/h gross 53,224.3kg / net 합 52,987.3kg, water balance 12.8593%; 40mm/h first element만 15,305kg, water error 28.8924%; 50mm/h segfault. Gross detachment vs delivered sediment **구분 필수**. 30, 40 모두 기각, 20도 반복성 문제. 시험 경사 S=0.85, 피복 COVER=0.15는 고운사 입력값이 아님.
+- **실측 비교**: Johansen et al. 2001(60mm/h burned 76kg ha^-1 per mm rainfall), Samoil et al. 2026(185mm/h 30min unburned 0.0178 / moderate burn 1.05 / high burn 5.29t/ha), Kinner & Moody 2008(20/35/50mm/h infiltration response), 한국 Shin et al. 2024(RUSLE 0.07–94.9 / SEMMA 0.24–83.6t/ha/storm **모형 예측**). 극심한 침식은 실제 가능하지만 어느 숫자도 고운사 허용범위 상한이 아님.
+- **기존 HETEROFOR, Charlier, Rutter/Gash**는 interception / SF / runoff 중 일부를 산출하지만 독립적으로 erosion mass를 직접 생성하지 않음. **WEPP/OpenLISEM/Apip**은 erosion 가능한 기성 구조지만 10~50 실험은 이번에 수행하지 않음.
+- **현재 결론**: 검증된 고운사 t/ha/event 숫자는 아직 없음. 본문에 임의 곡선을 넣지 않는다. source archive는 다음 수행에서 물수지, 유사수지 및 단위를 확인하는 토대로만 사용.
