@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (382)
+## Papers (389)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -55,6 +55,7 @@
 - `papers/1980_Williams_SPNM.md`
 - `papers/1981_Waldron_Dakessian_RootReinforcement.md`
 - `papers/1981_Ziemer_RootsStabilityForestedSlopes.md`
+- `papers/1982_DePloey_StemflowEquationGrasses.md`
 - `papers/1982_Waldron_RootShearTests.md`
 - `papers/1983_Skiles_Hanson_Parton_SPURPlant.md`
 - `papers/1983_Wight_SPUR.md`
@@ -119,6 +120,7 @@
 - `papers/1998_EUROSEM_GRIDSEM.md`
 - `papers/1998_Evans_SIBERIA_VegetatedMine.md`
 - `papers/1998_Kirkby_MEDALUS_GlobalChange.md`
+- `papers/1998_Lee_Park_QuercusAcutissima_StemflowKorea.md`
 - `papers/1998_Mitas_Mitasova_DistributedErosion.md`
 - `papers/1998_Moglen_DrainageDensityClimate.md`
 - `papers/1998_Morgan_EUROSEM.md`
@@ -174,6 +176,8 @@
 - `papers/2011_Keane_FireBGCv2.md`
 - `papers/2011_Lamb_Dry_Ravel_Postfire.md`
 - `papers/2011_Lamb_Postfire_DryRavel.md`
+- `papers/2011_Waggy_MiscanthusSinensis_FireSpeciesReview.md`
+- `papers/2012_Bahmani_QuercusCastaneifolia_Stemflow.md`
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
 - `papers/2012_Jomaa_RockFragmentHydrologyErosionModel.md`
@@ -212,6 +216,7 @@
 - `papers/2017_Khaleghpanah_EUROSEM_StonySteepLands.md`
 - `papers/2017_Khanal_Fox_RootJET.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
+- `papers/2018_Gregory_MiscanthusSinensis_RootGapTraits.md`
 - `papers/2018_Hales_Biome_Root_Reinforcement_Slope_Stability.md`
 - `papers/2018_Haverd_CABLE_POP.md`
 - `papers/2018_Holder_Miscanthus_CanopyPrecipitation.md`
@@ -375,6 +380,7 @@
 - `papers/2026_Jia_ParFlow_LPJ_GUESS.md`
 - `papers/2026_Jia_ParFlow_LPJGUESS.md`
 - `papers/2026_Jia_PF_LPJG.md`
+- `papers/2026_Jo_Oh_GounsaTempleForestFireDamage.md`
 - `papers/2026_Kantzenbach_GRASSMIND_BODIUM.md`
 - `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
@@ -388,6 +394,7 @@
 - `papers/2026_Yao_StemLeafRootContribution.md`
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
+- `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
 ## Models (58)
 
@@ -450,7 +457,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (27)
+## Decisions (28)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -479,3 +486,4 @@
 - `decisions/2026-10-26_RAINFALL_EROSION_PHYSICAL_VALIDITY_AUDIT.md`
 - `decisions/2026-10-26_SWEHR_EUROSEM_SOURCE_CLOSURE_VERIFICATION.md`
 - `decisions/2026-10-26_OAK_MISCANTHUS_NATIVE_MODEL_SENSITIVITY.md`
+- `decisions/2026-10-26_OAK_MISCANTHUS_REAUDIT.md`
