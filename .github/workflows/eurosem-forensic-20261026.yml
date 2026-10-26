@@ -1,0 +1,38 @@
+name: EUROSEM original-plus-LAI-fork forensic cover height EROD MCODE
+on:
+  push:
+    branches: [eurosem-forensic-audit-20261026]
+    paths:
+      - ".github/workflows/eurosem-forensic-20261026.yml"
+      - "eurosem_lai_1998/forensic_native_20261026.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original model compiler
+        run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - name: Run source-identical original erosion terms and LAI-interface A-B original native scenarios
+        run: python3 eurosem_lai_1998/forensic_native_20261026.py
+      - name: Archive all original model logs and experiment input cards
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EUROSEM_OAT_20261026_original_kernel_and_LAI_extension
+          path: |
+            eurosem_forensic_cases/summary.csv
+            eurosem_forensic_cases/README.md
+            eurosem_forensic_cases/*/summary.json
+            eurosem_forensic_cases/*/stdout.log
+            eurosem_forensic_cases/*/test.par
+            eurosem_forensic_cases/*/test.pcp
+            eurosem_forensic_cases/*/static.out
+            eurosem_forensic_cases/*/dynamic.out
+            eurosem_forensic_cases/*/diag.out
+            eurosem_forensic_cases/*/LAI.PAR
+          if-no-files-found: warn
+          retention-days: 60
