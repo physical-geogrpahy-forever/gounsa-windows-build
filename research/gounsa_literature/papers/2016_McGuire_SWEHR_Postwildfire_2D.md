@@ -59,3 +59,26 @@ vegetation effect가 cover 중심이므로 고운사의 strict quantitative-vege
 
 원 논문: https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2016JF003867
 실험 QA: https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40252527690
+
+## 2026-10-26 Rutter 수관차단과 별도의 강우박리 저감 원문-소스 대조 확정
+
+앞의 `# 핵심 식`에 적었던 "원문 재검증 필요"는 이 항목에 대해 해결됨. 정확한 원문: [McGuire et al. 2016 full text](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2016JF003867), §3.2 식(3)–(7), §3.5 식(24)–(26), §4.3 및 §5. 공개 C: [SWEHR.c](https://github.com/csdms-contrib/swehr/blob/master/SWEHR.c).
+
+**논문에 포함된 두 개의 독립적인 수관 관련 과정**:
+1. Rutter canopy interception: 시간별 수관 저류 C, throughfall coefficient Tc, drainage D, canopy capacity S, Kc, gc. 짧은 사건에서 E=0으로 간략화, 지표 도달 유효강우의 시간변화. 논문의 수관저류 식24, drainage 식25, 지표도달 강우 식26.
+2. 직접 빗방울 강우박리 및 퇴적층 재박리에 적용한 별도 canopy impact shielding 계수 `(1−Cv)+Tc Cv`. 식생 피복 Cv는 부분 차폐, Tc는 canopy에 닿지 않은 직접 강우 비율. 강우량 차단(수관 물 저장)과 다른 기계적 효과. 단, 수관 적하의 새로운 방울 크기·유효 낙하높이·운동에너지는 별도 명시적 kinetic-energy 계산이 없고, 이 간략계수로 표현.
+
+**식생과 다른 저감항**:
+- 같은 §3.2 수심 h가 h0보다 클 때 rainfall detachment multiplier `(h0/h_vertical)^b` (b=1) 적용, 원본 공개 코드 L1348–1352 확인.
+- 떨어진 퇴적층의 원토양 보호 `H=min(1,TOTM/mtstar)`와 `1−H`, 공개 C L1331–1343 및 L1365–1372 확인.
+- roughness-Manning은 수심 의존하지만 실제 식생 Cv와 자동 결합되지 않음. 논문 §5 에 vegetation recovery→roughness 반영을 미구현 사항으로 명시.
+
+**소스 코드 직접 감사 결과**:
+- `SWEHR.c` 전체 검색에서 독립 `Cv`, `Tc`, `Kc`, `gc`, `Rutter`, `canopy storage C` 및 stemflow 저장고/함수가 없음. `R=RAIN[rind]` L814.
+- 강우박리 `E[1]=(1-H)*P[k]*ASMASK*R` L1338, 재박리 `E[2]=H*M[k]/TOTM*ADSMASK*R` L1343; 유수량 `U[1]+=dt*R` L1427. 물과 강우충격이 동일 R을 사용하므로 식생 shielding이 입력된 것이 아님.
+- `SF` 변수 L1360은 *Manning friction slope*, 수간유하우가 절대 아님.
+- 원논문은 실제 2009년 11월 및 12월 산불 직후 사건에서는 수관이 거의 완전 소실되어 interception을 의도적으로 생략(§3.8), 식생 회복 20×5 m 가상사면에서는 Cv0.05–0.95, Ks2–11mm/h, Tc0.35, S2.2mm, gc3.9mm⁻¹, Kc5×10⁻⁵mm/s 사용. 30분 높은 강우사상에서 raindrop-only erosion은 Cv 변화에 따라 ~5배 이상 감소, flow-only erosion은 Ks 영향이 크며 Cv 영향은 2배 미만. 이는 **원문 모형 시뮬레이션 결과이지 공개 C 및 고운사 현장 재현 결과는 아님**.
+
+**고운사 결정**: 원본 SWEHR 이론에는 두 과정이 들어가 있으나 공개 C에는 둘 다 없음. 기존 공간형 38회 유효강우차감/강우충격 계수는 별도 신규 coupling이지만 원래 Rutter 동적수지 및 수관방울 에너지 구현은 아님. 새 수관 C(t), D(t), SF 기부 공급, 독립 `P_water`와 `P_impact`, 실제 leaf-drip KE 및 강우 종료 후 배수까지 구현 후 물/유사수지 재검증 필요.
+
+참조 [model SWEHR code audit](../models/SWEHR.md), [2026-10-26 결정](../decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md).
