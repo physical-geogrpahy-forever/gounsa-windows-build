@@ -1,0 +1,44 @@
+name: EUROSEM original native safety and water audit
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - 'experiments/rainfall_10_50/verify_eurosem_native.py'
+      - '.github/workflows/eurosem_native_qa.yml'
+  workflow_dispatch:
+jobs:
+  eurosem:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: rain10
+            arg: '--rain 10'
+          - tag: rain20
+            arg: '--rain 20'
+          - tag: rain30
+            arg: '--rain 30'
+          - tag: rain40
+            arg: '--rain 40'
+          - tag: rain50
+            arg: '--rain 50'
+          - tag: repeat30
+            arg: '--rain 30 --repeat 2'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original Fortran compiler
+        run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - name: Strict original EUROSEM validation
+        run: python3 experiments/rainfall_10_50/verify_eurosem_native.py ${{ matrix.arg }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eurosem-qa-${{ matrix.tag }}
+          path: |
+            experiments/rainfall_10_50/eurosem_QA_*/qa_result.json
+            experiments/rainfall_10_50/eurosem_QA_*/console.log
+            experiments/rainfall_10_50/eurosem_QA_*/static.log
+            experiments/rainfall_10_50/eurosem_QA_*/dynamic.log
+            experiments/rainfall_10_50/eurosem_QA_*/compile.log
