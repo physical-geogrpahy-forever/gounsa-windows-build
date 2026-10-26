@@ -1472,3 +1472,11 @@ Latest decision:
 
 
 > **2026-10-26 EUROSEM 1998 원본 독립 유사수지 실제 검증 완료:** [결정문](decisions/2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md) 원본 Fortran eplanel.for에는 기존에 놓쳤던 inrlbal/rillbal 내부 질량수지 항이 존재. 실제 24개 강우30/50×dt15/30/60초×세류 유무×Govers/Everaert 실행과 Q×CT 출구 유사량 독립적분 비교는 모두 성공. **세류 없는 계산만 9/12에서 유사수지 0.1% 이내**, 15초 모든 no-rill 통과. **세류 있는 원본 12/12 불합격**, 15초에서도 전체 사면 유사수지 잔차 14.32%,21.48%,16.99%,20.50%(4조건). [측방 공급 실계측](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40326648315)은 세류간 유사 배출과 세류 측방 유입 일치, 결함 범위는 세류 내부 원토양 침식/퇴적 및 미기록 저장량 또는 수지 집계로 좁혀짐. **시간간격 수렴은 유사 질량보존을 증명하지 못한다.** EUROSEM은 원본 1D이며 LAI 자체는 native가 아니므로 고운사 주 2D 침식엔진으로 탈락 유지. 식생 민감도 이전 폐기근거 오류 정정은 유지하되, 세류 대량 질량불일치를 무시한 재선정 금지.
+
+
+## 2026-10-26 제출용 개발 모형/자료 구조 설계기준안 (2026-10-27 18:00 마감)
+- [고운사 통합모형 및 자료 사용 설계서](decisions/2026-10-26_DEADLINE_GOUNSA_MODEL_ARCHITECTURE_AND_DATA_PLAN.md), [인계서](sessions/2026-10-26_2230_DEADLINE_ARCHITECTURE_HANDOFF.md). **검증된 현장 생산모형으로 확정한 것이 아니라 제출용 설계기준안이다.**
+- 제안 신규 coupling: LPJ-GUESS PFT/cohort vegetation → published Rutter canopy storage/direct throughfall/drainage와 rain-impact shielding → 수정 SWEHR C V1.0 2D SWE + Green-Ampt + Hairsine–Rose rainfall/flow detachment + original/loose soil sediment stocks → inter-event DEM/soil/armour/weathering/hillslope flux → LPJ-GUESS feedback.
+- 공식 SWEHR 공개 C에 Rutter dynamic canopy, root-linked detachability, leafdrip energy 미구현 확인; 반드시 새 코드라고 표시. 원본 7/7 보존. modified branch 9/9 + 38/38 synthetic water/sediment closure는 있음, 그러나 현장검증 및 새 Rutter coupling 수치검증은 **아직 없음**.
+- 원본 Iber+는 published full 2D SWE + multiclass erosion 강점이 있지만 공개 binary와 편집가능 source가 다르고 LAI dynamic interception native 미확인. 2026-09-22 Iber+ 원형 채택 잠정안은 이번 엄격 original source 요건에서 **실제 개발 플랫폼으로는 보류**. OpenLISEM7.5.2/SHETRAN/EUROSEM 엄격 탈락 유지.
+- 실측 도메인 DEM, 포기/맹아 분포, 실제 LAI/뿌리량, 깊이, rock fractions, Ksat, 고해상도 강우, 유사검증자료는 main repo에서 실파일 검증되지 않음. 기상청 AWS/ASOS 분강우, 국토정보플랫폼 DEM, 고운사 UAV/TLS, 실측토양, LPJ-GUESS 출력을 각각 구분하여 투입하고 결측을 관측으로 꾸미지 않음.
