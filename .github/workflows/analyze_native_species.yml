@@ -1,0 +1,38 @@
+name: Analyze archived vegetation sensitivity outputs
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - 'experiments/rainfall_10_50/analyze_native_ensembles.py'
+      - '.github/workflows/analyze_native_species.yml'
+  workflow_dispatch:
+jobs:
+  contrast-and-qa:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load verified SWEHR native output
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40258199435
+          github-token: ${{ github.token }}
+          name: sensitivity-swehr
+          path: experiments/rainfall_10_50/ensemble_inputs/swehr
+      - name: Load EUROSEM original canopy outputs
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40258483367
+          github-token: ${{ github.token }}
+          name: sensitivity-eurosem
+          path: experiments/rainfall_10_50/ensemble_inputs/eurosem
+      - name: Generate model comparison and OAT sensitivity report
+        run: python3 experiments/rainfall_10_50/analyze_native_ensembles.py
+      - name: Preserve complete report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-native-species-sensitivity-analyzed
+          path: experiments/rainfall_10_50/species_sensitivity/combined/summary.md
