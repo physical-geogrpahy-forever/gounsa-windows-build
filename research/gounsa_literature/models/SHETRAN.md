@@ -55,3 +55,7 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 7. **BALSED 빈 함수** (`SYmod.f90` L4668–69). 기본 `BALWAT` 만 실제 호출. 유사모형 질량보존 정확도는 별도 실시 전 검증 불가.
 8. `DRAINA`는 수관 총 배수 흐름이며 개별 참나무 기부 SF/억새 포기 흐름이 아니다. `FCG`는 입력한 지표피복 면적이고 억새 biomass/RLD를 동적 계산하지 않음. `FCROCK`는 고정된 표면 비침식 비율이며 spall 풍화/암편 이송을 계산하지 않음.
 9. 원래 `ETmod.f90` L497는 `CT1/CSTCAP` 계산이 0용량 점검보다 먼저 있어 경계값 위험. 눈-수관 분기에서 stale DRAINA/PNETTO 경고가 코드 주석으로 존재; native zero-capacity/rain-cessation edge tests 필요.
+
+
+## 수리해석 결정적 구분: 2D 공간 유동이나 완전 천수방정식은 아님
+`src/overland_channel/OCmod2.f90::OCQGRD` L909–1064의 원본 Strickler 기반 격자면 유량 `Q=CONVM*sqrt(abs(DZ))/sqrt(L)`를 직접 확인. 4방향 인접 격자 수위차를 이용하는 **2D 확산파(Manning–Strickler)** 근사이며 2D 천수방정식 관성항까지 적분하는 해법이 아니다. `OCmod.f90::OCSIM`는 암시적 수위 블록행렬을 푼다. 따라서 고운사 고기복·세류 발달 및 0.5m TLS 지형변화의 직접 예측력이 SWEHR 2D SWE와 동일하다고 주장 불가. 또한 `SYMAIN`의 `ZGRUND INTENT(IN)`은 사면 지표고도 미갱신을 명시한다. [근거](../decisions/2026-10-26_SHETRAN_472_NATIVE_IMPLEMENTATION_CALLGRAPH_AUDIT.md).
