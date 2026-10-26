@@ -1,0 +1,33 @@
+name: EUROSEM original sediment rain-detachment versus capacity source audit
+on:
+  push:
+    branches: [eurosem-forensic-audit-20261026]
+    paths:
+      - ".github/workflows/eurosem-capacity-flux-probe-20261026.yml"
+      - "eurosem_lai_1998/forensic_capacity_flux_20261026.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  flux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - name: Recreate original 24 paired benchmark geometry and forcings
+        run: python3 eurosem_lai_1998/forensic_native_20261026.py
+      - name: Instrument original active source flux and settling terms
+        run: python3 eurosem_lai_1998/forensic_capacity_flux_20261026.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: EUROSEM_original_sediment_source_vs_capacity_forensic
+          path: |
+            eurosem_forensic_cases/native_sediment_source_capacity.csv
+            eurosem_forensic_cases/*_sedflux/*.json
+            eurosem_forensic_cases/*_sedflux/stdout.log
+            eurosem_forensic_cases/*_sedflux/static.out
+            eurosem_forensic_cases/*_sedflux/test.par
+            eu/eusedl.for
+          retention-days: 60
