@@ -65,6 +65,12 @@ def main():
      - 3x,'(a minus denotes deposition)',/)
 """
             z=z[:start]+new_format+z[stop:]
+            # Observation-only: inspect native drip/rain KE before erosion calculations.
+            assert z.count("        CALL KINET(J)")==1
+            z=z.replace("        CALL KINET(J)", """        CALL KINET(J)
+        WRITE(*,5765) PLHGT(J), DRIPKE(1), RAINKE(1)
+ 5765 FORMAT('ENERGY_QA ',3(E15.7,1X))
+""",1)
             dst.write_text(z)
         else:
             dst.write_text("\n".join(lines)+"\n")
@@ -134,6 +140,10 @@ def main():
         m=re.search(pattern,stat+"\n"+dyn)
         if m:result[key]=float(m.group(1))
     sci=r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[EeDd][-+]?\d+)?)"
+    keprobe=re.findall(r"ENERGY_QA\s+([^\r\n]+)",log)
+    if keprobe:
+        q=[float(v.replace("D","E")) for v in keprobe[-1].split()]
+        if len(q)==3:result["energy_probe"]=dict(zip(["effective_drop_height_m","drip_kinetic_energy","free_rain_kinetic_energy"],q))
     c=re.findall(r"CANOPY_QA\s+([^\r\n]+)",log)
     if c:
         vals=[float(v.replace("D","E")) for v in c[-1].split()]
