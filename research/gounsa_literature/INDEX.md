@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (430)
+## Papers (432)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -155,6 +155,7 @@
 - `papers/2005_Nord_Esteves_PSEM_2D.md`
 - `papers/2005_Roering_Gerber_PostfireHillslopeTransport.md`
 - `papers/2006_DeBaets_GrassRootsErodibility.md`
+- `papers/2006_Doten_DHSVM_Mountain_Forest_Sediment.md`
 - `papers/2006_Istanbulluoglu_Bras_SoilMoistureVegetationErosion.md`
 - `papers/2006_Johnson_Coldren_GSSHA_EDYS.md`
 - `papers/2006_Lischke_TreeMig.md`
@@ -170,6 +171,7 @@
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2008_Ma_Shao_StonySoilDualPorosity.md`
 - `papers/2008_Mayor_FlowlengthRunoffSourceConnectivity.md`
+- `papers/2008_Velleux_England_Julien_TREX_2D.md`
 - `papers/2009_Charlier_BananaStemflowRunoff.md`
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
@@ -437,7 +439,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (83)
+## Models (84)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -515,6 +517,7 @@
 - `models/SORTIE_ND.md`
 - `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/SWEHR.md`
+- `models/TREX.md`
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
@@ -523,7 +526,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (60)
+## Decisions (61)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -572,6 +575,7 @@
 - `decisions/2026-10-26_OPENLISEM_752_PREVIOUS_NUMERICAL_FAILURE_RECOVERY.md`
 - `decisions/2026-10-26_OPENLISEM_NUMERICAL_GO_NOGO_GATES.md`
 - `decisions/2026-10-26_OPENLISEM_THREE_CRITERIA_SOURCE_AND_STEEP_SLOPE_AUDIT.md`
+- `decisions/2026-10-26_POST_OPENLISEM_CANDIDATE_SOURCE_SCREENING.md`
 - `decisions/2026-10-26_RAINFALL_EROSION_PHYSICAL_VALIDITY_AUDIT.md`
 - `decisions/2026-10-26_SHETRAN_20MMH_DETACHMENT_DECOMPOSITION.md`
 - `decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md`
