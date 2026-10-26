@@ -1,5 +1,7 @@
 # Gounsa Literature Master
 
+> **2026-10-26 OpenLISEM 최종 GO/NO-GO 판단 규칙:** 과거 원본 Windows 7.5.2 전체 실행은 가능했으나 계산 시간간격 의존성 및 100μm 침전속도 오류, 유한 토층 제한 부재로 침식 결과 **이미 FAIL baseline**. 이번 `v7.5.2` 및 `main_C` 공개 소스 재확인 결과 두 계보의 `GetSV` 원식이 동일하고 `main_C`의 `DetachMaterial()` 호출은 여전히 주석 처리, `SwitchUseMaterialDepth=false`. LAI/interception/2D 기능만으로 채택 금지. **원본 지원 옵션으로 경계/설정 정상화 후 2D 시간간격 수렴, 토사저장량, 침강, 물/유사수지가 통과하지 못하면 고운사 유수침식 엔진으로 폐기.** 수정 포크 성공은 원본 통과로 간주하지 않음. [사전 등록 검증 게이트](decisions/2026-10-26_OPENLISEM_NUMERICAL_GO_NOGO_GATES.md).
+
 > **2026-10-26 중대 정정(운영 판정 우선):** OpenLISEM `v7.5.2` 원본 Windows 실행은 **2026-10-23 실제로 성공**했다(공식 `lisem.exe` headless 전체 모델, Actions runs `39928519655`, `39929498985`). 그러나 합성 고운사 사면의 침식 출력은 **시간간격 수렴성 실패**(운동파 참나무 유사유출 0.25→10초에서 19.714→853.798 kg/ha), **2D 격자별 과도한 순침식**(참나무 10초에서 200,566.703 t/ha ≈ 14.86m 토층), **원본 GetSV 100μm 분기 침전속도 오류**(1.27226m/s, 99.9μm 대비 141.8배), `DetachMaterial()` 비활성 등 문제가 확인됐다. 10월25일 factory 시험에는 `Advanced Options` 입력 생성 오류, GUI/엔진 설정 키 불일치, 유출구 배치 미검증도 중첩. **따라서 OpenLISEM이 LAI 차단+2D 직접유출 침식+산지 적용 세 조건을 기능 차원에서 갖춘 사실은 유효하지만, 원본 7.5.2를 바로 고운사 유수침식 주 엔진으로 재선정해서는 안 된다.** 정확한 이유와 QA 상태: [실패 원인 복구](decisions/2026-10-26_OPENLISEM_752_PREVIOUS_NUMERICAL_FAILURE_RECOVERY.md). 
 
 
