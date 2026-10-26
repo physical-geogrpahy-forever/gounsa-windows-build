@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (434)
+## Papers (438)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -202,6 +202,7 @@
 - `papers/2013_AlMadhhachi_MiniJET.md`
 - `papers/2013_Coulthard_CAESAR_Lisflood.md`
 - `papers/2013_Hurst_Vegetation_SedimentTransport.md`
+- `papers/2013_Kim_Ivanov_Katopodes_tRIBS_OFM_HairsineRose.md`
 - `papers/2013_McGuire_Rill_Network_Spacing_Geometry.md`
 - `papers/2013_Pelletier_Coevolution_Vegetation_Soils_Topography.md`
 - `papers/2013_Saco_MorenoDeLasHeras_EcogeomorphicCoevolution.md`
@@ -210,6 +211,7 @@
 - `papers/2014_Blanco_2DaDGVM.md`
 - `papers/2014_Boulangeat_FATE_HD.md`
 - `papers/2014_Hudjetz_WoodS.md`
+- `papers/2014_Kim_Han_Cho_tRIBS_FEaST_Combined.md`
 - `papers/2014_Li_QuercusLitter_RunoffErosion.md`
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
 - `papers/2014_Tang_LPJ_DH_TopographicIndices.md`
@@ -368,6 +370,8 @@
 - `papers/2024_Shevliakova_LM4_1_VegetationDemography.md`
 - `papers/2024_Shevliakova_LM4_1.md`
 - `papers/2024_ShmiIovitz_Rainstorm_GrainSize_RockyHillslope.md`
+- `papers/2024_Song_SSEM_NaerinForestStormErosion.md`
+- `papers/2024_vanVerseveld_WflowSBM_LAI_Source.md`
 - `papers/2024_Wang_VED.md`
 - `papers/2024_Wei_VegetationComponentsErosion.md`
 - `papers/2024_Welivitiya_PhysicalWeatheringRate.md`
@@ -441,7 +445,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (85)
+## Models (88)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -466,6 +470,7 @@
 - `models/FATE_HD.md`
 - `models/FATES_HYDRO_SUPPORT_STATUS.md`
 - `models/FATES.md`
+- `models/FeST.md`
 - `models/FireBGCv2.md`
 - `models/FORECAST_ForWaDy.md`
 - `models/Forest_Disturbance_2004.md`
@@ -521,15 +526,17 @@
 - `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/SWEHR.md`
 - `models/TREX.md`
+- `models/tRIBS_FEaST.md`
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
 - `models/WEPP.md`
+- `models/Wflow_Sediment.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (62)
+## Decisions (63)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -593,3 +600,4 @@
 - `decisions/2026-10-26_SWEHR_EVIDENCE_STATUS_MATRIX.csv`
 - `decisions/2026-10-26_SWEHR_REPRODUCIBILITY_REMEDIATION.md`
 - `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
+- `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
