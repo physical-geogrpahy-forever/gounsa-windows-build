@@ -24,3 +24,11 @@ PLANTH cm 수정 재실행: https://github.com/physical-geogrpahy-forever/gounsa
 
 ## 다음 필수 단계
 현장 참나무 맹아와 억새 줄기수 및 줄기각, 수관의 높이와 낙엽층, 포기와 빈틈의 RD/RLD, 암편/토양의 공간분포, 줄기기부 Ks와 SF/TF를 측정해 2D 보존적 침식 엔진과 결합해야 한다. 기존 Iber+ 및 SSSPAM/mARM 모형 선택 유지.
+
+## 60개 추가 원본모형 사례 최종 결과
+- 2026-10-26 수정 EUROSEM 30/30 수문 물수지 통과; SWEHR 30/30 물수지 및 독립 원토양/퇴적층/유사유출 수지 통과. 각 조건은 동일한 시험 토양에서 수관 밀도 및 계절 상태만 가상 변화시킨 것으로 실제 관측값은 아님.
+- 30mm/h EUROSEM 지표유출[mm]: 참나무 초기4.098, 밀생3.39228; 억새 초기4.13450, 밀생3.49095; 잎 소실 참나무4.30068, 억새 고사기4.26445. 식생 발달에 따라 순위 변경.
+- 30mm/h SWEHR 경계 유사배출[t/ha/event]: 참나무 초기0.00447370, 밀생0.00367994; 억새 초기0.00451832, 밀생0.00378437; 잎 소실 참나무0.00471715, 억새 고사기0.00467286. 이때 SWEHR에는 전 식생 동일 Ksat, F, roughness를 사용하였고 각각의 공간 SF/DripKE는 입력되지 않았음.
+- 원본 높이 입력을 바꾼 30mm/h EUROSEM 직접 동작 확인: PLANTH 0.8cm일 때 내부 height .008m, DRIPKE=0.0, PLANTH80cm일 때 height .8m, DRIPKE=1.980338; 그런데 gross detachment 45986.5kg과 net soil 45684.2kg, runoff4.098mm 출력은 표시 정밀도 내 동일. 추가 코드 계보 또는 소스항 연결 점검 없이는 높이/수관적하 효과가 없다고 결론내릴 수 없다. 실험 https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40261969796
+- 원본 문서: PLANTH 입력 cm, PLANGLE 줄기각도, PBASE 기부 면적비, SHAPE 1/2. PBASE 타입별 표(숲1.0, bunchgrass .2–.4)는 실제 줄기 단면적을 세어서 계산하라는 가이드와 해석상 불일치가 있어 현장 직접 측정 없이는 일괄 식생상수 대체 금지.
+- EUROSEM 독립 유사수지는 여전히 미검증이므로 강우박리 및 순침식량 값은 진단용 기록이며 고운사 결과로 불가. SWEHR 숫자 역시 가상 수관저류를 반영한 균일강우 조건이므로 실제 SF 뿌리 주변 집중효과를 반영하지 못함.
