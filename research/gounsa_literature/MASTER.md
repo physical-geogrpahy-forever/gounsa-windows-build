@@ -1347,3 +1347,18 @@ Latest decision:
 - **EUROSEM**은 불연결 2사면 및 누적우량 자료의 세 지점 수 불일치 해소 후 10~50mm/h 수문 물수지 5/5 통과(잔차 -0.0333~+0.0088%), 하지만 유사수지 독립 검증은 아직 없음. 모델이 출력한 수만~수십만kg 규모의 총박리량 및 순침식량을 고운사 연구값으로 사용 금지.
 - 기존 2026-09-22 잠정 Iber+ / SSSPAM/mARM 생산 구조는 유지하며 SWEHR/EUROSEM은 실행환경 및 방정식 검증 기준으로만 사용. 고운사의 수간유하 집중 위치와 수관적하 에너지, 뿌리 우선침투에 의한 2D 침식 효과는 새 결합 및 현장 매개변수 검증이 아직 필요.
 - 코드 및 raw output: [swehr-water-sediment-closure-20261026 실험 브랜치](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50).
+
+
+---
+
+## 2026-10-26 참나무 맹아형과 억새형 원본 SWEHR/EUROSEM 전과정 민감도 결과
+
+최신 결정: [식생구조, 침투, 유출 및 침식 원본모형 조건부 민감도 110개 실행](decisions/2026-10-26_OAK_MISCANTHUS_NATIVE_MODEL_SENSITIVITY.md).
+
+- SWEHR 원본 방정식 유지, 가상 수관 유효강우와 다양한 원본 침투/유수박리 매개변수로 50개 실행. **50/50 물수지 및 독립 유사수지 통과**. 그러나 줄기별 SF 집중, leaf-drip KE 미구현이므로 실제 억새 대 참나무 맹아 침식 우열 주장 불가.
+- EUROSEM 원본 INTERC의 수관저류, 직접 TF, leaf drip, SF를 실제 기록하며 60개 실행. **59/60 물수지 통과, 1개 SPLTEX 1 실패, 독립 유사수지 미검증**. 같은 토양조건 30 mm/h 참나무형 runoff 3.708mm, 억새형 3.491mm; 식생 구조에 따른 차이가 존재하지만 SF 위치별 공급이 합산되므로 stemflow 공간 집중이 침식에 미치는 효과는 이 모형에서 직접 검증 불가.
+- 30 mm/h에서 SWEHR canopy-only export 참나무형 0.004025, 억새형 0.003784 t/ha; 가상 Ks/roughness/erodibility를 바꾸면 경향이 반전되거나 값 차가 커짐. 현장자료 없이 species ranking은 식별 불가능.
+- EUROSEM 30 mm/h 원본 출력 net erosion 26~29t/ha(수관형) 수준은 독립적인 sediment closure 없는 **미검증 숫자**이며 논문의 토양유실량으로 직접 사용 금지. 범위는 고운사 사이트가 아닌 원본 사면 테스트 조건에 한정.
+- 생산모형 선택 **Iber+ 중심 event erosion + SSSPAM/mARM**을 SWEHR로 바꾸는 결정이 아님. 필요한 새 결합은 공간보존적 stemflow/leaf drip forcing, 토양수분과 root macropore, 수관 및 뿌리 상태 각각이다.
+
+산출물: [네이티브 민감도 종합 Actions](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40258842917), [소스 스크립트](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50).
