@@ -130,3 +130,7 @@ assert len(list((ROOT/"maps").rglob("*.map")))>=60
 print("Reference trials: 50 x 50 at 2m = 1 ha plan area,",
       len(variants),"full OpenLISEM runs",
       len(list((ROOT/"maps").rglob("*.map"))),"PCRaster maps")
+
+# 2026-10-26 separately labelled original-native 2D numerical gate matrix.
+exec(compile((HERE / "strict_gate_matrix_20261026.py").read_text(encoding="utf-8"),
+             str(HERE / "strict_gate_matrix_20261026.py"), "exec"))
