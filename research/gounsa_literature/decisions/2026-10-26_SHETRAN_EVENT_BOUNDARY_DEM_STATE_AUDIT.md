@@ -77,3 +77,7 @@ PREVTM = RESNOW
 - **출력 44번을 곧바로 DEM 갱신량으로 사용: 보류** (초기화/시간 기준 오류).
 - **원본 native 모델 실제 유사/물수지 및 재시작 성공: 아직 검증하지 않음**.
 - **고운사 최종 적용성: 후보 유지**. 강우강도, 고기복 격자, 원토양/표층 퇴적층, 식생(억새 vs 참나무 맹아), 암편, 토심과 하도 갱신을 비교검증한 뒤 결정.
+
+
+## 후속 전체 소스 감사로 추가된 제한
+[2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md](2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md)에서 첫 sediment step은 `SYMAIN`의 초기화 전용 경로로 생략, 수문 timestep 내 `GNU` 고정에 따른 `DLSMAX` 저감 지연, `VS08` 토층깊이 재설정, water hotstart 및 sediment 경계조건의 원본 미완성을 추가 검증하였다. 이 문서의 '조건부 가능'은 실행 성공 판정이 아니다.
