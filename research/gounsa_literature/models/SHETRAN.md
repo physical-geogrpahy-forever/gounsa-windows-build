@@ -67,3 +67,7 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 
 ## 2026-10-26 사상 간 DEM 갱신의 원본 출력 결함 및 상태변수 감사
 [새 결정문: SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT](../decisions/2026-10-26_SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT.md) 에 native `FRRESP` output 44의 `GNUCUM/PREVTM` 초기값과 `SEDSRT` baseline, contaminant `RESNOW=0` 호출 결함, `SY51/52/53` 초기 `DLS/FBETA/FDEL` 입력 및 hotstart 불완전성, 단순 모형 기반 지형 업데이트와 별도 물/유사수지 검증 계획을 기록했다. **원본 실행 검증 아님.**
+
+
+## 2026-10-26 전 호출경로 재감사
+[SHETRAN 4.7.2 전체 호출경로 원본 코드 감사](../decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md) 참조. 이전 사상별 DEM 갱신 가능성에 추가 조건: **첫 SYMAIN 호출은 초기화만 수행하여 최초 수문 시간간격의 sediment 계산을 건너뜀**, `DLSMAX` 억제율은 수문 timestep 동안 고정된 `GNU`에 늦게 반영, `VS08` 지반기준층이 DEM 갱신 시 그대로 하강할 위험, 원본 sediment hotstart 불완전, 출력 44 초기화/시간 오류. native 빌드/실행 및 수지검증은 아직 하지 않음.
