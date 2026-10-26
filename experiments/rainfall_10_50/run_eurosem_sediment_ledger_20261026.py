@@ -46,7 +46,7 @@ for rain,dt,rills,code in itertools.product((30,50),(1.0,.5,.25),(False,True),(0
         integrated_m3=0.
         maximum_step_discrepancy=0.
         for line in steps:
-            nums=[float(x.replace("D","E")) for x in line.split()[1:]]
+            nums=[float(x.replace("D","E")) for x in line.split()[1:9]]  # ignore legacy progress spinner
             if len(nums)!=8:raise ValueError(("Bad numeric row",line))
             ts,seconds,q_now,q_prev,c_now,c_prev,rho,sedtot=nums
             integrated_m3+=.5*(q_now*c_now+q_prev*c_prev)*seconds
