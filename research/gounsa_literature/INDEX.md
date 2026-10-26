@@ -1,10 +1,10 @@
 # Gounsa Literature Index
 
-업데이트: 2026-10-25
+업데이트: 2026-10-26
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (377)
+## Papers (381)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -133,6 +133,7 @@
 - `papers/1999_Susko_KudzuGerminationEmergence.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
 - `papers/2001_Cerda_RockFragmentInfiltrationErosion.md`
+- `papers/2001_Johansen_PostfireRunoffErosionRainSimulation.md`
 - `papers/2001_Lexer_PICUS.md`
 - `papers/2003_Gabet_BioturbationSedimentTransport.md`
 - `papers/2004_Hanson_Cook_JetErosionTest.md`
@@ -154,6 +155,7 @@
 - `papers/2007_Sharmeen_Willgoose_LongTermArmour.md`
 - `papers/2007_Xiao_HydrologicProcessesResidentialScale.md`
 - `papers/2008_Apip_DistributedSedimentRunoffLumping.md`
+- `papers/2008_Kinner_Moody_SteepBurnedHillslopeRainfall.md`
 - `papers/2008_Kirwan_Shugart_TreeThrowSuccession.md`
 - `papers/2008_Ma_Shao_StonySoilDualPorosity.md`
 - `papers/2009_Charlier_BananaStemflowRunoff.md`
@@ -310,6 +312,7 @@
 - `papers/2024_Cunico_BiomassMorphodynamics.md`
 - `papers/2024_Dahanayake_EcoEvidencePlantsReduceErosion.md`
 - `papers/2024_Doane_TopographicRoughnessEmergent.md`
+- `papers/2024_Gangneung_WUI_RUSLE_SEMMA.md`
 - `papers/2024_GarciaAlen_IberPEST_GreenAmpt.md`
 - `papers/2024_Gluckler_LAVESI_FIRE.md`
 - `papers/2024_Gurung_SCION_FLORA.md`
@@ -374,6 +377,7 @@
 - `papers/2026_Kantzenbach_GRASSMIND_BODIUM.md`
 - `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
+- `papers/2026_Samoil_BurnSeverityHillslopeRainSimulator.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Song_SlopeDependentRockFragmentErosion.md`
 - `papers/2026_Stoebke_LPJGUESS_CanopyStructure.md`
@@ -445,7 +449,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (24)
+## Decisions (25)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -471,3 +475,4 @@
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_VEGETATION_SHORTLIST_AFTER_SEC_FATES_AUDIT.md`
 - `decisions/2026-10-25_CANOPY_STEMFLOW_RUNOFF_EROSION_RESEARCH.md`
+- `decisions/2026-10-26_RAINFALL_EROSION_PHYSICAL_VALIDITY_AUDIT.md`
