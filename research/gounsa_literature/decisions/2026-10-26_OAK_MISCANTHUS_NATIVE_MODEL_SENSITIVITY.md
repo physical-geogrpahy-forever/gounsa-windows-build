@@ -78,3 +78,7 @@ Holder et al. 2018 DOI 10.1111/gcbb.12503: UK 6ha Miscanthus × giganteus event/
 4. Use the actual Gounsa 2D LiDAR terrain, shallow stony soil depth and particle-size profile (not EUROSEM demo SIR=.85, max erosion depth 5m, nor SWEHR 9.56m² artificial DEM).
 5. Confirm computed annual/event comparison and independent sediment boundary flux in EUROSEM, then compare to TLS bed changes and sediment trap rates.
 6. Do not change primary selected Gounsa Iber+ event erosion solver due to diagnostic experiment without a separate decision.
+
+
+## 2026-10-26 중요 단위 오류 정정
+EUROSEM PLANTH는 입력단위 cm이다. 이전 oak2.5, grass1.2는 실제 2.5cm/1.2cm로 원본코드에 전달됐으며, 2.5m/1.2m로 해석한 서술은 오류이다. 종별 수관적하 KE 및 침식의 물리적 비교에 이전 수치를 사용하지 않는다. 새 60회 가상 생육단계 시뮬레이션과 원본 적하 KE 진단은 [정정 결정](2026-10-26_OAK_MISCANTHUS_REAUDIT.md)을 따르며, 실제 고운사 침식량은 아직 미검증이다.
