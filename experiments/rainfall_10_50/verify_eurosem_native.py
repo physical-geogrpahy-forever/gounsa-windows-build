@@ -49,6 +49,7 @@ def main():
     par=par[:second]
     # Rain hyetograph: 3 pairs (0,0), (60,rain), (100,rain).
     # Keep trailing 28min recession (TFIN 88 min). 3 explicit pair count fixes malformed example.
+    pcp="\n".join(ln for ln in pcp.splitlines() if not re.fullmatch(r"\s*2\s+1\s+1\.0\s*",ln))+"\n"  # one active plane: remove second element gauge assignment
     pcp=pcp.replace("         1                 2","         1                 3")
     pcp=pcp.replace("      1                  2","      1                  3")
     pcp=pcp.replace("    30.0         10.0",f"    60.0         {args.rain:.1f}")
