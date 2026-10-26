@@ -90,9 +90,9 @@ def main():
     }.items():
         m=re.search(pattern,stat+"\n"+dyn)
         if m:result[key]=float(m.group(1))
-    sci=r"([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[EeDd][-+]?\\d+)?)"
-    result["gross_detachment_kg"]=[float(x.replace("D","E")) for x in re.findall(r"GROSS INTERRILL EROSION\\s+"+sci+r"\\s+kg",stat)]
-    result["net_erosion_kg"]=[float(x.replace("D","E")) for x in re.findall(r"NET EROSION/DEPOSITION\\s+"+sci+r"\\s+kg",stat)]
+    sci=r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[EeDd][-+]?\d+)?)"
+    result["gross_detachment_kg"]=[float(x.replace("D","E")) for x in re.findall(r"GROSS INTERRILL EROSION\s+"+sci+r"\s+kg",stat)]
+    result["net_erosion_kg"]=[float(x.replace("D","E")) for x in re.findall(r"NET EROSION/DEPOSITION\s+"+sci+r"\s+kg",stat)]
     result["water_pass"]=bool(rc==0 and not result["bounds_error"] and
        len(result["net_erosion_kg"])==1 and
        abs(result.get("water_error_pct",100)) <= 1 and
