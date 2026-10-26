@@ -11,7 +11,7 @@ def call(cmd,cwd=None,timeout=500):
 def replace_once(s,old,new):
     assert s.count(old)==1, (old[:120], s.count(old))
     return s.replace(old,new,1)
-def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
+def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed,roughness=0.1):
     p=src
     # Original public code sets an initial water depth in DEPTHINIT but does not assign U[1].
     p=replace_once(p,
@@ -29,6 +29,8 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
     p=p[:q1]+"        // QA: published imposed upstream hydrograph/sediment inflow DISABLED.\n\n"+p[q2:]
     p=replace_once(p,"            KS[i][j]=0;                         // SATURATED HYDRAULIC CONDUCTIVITY [m]/[s]",
        f"            KS[i][j]={ks_m_s:.12g}; // QA study infiltration Ksat [m/s]")
+    p=replace_once(p,"            ROUGHNESS[i][j]=0.1;",f"            ROUGHNESS[i][j]={roughness:.10g}; // sensitivity parameter Manning base")
+    p=replace_once(p,"             MANNING[i][j]=0.1;",f"             MANNING[i][j]={roughness:.10g}; // sensitivity parameter Manning initial") if "             MANNING[i][j]=0.1;" in p else p
     if onclosed:
         p=replace_once(p,"    BNDRY[2]=0;                                 // B.C. at j==1",
                        "    BNDRY[2]=1;                                 // B.C. at j==1; QA closed box")
@@ -120,12 +122,21 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--rain",type=int,required=True)
+    parser.add_argument("--tag",default="baseline")
+    parser.add_argument("--roughness",type=float,default=0.1)
+    parser.add_argument("--a",type=float,default=0.25)
+    parser.add_argument("--ad",type=float,default=0.25)
+    parser.add_argument("--f",type=float,default=0.004)
+    parser.add_argument("--canopy-loss-mm",type=float,default=0.0,
+                        help="Removed from gross event depth over first 1h; input to original model is resulting homogeneous net precipitation")
+
     parser.add_argument("--seconds",type=int,default=3600)
     parser.add_argument("--ks",type=float,default=2e-6)
     parser.add_argument("--erosion",choices=["off","on"],default="off")
     parser.add_argument("--boundary",choices=["closed","open"],default="open")
     args=parser.parse_args()
-    work=ROOT/"runtime"/f"{args.rain:02d}_{args.seconds}_{args.erosion}_{args.boundary}_{args.ks:.1g}"
+    assert 0<=args.canopy_loss_mm<=args.rain
+    work=ROOT/"runtime"/f"{args.tag}_{args.rain:02d}_{args.seconds}_{args.erosion}_{args.boundary}_{args.ks:.1g}"
     work.mkdir(parents=True,exist_ok=True)
     src=ROOT/"source_swehr"
     if not src.exists():
@@ -134,20 +145,22 @@ def main():
         if p.returncode:raise RuntimeError(p.stderr[-4000:])
     sha=call(["git","rev-parse","HEAD"],src)[1].strip()
     s=(src/"SWEHR.c").read_text()
-    patched=add_patch(s,args.rain,args.ks,args.erosion,args.boundary=="closed")
+    patched=add_patch(s,args.rain,args.ks,args.erosion,args.boundary=="closed",args.roughness)
     c=work/"SWEHR_QA.c"
     c.write_text(patched)
     (work/"original_source_sha.txt").write_text(sha+"\n")
     vals=[float(x) for x in (src/"input.txt").read_text().split()]
     assert len(vals)==14 and int(vals[0])==3 and int(vals[1])==51
     vals[5]=args.seconds
-    vals[6]=0 if args.erosion=="off" else 0.25
-    vals[7]=0 if args.erosion=="off" else 0.25
-    vals[3]=0 if args.erosion=="off" else vals[3] # F original 0.004 if on
+    vals[6]=0 if args.erosion=="off" else args.a
+    vals[7]=0 if args.erosion=="off" else args.ad
+    vals[3]=0 if args.erosion=="off" else args.f # original F=0.004
     vals[10]=math.ceil(args.seconds/60)
     vals[11]=60
     (work/"input.txt").write_text("\n".join(str(v) for v in vals)+"\n")
-    (work/"rain.txt").write_text("\n".join([f"{args.rain/3600000:.16g}"]*int(vals[10]))+"\n")
+    net_rain=args.rain-args.canopy_loss_mm*3600/args.seconds
+    assert net_rain>=0
+    (work/"rain.txt").write_text("\n".join([f"{net_rain/3600000:.16g}"]*int(vals[10]))+"\n")
     for n in ("topoin.txt","particlesizein.txt","particlepercentin.txt"):
         (work/n).write_bytes((src/n).read_bytes())
     cmd=["gcc","-O2","-std=gnu99","-Wall","-o",str(work/"qaengine"),str(c),"-lm"]
@@ -159,7 +172,7 @@ def main():
     (work/"run.log").write_text(output)
     matches=re.findall(r"QA_JSON (\{[^\n]*\})",output)
     layer_matches=re.findall(r"QA_LAYER (\{[^\n]*\})",output)
-    result=dict(source_sha=sha,scenario=vars(args),run_exit=rc,qa_json_lines=len(matches))
+    result=dict(source_sha=sha,scenario=vars(args),effective_rain_mm_h=net_rain,run_exit=rc,qa_json_lines=len(matches))
     if matches:
         qa=json.loads(matches[-1])
         result.update(qa)
