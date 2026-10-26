@@ -21,7 +21,7 @@ probe_src="""          IF (K.EQ.2.AND.MOD(L,50).EQ.0.AND.
  5766       FORMAT('FORENSIC_SPLASH ',6(E14.6,1X))
           ENDIF
 """
-needle="          XINDET(K) = (RDETIN(k)+DRDTIN(k))*1.e-6/2.65"
+needle="         XINDET(K) = (RDETIN(k)+DRDTIN(k))*1.e-6/2.65"
 assert needle in s
 s=s.replace(needle,needle+"\n"+probe_src)
 src.write_text(s,encoding="latin1")
