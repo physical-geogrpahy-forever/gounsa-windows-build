@@ -25,7 +25,11 @@ def frac_positions(name):
     if name=="island_equal":
         return [(1.0,2.0),(5.3,3.7),(2.4,6.3),(5.2,9.3),(1.0,10.9)]
     return [(x,y) for y in (1.5,4.0,6.5,9.0,11.5) for x in (0.5,2.5,4.5,6.0)]
-def generate(name,rain,stemflow):
+def generate(name,rain,stemflow,mechanism='all'):
+    assert mechanism in ("all","canopy_only","hydraulic_only","detachment_only")
+    use_canopy=mechanism in ("all","canopy_only")
+    use_hydraulics=mechanism in ("all","hydraulic_only")
+    use_detachment=mechanism in ("all","detachment_only")
     points=frac_positions(name)
     cells=[]
     for i in range(NX):
@@ -50,8 +54,8 @@ def generate(name,rain,stemflow):
     donors={k:0. for k in lookup}
     sftotal=0.
     for z in cells:
-        z["int_mm"]= min(.8, rain*.25) if z["veg"] else 0.
-        z["sf_donor_mm"]=rain*.10 if (z["veg"] and stemflow) else 0.
+        z["int_mm"]= min(.8, rain*.25) if (z["veg"] and use_canopy) else 0.
+        z["sf_donor_mm"]=rain*.10 if (z["veg"] and stemflow and use_canopy) else 0.
         sftotal+=z["sf_donor_mm"]
         z["drop_mm"]=rain-z["int_mm"]-z["sf_donor_mm"]
         assert z["drop_mm"]>=0
@@ -64,11 +68,11 @@ def generate(name,rain,stemflow):
     for z in cells:
         i=z["i"];j=z["j"];v=z["veg"]
         z["source_mm"]=z["drop_mm"]+donors[(i,j)]
-        z["Ks"]=4.0e-6 if v else 1e-6       # HYPOTHETICAL, not species-fitted
-        z["roughness"]=.18 if v else .08     # HYPOTHETICAL
-        z["rain_a"]=.07 if v else .25        # HYPOTHETICAL
-        z["rain_ad"]=.10 if v else .25       # HYPOTHETICAL
-        z["J"]=90 if v else 30              # HYPOTHETICAL
+        z["Ks"]=4.0e-6 if (v and use_hydraulics) else 1e-6       # HYPOTHETICAL, not species-fitted
+        z["roughness"]=.18 if (v and use_hydraulics) else .08     # HYPOTHETICAL
+        z["rain_a"]=.07 if (v and use_detachment) else .25        # HYPOTHETICAL
+        z["rain_ad"]=.10 if (v and use_detachment) else .25       # HYPOTHETICAL
+        z["J"]=90 if (v and use_detachment) else 30              # HYPOTHETICAL
         z["topo"]=4+.25*j*DX+.009*(i*DX-CENTER)**2
         fields.append(z)
     # A structural source conservation test, independent from SWEHR.
@@ -155,11 +159,12 @@ def main():
     ap.add_argument("--stemflow",choices=["off","on"],default="off")
     ap.add_argument("--seconds",type=int,default=3600)
     ap.add_argument("--asan",action="store_true")
+    ap.add_argument("--mechanism",choices=["all","canopy_only","hydraulic_only","detachment_only"],default="all")
     x=ap.parse_args()
-    name=f"{x.scenario}_p{x.rain:02d}_sf{x.stemflow}_{x.seconds}s"
+    name=f"{x.scenario}_p{x.rain:02d}_sf{x.stemflow}_{x.seconds}s_{x.mechanism}"
     wd=ROOT/"spatial_patch_experiments"/"runs"/name
     wd.mkdir(parents=True,exist_ok=True)
-    fields,info=generate(x.scenario,x.rain,x.stemflow=="on")
+    fields,info=generate(x.scenario,x.rain,x.stemflow=="on",x.mechanism)
     # Source original DEM raster input expects x(i) OUTER, y(j) INNER.
     (wd/"spatial_fields.txt").write_text("\n".join(
        " ".join(f"{v:.15g}" for v in [z["source_mm"]/x.rain if x.rain else 0,
@@ -203,7 +208,7 @@ def main():
     try:rc,out=call([str(wd/"native")],wd,300)
     except subprocess.TimeoutExpired as e:rc=124;out="NATIVE TIMEOUT "+repr(e)
     (wd/"run.log").write_text(out[-100000:])
-    r=dict(scenario=x.scenario,intensity_mm_h=x.rain,stemflow=x.stemflow,seconds=x.seconds,
+    r=dict(scenario=x.scenario,intensity_mm_h=x.rain,stemflow=x.stemflow,mechanism=x.mechanism,seconds=x.seconds,
            native_source_sha=source_sha,engine_exit_code=rc,**info)
     j=re.findall(r"QA_JSON (\{[^\n]*\})",out)
     y=re.findall(r"QA_LAYER (\{[^\n]*\})",out)
