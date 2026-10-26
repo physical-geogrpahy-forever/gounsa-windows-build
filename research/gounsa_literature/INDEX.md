@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (432)
+## Papers (434)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -356,6 +356,7 @@
 - `papers/2024_Gurung_SCION_FLORA.md`
 - `papers/2024_Gustafson_CohortGapDynamics.md`
 - `papers/2024_Huang_RockFragmentSoilWaterVegetation.md`
+- `papers/2024_Ion_VegetatedHillslope_HairsineRose_Erosion.md`
 - `papers/2024_Landuyt_DynaFORb.md`
 - `papers/2024_Lapides_BedrockVadoseDGVM.md`
 - `papers/2024_Liu_RootTraitsAbandonment.md`
@@ -383,6 +384,7 @@
 - `papers/2025_Gao_FATES_GrassFire.md`
 - `papers/2025_Geyman_RockStrengthSoilProduction.md`
 - `papers/2025_Hong_LM4_SHARC.md`
+- `papers/2025_Ion_ASTERIX_2D_VegetatedFlow.md`
 - `papers/2025_Korean_Forest_FineRootTraits_QuercusMongolica.md`
 - `papers/2025_Langan_aDGVM2_HydraulicDiversity.md`
 - `papers/2025_Li_Hillslope_GrainSize_LandscapeEvolution.md`
@@ -526,7 +528,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (61)
+## Decisions (62)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -585,6 +587,7 @@
 - `decisions/2026-10-26_SHETRAN_FIT_FOR_PURPOSE_REASSESSMENT.md`
 - `decisions/2026-10-26_SHETRAN_INTEREVENT_DEM_UPDATE_NATIVE_OUTPUT_AUDIT.md`
 - `decisions/2026-10-26_SPATIAL_NATIVE_SWEHR_DENSE_MISCANTHUS_SPARSE_OAK_38RUNS.md`
+- `decisions/2026-10-26_STRICT_REJECTION_TREX_IBER_ASTERIX.md`
 - `decisions/2026-10-26_SWEHR_EUROSEM_SOURCE_CLOSURE_VERIFICATION.md`
 - `decisions/2026-10-26_SWEHR_EVIDENCE_STATUS_MATRIX.csv`
 - `decisions/2026-10-26_SWEHR_REPRODUCIBILITY_REMEDIATION.md`
