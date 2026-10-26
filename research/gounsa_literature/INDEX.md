@@ -441,12 +441,13 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (84)
+## Models (85)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
 - `models/aDGVM_aDGVM2_2D.md`
 - `models/ARMOUR_mARM_SSSPAM.md`
+- `models/ASTERIX.md`
 - `models/BiomeE_BiomeEP.md`
 - `models/CABLE_POP.md`
 - `models/CAESAR_Lisflood.md`
