@@ -18,6 +18,10 @@ jobs:
           repository: nclwater/Shetran
           ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
           path: original
+      - name: Checkout Gounsa analysis scripts
+        uses: actions/checkout@v4
+        with:
+          path: audit
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -91,6 +95,8 @@ jobs:
           print('NATIVE_COBRES_48H_EXIT0_AND_HDF5_PRESENT')
           print('WARNING: EXTERNAL EVENT RESTART AND FULL SEDIMENT MASS CONSERVATION NOT TESTED')
           PY
+      - name: Quantify original native sediment HDF5 and hourly integration discrepancy
+        run: python audit/experiments/analyze_shetran_native_cobres.py /tmp/shetran-native-cobres
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -99,5 +105,6 @@ jobs:
             /tmp/shetran-native-cobres/native_stdout.log
             /tmp/shetran-native-cobres/output_*txt
             /tmp/shetran-native-cobres/output_*csv
+            /tmp/shetran-native-cobres/native_cobres_48h_diagnostics.json
           if-no-files-found: warn
           retention-days: 14
