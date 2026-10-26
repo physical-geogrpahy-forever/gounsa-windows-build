@@ -1,0 +1,45 @@
+name: SWEHR official V1.0 untouched smoke test
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/swehr_official_v1_untouched_smoke.yml'
+      - 'third_party/SWEHR_original_v1_0_2017/**'
+  workflow_dispatch:
+jobs:
+  original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make temporary runnable copy of OFFICIAL files
+        run: |
+          mkdir -p /tmp/swehr_v1_original
+          cp third_party/SWEHR_original_v1_0_2017/* /tmp/swehr_v1_original/
+          cd /tmp/swehr_v1_original
+          sha256sum License.txt SWEHR.c input.txt rain.txt topoin.txt particlepercentin.txt particlesizein.txt | tee source_sha256.txt
+      - name: Build unchanged original C with GCC
+        run: |
+          cd /tmp/swehr_v1_original
+          gcc -O2 -std=gnu99 -Wall -Wextra -o SWEHR_v1 SWEHR.c -lm 2>&1 | tee original_build.log
+      - name: Run unmodified included original input test
+        run: |
+          cd /tmp/swehr_v1_original
+          set +e
+          timeout 90s ./SWEHR_v1 > original_stdout.log 2> original_stderr.log
+          rc=$?
+          echo "ORIGINAL_NATIVE_EXIT_CODE=${rc}" | tee original_exit.txt
+          tail -n 25 original_stdout.log || true
+          tail -n 25 original_stderr.log || true
+          if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+      - name: Archive original binary/source provenance and baseline output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-SWEHR-v1-untouched-native-smoke
+          path: |
+            /tmp/swehr_v1_original/source_sha256.txt
+            /tmp/swehr_v1_original/original_build.log
+            /tmp/swehr_v1_original/original_stdout.log
+            /tmp/swehr_v1_original/original_stderr.log
+            /tmp/swehr_v1_original/original_exit.txt
