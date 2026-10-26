@@ -267,3 +267,7 @@ Cea et al. (2024)에서 직접 확인:
 **현재까지 조사한 기존 모델 중 event-scale hillslope water erosion 자체는 Iber+가 가장 직접적으로 요구조건에 가깝다.**
 
 단, 이는 전체 고운사 모델 채택이나 LPJ-GUESS coupling 확정을 의미하지 않는다.
+
+
+## 2026-10-26 strict full-source + native canopy verdict: REJECT AS STANDALONE
+2024 openly accessible primary [Fernández-Nóvoa et al., NHESS 24:609–630](https://nhess.copernicus.org/articles/24/609/2024/nhess-24-609-2024.html) 'Code and data availability' **explicitly says "although the open-source code is only accessible to collaborators, an executable Iber+ version is freely available"**. The public dataset [DOI 10.57745/UFEK4L](https://doi.org/10.57745/UFEK4L) is expressly **executables** for Windows/Linux, *not* C/C++/CUDA calculation source. Test cases/observations public ≠ source public. 2024 Cea et al. erosion paper does not document a dynamic LAI canopy-storage and leaf-drip-energy engine in the published erosion component. Both full public native erosion-source and critical vegetation-state verification fail the user's strict selection rules. The published 2D physical erosion and high-altitude Galabre field case remain good independent science **only**; no promise of an open exact source to modify / run as full native canopy/erosion engine. **REJECT from current Gounsa standalone main candidate selection** (not claiming published hydraulics model inherently inaccurate).
