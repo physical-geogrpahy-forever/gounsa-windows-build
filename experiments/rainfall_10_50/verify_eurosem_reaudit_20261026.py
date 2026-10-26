@@ -14,6 +14,7 @@ def main():
     a.add_argument("--rain",type=int,required=True)
     a.add_argument("--drip-fix",action="store_true",help="Experimental: remove duplicated DRIPD/RAIN factor in DRIPS")
     a.add_argument("--mcode",type=int,choices=[0,1],default=1)
+    a.add_argument("--dt-minute",type=float,default=1.0,help="Original model outer timestep in minutes")
     a.add_argument("--trace-splash",action="store_true")
     a.add_argument("--test-splash-width",action="store_true",help="Experimental dimensional source-transport width test; NOT original model")
     a.add_argument("--repeat",type=int,default=1)
@@ -126,6 +127,10 @@ def main():
     pcp=(src/"test.pcp").read_text(errors="replace")
     # Use one model element; original two are unconnected with warning. No invented routing.
     par=par.replace("    2       0     110.      88.","    1       0     100.      88.")
+    if args.dt_minute!=1.0:
+        src_step="    1       0     100.      88.      1.0       0.7    20."
+        assert src_step in par,repr(par.splitlines()[6:10])
+        par=par.replace(src_step,f"    1       0     100.      88.      {args.dt_minute:.2f}       0.7    20.",1)
     assert "    1       0     100.      88." in par
     par=par.replace("       2            2\n","")  # physically remove unused computation order line; READTM counts lines
     # Trim original second plane entry entirely; the first remains unchanged.
