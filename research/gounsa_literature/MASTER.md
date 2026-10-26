@@ -1466,3 +1466,6 @@ Latest decision:
 - 강우강도 10/20/30/40/50 mm/h 최대 침식률 각각 2.708/67.260/105.330/133.284/430.591 mm/day. 시간별 HDF5 근사 최대 누적 원토양 박리 각각 0.143/6.770/15.724/23.506/29.702 mm. 이는 native 내부 exact GNU 적산이 아님.
 - 원본 초기 SY51 DLS 30mm인데 native HDF5 t=0 DLS=0mm로 출력되는 초기화 이전 snapshot 확인. 원본 종료시각 48h를 최종 시간이 18.90~51.73분 초과. 정확한 외부 사상 경계 연동에서 해결 필수.
 - SHETRAN native 침식 계산 구동 성공과 **원본 유사질량수지 폐합, 정확한 강우사상 종료, 퇴적층 상태 전체 재시작, DEM/토심 재입력에 따른 유동 피드백 검증은 별개**. 고운사 최종 모델 확정 불가.
+
+
+> **EUROSEM 2026-10-26 원본 dt 수렴 확인:** 12회 GNFortran 실제 재시험(15/30/60s)에서 합성 단일 사면 30mm/h, H1.2m 원본 수송계열의 출력 침식량은 15vs30초 Govers .272%, Everaert .228% 차이만 보이고 12회 수문 물수지 통과. OpenLISEM7.5.2와 달리 이 시험 조건에서 침식출력이 시간간격에 따라 안정적으로 수렴하는 경향. **원본 EUROSEM을 수치불안정 모델이라고 단정할 근거 없음**, 다만 원본 LAI 미구현, 1D 공간구조, 독립 유사보존 실패/미검증, 빗방울 중복분배와 박리항 단위 문제는 계속 존재. [전체 판정](decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md), [12회 Actions](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949).
