@@ -15,6 +15,7 @@ def main():
     a.add_argument("--drip-fix",action="store_true",help="Experimental: remove duplicated DRIPD/RAIN factor in DRIPS")
     a.add_argument("--mcode",type=int,choices=[0,1],default=1)
     a.add_argument("--trace-splash",action="store_true")
+    a.add_argument("--test-splash-width",action="store_true",help="Experimental dimensional source-transport width test; NOT original model")
     a.add_argument("--repeat",type=int,default=1)
     a.add_argument("--tag",default="baseline")
     a.add_argument("--cover",type=float,default=0.15)
@@ -74,8 +75,14 @@ def main():
             dst.write_text(h)
             fs.append(str(dst))
             continue
-        if f.name=="eusedl.for" and args.trace_splash:
+        if f.name=="eusedl.for" and (args.trace_splash or args.test_splash_width):
             h="\n".join(lines)+"\n"
+            if args.test_splash_width:
+                lhs=next(line for line in h.splitlines() if "DTRC = DTRF*CEX + PAVF*RDET(I)" in line)
+                rhs=lhs.replace("PAVF*RDET(I)", "PAVF*RDET(I)*TW(I)")
+                h=h.replace(lhs,rhs,1)
+                boundary=next(line for line in h.splitlines() if "RDET(1) + VSU*tw(1)*(CMX(1)-CT(1))" in line)
+                h=h.replace(boundary,boundary.replace("RDET(1) +", "RDET(1)*TW(1) +"),1)
             target=next(line for line in h.splitlines() if "SUP(I) = DTRC - CT(I)*DTRF" in line)
             diag="""        IF (I.EQ.NM .AND. LCH.LE.0 .AND.
      1      MOD(L,40).EQ.0) THEN
