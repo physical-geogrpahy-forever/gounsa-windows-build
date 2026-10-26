@@ -1424,3 +1424,10 @@ Latest decision:
 
 ### 2026-10-26 SHETRAN 전체 실행경로 감사 추가
 [SHETRAN 4.7.2 원본 전체 호출경로 감사](decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md)를 최신 상세 근거로 우선한다. 검토한 공식 Fortran: FRINIT/INFR/VSIN/ETIN/TMSTEP/OCQDQ/SYMAIN/SYCOLM/SYBED/FRRESP/HDF5/Hotstart. 확인된 필수 검증: 최초 유사계산 시간간격 누락, `GNU`의 `DLSMAX` threshold lag, 기존 output44 초기화 및 시간 재설정 오류, 외부 sediment boundary 미구현, BALSED 빈 함수, 수문 hotstart의 sediment 미포함, VS08 재생성으로 잔존 토심 소실 미표현. **SHETRAN 후보 유지, 최종채택 및 수치검증 주장 보류.**
+
+
+## 2026-10-26 실제 SHETRAN 4.7.2 native 실행 (정적 검토 이후 갱신)
+- [원본 SHETRAN Cobres 0,10,30,50 mm/h 강우사상 실행](decisions/2026-10-26_SHETRAN_472_NATIVE_COBRES_RAIN_QA.md)은 upstream SHA cf9cd540add78ad3accbaf62b4199d2032887f6b Fortran 4.7.2.0 실제 빌드/실행 로그에 근거. 원본 방정식과 코드 수정 없이 2 km 원본 Cobres 입력 복사에 강우 3시간, 48시간 사건으로 설정했다.
+- s_v_er 최대 0,2.708,105.330,430.591 mm/day; HDF5 시계열 오른쪽 끝 적산 최대 총침식 0,0.143,15.724,29.702 mm (내부 정확 적산이 아니라 근사). 초기 DLS=30mm, HDF5 t=0=0mm 출력 오류 주의. 종료시간 48h 초과 18.9~37.9분.
+- 20/40mm/h 추가 자동 native 실험은 진행 중이며, 완결 전까지 통과로 쓰지 않는다.
+- **고운사 final model 채택 X**: native erosion/sediment budget, 일관된 sediment restart, VS08 잔존토심, grid-link-bank DEM event coupling은 미검증.
