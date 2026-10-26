@@ -88,3 +88,26 @@ The width-trial defaults `DINT=.9` vs first 20-run series DINT=1.5; **do not com
 - [Today's native 20 run matrix](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40322591668)
 - [Today's internal RDET/sediment transport source trace](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40323173111)
 - [Today's 8 width source dimensional experiment](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40323570418)
+
+## 7. Additional native timestep convergence (new same-day actual 12 full runs)
+
+Actual re-runs 2026-10-26 native 1998 source versus separately labelled one-factor drip corrected variant, mcode Govers 0 and Everaert 1, H120cm, cover .9, DINT1.5mm, EROD.9, storm30mm/h ×60min and 28min recession, same one-plane 14500m² domain. Command-line option `--dt-minute` changes only original `DELT` input from1.0min to0.5min,0.25min; total precipitation and soil unchanged. Source baseline physics untouched in original branch, restored exactly between trials. This is a **native Fortran solver** check, no homemade erosion emulator.
+
+[Original source Actions 12-case timestep test](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949)
+
+| timestep | Govers MCODE0 net printed erosion (t/ha) | Everaert MCODE1 (t/ha) | runoff mm |
+|--:|--:|--:|--:|
+|60s|21.592551724|25.630275862|3.32806|
+|30s|21.688827586|25.723793103|3.34119|
+|15s|21.747931034|25.782551724|3.34921|
+
+All 12 native cases successfully ended with **hydrology QA PASS**. 15s-to-30s discrepancy relative to finer result: 0.271766% Govers, 0.227901% Everaert; 30s-to-60s: .443896% Govers and .363544% Everaert. Values approach a stable limit with time refinement; unlike OpenLISEM7.5.2 2D 10×–1000× instability. The corrected drip-ratio experiment produces identical reported total sediment in this transport-dominated scenario, not proof correction is unnecessary.
+
+**Narrow numerical verdict:** original EUROSEM in this exact synthetic one-plane case **passes provisional timestep convergence <0.5% down to 15s** and hydrological closure. No numerical basis to call this implementation intrinsically time-step divergent from this experiment. However it remains 1D connected flow elements, not original 2D hillslope solver, and original total sediment mass conservation is unverified; do NOT elevate timestep-only result to independently sediment conservative/full Gounsa-ready. Real forest soil depth/stone/rain/drip not yet tested.
+
+New files:
+- `experiments/rainfall_10_50/run_eurosem_timestep_reaudit_20261026.py`
+- `.github/workflows/eurosem_native_timestep_reaudit_20261026.yml`
+- original GNU Fortran input/outputs + per-run QA artifacts at linked Actions.
+
+**Update previous status:** original EUROSEM **not discarded for numerical instability under tested dt**, but still does NOT satisfy user uncompromised genuine 2D condition. It may be physically audited 1D supplementary canopy process benchmark.
