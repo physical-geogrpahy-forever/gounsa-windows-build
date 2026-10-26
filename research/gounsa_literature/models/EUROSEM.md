@@ -74,3 +74,15 @@ K_s,roc = K_s (1 + PAVE)
 - ../papers/1998_Morgan_EUROSEM.md
 - ../papers/2017_Khaleghpanah_EUROSEM_StonySteepLands.md
 - ../papers/2012_Jomaa_RockFragmentHydrologyErosionModel.md
+
+
+## 2026-10-26 기존 식생 민감도 무반응 실험의 실제 오류와 재현: 판정 갱신
+[2026-10-26 실제 729개 CSV 복구, 원본 Fortran 감사, 신규 24+24회 A/B 실행, 소스 플럭스 계측](../decisions/2026-10-26_EUROSEM_PREVIOUS_LOW_VEGETATION_SENSITIVITY_FORENSIC.md).
+- 원본 `TheSoilman/EUROSEM` SHA `8652944da6e1e8436495aa0c08765e2399830dd7`. Original `INTERC` reads `COVER,DINT,SHAPE,PLANGLE,PLANTH,PBASE`; LAI variable was **added in 2025 experimental `patch_interception.py`**, not original.
+- Added law `SKLAI=min(COVER,.046 LAI)`, `Smax=.20 LAI` mm: for LAI2.5, COVER .5 and .9 map to same capture coefficient .115 and same effective rain. 729 factorial 'COVER no effect' was partly mathematically baked into modified inputs.
+- PLANTH original ASCII is **cm** and code divides by100, so past '3m' native `3` actually **3cm**. Internal leafdrip KE=0 for H<~0.138m; comparisons of measured-height plant interception were invalid. Rerun native 150cm returned positive KE and no sediment-change in this original benchmark; height error not sole cause.
+- Original native `KINET` `DRIPKE=KE_LD*DRIPD/RAIN` then `DRIPS` `DMMSEC=RMMSEC*DRIPD/RAIN` => native leafdrip detachment scales as `(DRIPD/RAIN)^2`, unlike single-count rain partition. Source diagnostic one-line `DMMSEC=RMMSEC` A/B inflated *native internal* leafdrip splash 2.65–28.12x but did **not** affect source-reported first element net erosion at displayed precision (12 pairs).
+- Source `MCODE=1` = Everaert, `0` = Govers. Fixed case MCODE switch changed first plane 37,829.734→44,036.523kg, +16.4%. Previous claim using Govers at MCODE1 invalid.
+- Native `SED` `DTRC=DTRF*CEX+RDET` internal probe sampled `RDET≈3.1×10^-9`, `DTRF*CEX≈0.0016–0.00194` (5e5–6e5× greater), explaining why splash changes were dynamically swamped by transport-related source in sampled cells. The EROD=.9 additional instrumented cases output was incomplete, do not claim all-pass.
+- Existing 729 original+LAI compiled runs and today's 48 complete native A/B/OAT runs are **not independent sediment mass closure or 2D site validation**. Native original EUROSEM is 1D connected plane/rill/channel geometry, despite many rainfall and plants processes. No true 2D LiDAR rill initiation, no localized stem-foot SF, no native quantitative root RLD coupling.
+**Verdict**: restore as **valuable source-process benchmark** after correctly separating native code vs LAI fork; **continue EXCLUDE** as complete original Gounsa 2D source erosion engine, primarily for true2D and independent sediment QA gaps, not blanket 'vegetation has no effect'.
