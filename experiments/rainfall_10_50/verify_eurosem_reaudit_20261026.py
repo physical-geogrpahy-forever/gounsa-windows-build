@@ -52,11 +52,11 @@ def main():
             # that ratio a second time through DMMSEC. This is an explicitly
             # revised physical equation, never count it as original EUROSEM.
             if args.drip_fix:
-                old_d="        If(Rain(IZ) .gt. 0.) DMMSEC = RMMSEC*DRIPD(IZ)/RAIN(IZ)"
+                old_d=next(line for line in h.splitlines() if "DMMSEC = RMMSEC*DRIPD(IZ)/RAIN(IZ)" in line)
                 assert h.count(old_d)==1
-                h=h.replace(old_d,"        If(Rain(IZ) .gt. 0.) DMMSEC = RMMSEC",1)
+                h=h.replace(old_d,old_d.replace("RMMSEC*DRIPD(IZ)/RAIN(IZ)","RMMSEC"),1)
             if args.trace_splash:
-                target="            Rdet(k) = xindet(k)  + rdet(k)"
+                target=next(line for line in h.splitlines() if "Rdet(k) = xindet(k)  + rdet(k)" in line)
                 diag="""            Rdet(k) = xindet(k)  + rdet(k)
          IF (K.EQ.1 .AND. MOD(L,40).EQ.0) THEN
          WRITE(*,8907) L,ERODGJ(J),RMMSEC,DMMSEC,
@@ -64,7 +64,7 @@ def main():
  8907    FORMAT('SPLASH_DIAG ',I5,7(1X,E13.5))
          ENDIF"""
                 assert h.count(target)==1
-                h=h.replace(target,diag,1)
+                h=h.replace(target,diag.rstrip(),1)
             probe="""      WRITE(*,5005) RAIN(1),TFALL(1),DRIPD(1),STEMD(1),
      & DINTRT(1)*1000.
  5005 FORMAT('CANOPY_QA ',5(E15.7,1X))
