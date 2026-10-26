@@ -1372,3 +1372,10 @@ Latest decision:
 ## 2026-10-26 밀생 억새와 산발적인 참나무 맹아 비교의 공간구조 오류 정정
 
 [핵심 결정: 실제 배치가 다른 두 식생을 평균피복과 균일 유효강우로 동일 취급하지 않는다](decisions/2026-10-26_DENSE_MISCANTHUS_SPARSE_OAK_SPATIAL_COMPARISON.md). 진짜 고운사 식생 대조는 밀생 Miscanthus tussock/roots/litter와 떨어진 Quercus oak stump/sprouts 사이의 **노출토양 연결성 및 runon/runaround/유사수송 경로**이다. 기존 110회+60회 native SWEHR/EUROSEM 균일사면 실험은 이 핵심 공간변수가 없었으므로 실제 두 식생의 침식량 유사성 또는 우열을 입증하지 않는다. Mayor et al. 2008 WRR DOI 10.1029/2007WR006367의 6 plot/3 catchment Flowlength 검증, Crompton et al. 2023 GRL DOI 10.1029/2022GL101801의 2D Saint-Venant runon/runaround 역학이 신규 직접근거. 비교는 UAV/TLS 기반 2D 지형과 포기/그루터기별 뿌리/낙엽/토양수리/암편 및 SF 위치를 모형입력으로 구성해야 하며 관련 통계는 10–50 mm/h 1시간마다 물수지와 유사수지를 통과해야 한다. Iber+ 주연산 모형 선택은 그대로 유지.
+
+
+## 2026-10-26 고운사 밀생 억새와 산발 참나무 맹아 2D 공간형 SWEHR 38회 실험
+
+[원본 source 기반 가상사면 물수지 및 독립 유사수지 검증](decisions/2026-10-26_SPATIAL_NATIVE_SWEHR_DENSE_MISCANTHUS_SPARSE_OAK_38RUNS.md). GitHub에서 실제 고운사 DTM/식생 분포 원자료가 확인되지 않아, 13×25 cell, dx=0.5m, 81.25m² **가상** 경사에 밀생 억새(94.77%), 산발 참나무(9.23%), 정확히 동일 면적 40%의 횡방향 식생대 및 고립 식생패치를 분리해 10~50mm/h×1h 20회 모의. 공간적 SF 재분배 10회 및 원래 수관/수리/박리 과정별 추가 8회로 총 38회 실행. **38/38 물수지와 원토양-퇴적층-부유토사-경계 유사수지 통과**. 최대 물수지 상대오차 4.15e-11, 원토양 독립 유사수지 최대 1.16e-13. 30mm/h 산발 참나무 예시 유출 21.661mm, 유사 배출 0.002291t/ha; 밀생 억새 예시 유출 10.087mm, 유사 배출 0.000543t/ha. 동일 40% 피복 50mm/h 고립 패치가 횡방향 연결형보다 유사 배출 1.410배. **이는 식생 공간배치에 따른 가능성 검증이지 고운사 실제 종별 침식량 계량 예측이 아님**. 노출/식생 격자의 Ks, 거칠기, 박리 저항과 차단저류 및 SF 분율은 가상 설정; 루트 RLD 및 litter, 암편, 수관적하 KE는 미연동. 이전의 단일 평균 COVER 비교를 현장 근거로 재사용 금지. Iber+ 본 생산 선택 유지.
+
+실험 원본 및 영구 결과 [공간형 SWEHR branch](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/spatial-vegetation-runoff-erosion-20261026/experiments/rainfall_10_50/spatial_patch_experiments/verified_20261026), [38-run Actions](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40264757325).
