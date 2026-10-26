@@ -42,7 +42,7 @@ def main():
     # Use one model element; original two are unconnected with warning. No invented routing.
     par=par.replace("    2       0     110.      88.","    1       0     100.      88.")
     assert "    1       0     100.      88." in par
-    par=par.replace("       2            2","                    ")  # remove unused computation order entry
+    par=par.replace("       2            2\n","")  # physically remove unused computation order line; READTM counts lines
     # Trim original second plane entry entirely; the first remains unchanged.
     second=par.find("*      potatoes",par.find("*      potatoes")+1)
     assert second>=0
