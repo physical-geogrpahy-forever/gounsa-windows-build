@@ -1,0 +1,11 @@
+name: SWEHR mass balance tests
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 experiments/rainfall_10_50/verify_swehr_closure.py --rain 0 --seconds 120 --ks 0 --erosion off --boundary closed
