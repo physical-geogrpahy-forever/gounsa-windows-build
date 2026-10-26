@@ -61,3 +61,11 @@
 - [Source and steep-slope native feature audit](2026-10-26_OPENLISEM_THREE_CRITERIA_SOURCE_AND_STEEP_SLOPE_AUDIT.md).
 - Windows original runs: https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/39928519655 ; https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/39929498985 ; https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40185751985
 - Source `v7.5.2`: https://github.com/vjetten/openlisem/tree/v7.5.2
+
+
+## 2026-10-26 same-session source recheck (not a new executable run)
+Connected GitHub source `vjetten/openlisem` `v7.5.2` vs `main_C` independently inspected:
+- Both `erosion/lisErosionAux.cpp` `GetSV` have the *same* original problematic expression `sqrt(1.0 + 0.01*(1.65*GRAV*dm*dm*dm)-1.0)/dm`, with threshold `d<100`. Thus source on current main_C does NOT show default scheme repair.
+- `main_C/erosion/lisSWOF2DSediment.cpp` line ~640 `//detachment = DetachMaterial(...)`, line ~673 `//if(SS + detachment > MAXCONC * sswatervol)` still commented.
+- `main_C/model/lisDataInit.cpp` has `SwitchUseMaterialDepth = false;` at ~1990 and 2113. Native finite soil stock remains disabled there.
+- Conclusion: upgrading solely from 7.5.2 binaries to current main_C source cannot be asserted to fix erosion mass/stability problems. A fresh native convergence run with alternative **original-supported** settling scheme, properly enabled advanced controls and verified outlet is still necessary to distinguish correctable setup from native mathematical issue.
