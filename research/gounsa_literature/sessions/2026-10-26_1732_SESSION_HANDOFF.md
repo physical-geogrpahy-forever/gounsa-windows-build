@@ -38,3 +38,7 @@
 3. 지표유출, splash, runoff-flow detachment, deposition, outlet sediment, mass budgets 별도 검증. 원본 공식 예제가 수문 전용이면 erosion 활성 예제를 따로 찾아서 입력 검사.
 4. 고운사 동일 DEM, soil, boundaries에서 가상 억새 vs 참나무 맹아 canopy LAI/height/Smax/litter/roots sensitivity at 10,20,30,40,50 mm/h for 1h. 실제 생태/침식 데이터로 오인 금지. 침식 신호가 거의 없을 경우 canopy->rain energy->detachment 경로 활성/조건을 점검.
 5. 이전 EUROSEM, SWEHR 임의계수 포크 등에서 나온 가상 산출을 OpenLISEM 원본 결과라고 쓰지 말 것.
+
+## 2026-10-26 과거 세션 재확인 후 중대 정정
+- 앞서 인계서에서 제안했던 'Windows 7.5.2 설치형 원본 처음부터 실행'은 **과거 2026-10-23 이미 공식 Windows headless 전체 실행을 완료했던 사실을 빠뜨린 오류**. 이를 그대로 반복하지 않는다.
+- 원본 7.5.2 유사량 수치 비수렴, 100µm GetSV 코드 결함, finite detach cap 비활성, 대량의 격자 침식량, 2026-10-25 설정/유출구/공식예제 실패를 모두 `../decisions/2026-10-26_OPENLISEM_752_PREVIOUS_NUMERICAL_FAILURE_RECOVERY.md`에 복구했다. 이 문서가 기능 선례 감사보다 **모델의 실제 연구사용 가능성 판단에서는 우선**한다.
