@@ -1,0 +1,33 @@
+name: Gounsa vegetation mechanism sensitivity (native EUROSEM SWEHR)
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - 'experiments/rainfall_10_50/run_species_sensitivity.py'
+      - 'experiments/rainfall_10_50/verify_eurosem_native.py'
+      - 'experiments/rainfall_10_50/verify_swehr_closure.py'
+      - '.github/workflows/species_sensitivity_native.yml'
+  workflow_dispatch:
+jobs:
+  ensembles:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [eurosem, swehr]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GNU compilers
+        run: sudo apt-get update -qq && sudo apt-get install -y gfortran gcc
+      - name: Native model ensemble
+        run: python3 experiments/rainfall_10_50/run_species_sensitivity.py --engine ${{ matrix.engine }}
+      - name: Upload all model results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sensitivity-${{ matrix.engine }}
+          path: |
+            experiments/rainfall_10_50/species_sensitivity/${{ matrix.engine }}/results.csv
+            experiments/rainfall_10_50/species_sensitivity/${{ matrix.engine }}/results.json
+          if-no-files-found: warn
