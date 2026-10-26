@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (391)
+## Papers (393)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -37,12 +37,14 @@
 - `papers/1971_Kirkby_ContinuityHillslopeModels.md`
 - `papers/1972_Carson_Kirkby_HillslopeFormProcess.md`
 - `papers/1972_Foster_Meyer_ErosionMechanics.md`
+- `papers/1972_Rutter_CanopyRainfallInterception.md`
 - `papers/1973_Ahnert_COSLOP2.md`
 - `papers/1973_Shugart_ForestSuccessionModels.md`
 - `papers/1973_Swanson_ConceptualErosionModel.md`
 - `papers/1974_Gray_SoilReinforcementVegetation.md`
 - `papers/1974_OLoughlin_RootStrengthDeterioration.md`
 - `papers/1974_Sollins_ConiferPhysiologyModel.md`
+- `papers/1975_Rutter_ThroughfallStemflowInterception.md`
 - `papers/1976_Ahnert_3DLandformModel.md`
 - `papers/1976_Neuman_GreenAmptWettingFrontPressure.md`
 - `papers/1977_Kirkby_SoilDevelopmentSlopeModels.md`
@@ -398,7 +400,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (58)
+## Models (59)
 
 - `models/4C_FORESEE.md`
 - `models/ARMOUR_mARM_SSSPAM.md`
@@ -452,6 +454,7 @@
 - `models/SIBERIA.md`
 - `models/SORTIE_ND.md`
 - `models/Stony_Soil_Hydraulics_GEM.md`
+- `models/SWEHR.md`
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
@@ -459,7 +462,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (31)
+## Decisions (32)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -492,3 +495,4 @@
 - `decisions/2026-10-26_DENSE_MISCANTHUS_SPARSE_OAK_SPATIAL_COMPARISON.md`
 - `decisions/2026-10-26_SPATIAL_NATIVE_SWEHR_DENSE_MISCANTHUS_SPARSE_OAK_38RUNS.md`
 - `decisions/2026-10-26_EUROSEM_SWEHR_IBERPLUS_COMPARISON.md`
+- `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
