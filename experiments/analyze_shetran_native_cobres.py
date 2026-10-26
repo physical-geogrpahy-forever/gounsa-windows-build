@@ -54,7 +54,18 @@ with h5py.File(path) as f:
     # Right-endpoint and trapezoid are two *approximations* from snapshots.
     right=np.sum(rate_a[:,1:]*dt[np.newaxis,:],axis=-1)/86400000.0
     trap=np.sum(0.5*(rate_a[:,1:]+rate_a[:,:-1])*dt[np.newaxis,:],axis=-1)/86400000.0
-    net_dls=(loose_a[:,-1]-loose_a[:,0])/1000.0
+
+    # Original Cobres HDF5 first time=0 precedes native SYMAIN/SYINIT; DLS=0
+    # there is uninitialised/not-yet-initialised state, NOT real 30 mm deposition.
+    sy_file=(root/"input_cob_syd.txt").read_text().splitlines()
+    ix=next(i for i,t in enumerate(sy_file) if t.strip().startswith(":SY51c"))
+    native_initial_loose_m=float(sy_file[ix+1].split()[0].replace("D","E"))
+    initial_snapshot=loose_a[:,0].copy()
+    net_dls=(loose_a[:,-1]/1000.0-native_initial_loose_m)
+    snapshots=[{"hour":float(times[i]),"erosion_mm_day":stats(rate_a[:,i]),
+                "loose_depth_mm":stats(loose_a[:,i])}
+                for i in sorted(set([0,1,2,3,6,len(times)-1])) if i<len(times)]
+
     outcome={
         "source":"native SHETRAN 4.7.2.0 pinned SHA cf9cd540add78ad3accbaf62b4199d2032887f6b",
         "native_shetran_executed":True,
@@ -71,10 +82,14 @@ with h5py.File(path) as f:
         "right_endpoint_sampled_erosion_m":stats(right),
         "trapezoid_sampled_erosion_m":stats(trap),
         "sampled_integral_difference_m":stats(right-trap),
-        "net_dls_change_m":stats(net_dls),
+        "native_sy51_initial_dls_mm":float(1000.0*native_initial_loose_m),
+        "hdf5_time_zero_loose_minus_sy51_mm":stats(initial_snapshot-1000.0*native_initial_loose_m),
+        "sampled_erosion_loose_snapshots":snapshots,
+        "net_dls_change_from_native_sy51_m":stats(net_dls),
         "cells_nonzero_erosion_right_endpoint":int(np.count_nonzero(right>0)),
-        "cells_nonzero_dls_delta":int(np.count_nonzero(net_dls!=0)),
+        "cells_nonzero_dls_delta":int(np.count_nonzero(np.abs(net_dls)>1e-8)),
         "blockers":[
+            "HDF5 time zero s_t_dp precedes native SYINIT and is not the real SY51 initial depth",
             "HDF5 hourly source-rate integration is NOT exact native GNU*DTUZ",
             "native SYMAIN first-call initialization and missing first step not repaired",
             "no original sediment mass conservation audit yet",
@@ -82,6 +97,8 @@ with h5py.File(path) as f:
             "no FR37/OC35/VS08 coupled next-event native rerun yet"
         ],
     }
+    if "net_rain" in items:
+        outcome["net_rain_maybe_single_site"] = stats(items["net_rain"][0][1]["value"][()])
     for label,groups in items.items():
         if label.startswith("s_dis"):
             for name,g in groups:
