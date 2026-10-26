@@ -99,3 +99,7 @@ K_s,roc = K_s (1 + PAVE)
 6. OLD 'EROD insensitivity proves splash physically irrelevant' **WITHDRAWN**. Formula-level errors and transport-dominated exact synthetic setting explain output. But still no independent EUROSEM sediment conservation, finite depth or 2D spatial stemflow/erosion map; **not restored as main 2D Gounsa engine**. Canopy rain balance and separate interrill/rill source equations can be process benchmarks after exact corrections.
 
 Original source https://github.com/TheSoilman/EUROSEM and customized diagnostic branch https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50 .
+
+
+### 2026-10-26 추가 원본 시간간격 수렴 시험
+[실제 GNU Fortran 12회 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949)에서 H120cm, COVER.9, DINT1.5mm, EROD.9, 강우30mm/h 1시간, 100×145m 합성 단일 사면 조건으로 DELT=60,30,15s를 비교했다. Govers 순침식량 21.59255→21.68883→21.74793t/ha, Everaert 25.63028→25.72379→25.78255t/ha. 15s vs30s 차이 각 0.272%,0.228%; 12/12 수문 물수지 PASS. **이 조건에서 원본 계산은 시간간격 수렴 경향을 보임.** 독립 유사수지 미검증, 유한 토심 엄격 제한 미검증, 여전히 1D 연결 사면이므로 원본 2D 주 엔진 선정 안 됨. 결론 상세 [결정문](../decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md).
