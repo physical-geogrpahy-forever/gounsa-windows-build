@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/shetran_native_cobres_smoke.yml'
+      - 'experiments/shetran_native_mechanism_probes.py'
+      - 'experiments/analyze_shetran_native_cobres.py'
   workflow_dispatch:
 permissions:
   contents: read
