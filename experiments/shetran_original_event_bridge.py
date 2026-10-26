@@ -21,7 +21,8 @@ from pathlib import Path
 
 FIELDS = 7
 def read_grid_csv(path, nx, ny, value_col):
-    rows = list(csv.DictReader(Path(path).open(newline="",encoding="utf-8-sig")))
+    with Path(path).open(newline="",encoding="utf-8-sig") as handle:
+        rows = list(csv.DictReader(handle))
     grid = {}
     for row in rows:
         k = int(row["iy"]), int(row["ix"])
@@ -88,14 +89,15 @@ def encode_g7(v, max_abs_rounding):
 
 def integrate_rates(path,nx,ny,duration_s):
     r={}
-    for row in csv.DictReader(Path(path).open(newline="",encoding="utf-8-sig")):
-        k=(int(row["iy"]),int(row["ix"]))
-        t=float(row["time_s"])
-        val=float(row["rate_mm_day"])
-        if not (math.isfinite(t) and math.isfinite(val) and val>=0):
-            raise ValueError("Invalid source GNU or time")
-        if not (1<=k[0]<=ny and 1<=k[1]<=nx):raise ValueError(f"Invalid {k}")
-        r.setdefault(k,[]).append((t,val))
+    with Path(path).open(newline="",encoding="utf-8-sig") as handle:
+        for row in csv.DictReader(handle):
+            k=(int(row["iy"]),int(row["ix"]))
+            t=float(row["time_s"])
+            val=float(row["rate_mm_day"])
+            if not (math.isfinite(t) and math.isfinite(val) and val>=0):
+                raise ValueError("Invalid source GNU or time")
+            if not (1<=k[0]<=ny and 1<=k[1]<=nx):raise ValueError(f"Invalid {k}")
+            r.setdefault(k,[]).append((t,val))
     er={}
     for iy in range(1,ny+1):
         for ix in range(1,nx+1):
