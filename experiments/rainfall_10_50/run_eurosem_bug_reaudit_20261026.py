@@ -30,6 +30,7 @@ for i,(height,cover,erod,fix) in enumerate(cases):
         completed=subprocess.run(cmd,text=True,encoding="latin1",stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,cwd=ROOT,timeout=95)
         folder=ROOT/f"eurosem_QA_{case}_r30_rep1"
+        if not (folder/"qa_result.json").exists(): print("NATIVE_STDOUT",case,completed.stdout[-2800:]); raise RuntimeError("missing qa")
         r=json.loads((folder/"qa_result.json").read_text())
         r.update(status="PASS" if completed.returncode==0 else "FAIL",
                  case=case,height_cm=height,cover=cover,erod=erod,drip_patch=fix,
