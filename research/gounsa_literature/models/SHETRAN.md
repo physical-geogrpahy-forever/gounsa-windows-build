@@ -78,3 +78,11 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 - 원본의 t=0 HDF5 s_t_dp=0 mm는 SY51 초기퇴적층 30 mm가 초기화되기 전 출력되는 현상으로서 30mm 실제 퇴적으로 해석하면 오류. native 외부 bridge는 SY51을 기준으로 해야 한다.
 - 사건 종료 시각 FR6 48h를 native 최종 기록이 48.315~48.632h로 초과하였다. 다음 사건을 정확히 시간 연결하려면 timestep end cap 및 수문입력 적산 검증 필요.
 - **native Cobres 물리모형 실행 성공과 native 고운사 DEM 피드백, 유사수지 폐합, sediment hotstart는 구분해야 함.**
+
+
+### 2026-10-26 native 5개 강우강도 시험 최종 확인
+- 이전의 20, 40 mm/h '진행 중' 기록을 갱신: [GitHub Actions 40287116566](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40287116566)에서 원본 SHETRAN Fortran 빌드, 건조 기준과 10/20/30/40/50 mm/h(3시간) native 실행, HDF5 분석 모두 **success**.
+- 20 mm/h 최대 순간 원토양 박리율 67.259918 mm/day, hourly HDF5 근사 최대 누적 박리 6.769896 mm, 초기 SY51 대비 최대 DLS 증가 5.415897 mm. 40 mm/h: 각각 133.283951 mm/day, 23.506236 mm, 20.078381 mm. 모두 Cobres 2km 예제, 고운사 예측 아님.
+- HDF5 근사 순지표고 변화 Δz 범위: 20mm/h [-1.3540,+0.02479] mm(174개 하강/2개 상승), 40mm/h [-4.82008,+4.04589] mm(173개 하강/3개 상승); 물리적 DEM을 native 모형에 재주입한 결과는 아님.
+- 40 mm/h 시나리오 FR6 48h 종료시각 초과 51.73분 확인. native 정확 GNU 시간 적산, 유사질량수지, 사상별 sediment-hotstart+토층 및 지형 재입력은 미완료.
+- 정밀 수치와 한계: [Native rainfall QA](../decisions/2026-10-26_SHETRAN_472_NATIVE_COBRES_RAIN_QA.md).
