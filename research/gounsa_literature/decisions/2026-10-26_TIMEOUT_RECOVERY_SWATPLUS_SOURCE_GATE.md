@@ -1,0 +1,14 @@
+# 2026-10-26 전송 시간 초과 복구 및 신규 엄격 원본 소스 게이트
+
+## 중단 뒤 진행 사실
+tRIBS-Model/tRIBS v6.0 MIT C++ `src/tHydro/tIntercept.cpp` native Rutter interception confirmed, but official released C++ `src/` code search `Hairsine` none and `sediment/erosion` only unrelated mesh comment; 2013 Kim et al. published FEaST full 2D erosion is **not contained in public v6**. Existing canonical [tRIBS-FEaST](../models/tRIBS_FEaST.md), no re-selection.
+- Wflow native source direct cross-check https://github.com/openstreams/wflow `wflow/wflow_sbm.py` Smax=Sl*LAI+Swood, canopy gap exp(-Kext*LAI); `wflow/wflow_sediment.py` separates direct/leafdrip KE and `SedOv` by runoff; lateral sediment `pcr.accucapacityflux(TopoLdd,...)` directed routing, not 2D conservative advection. Current Deltares/Wflow.jl improved source same strict dimensionality caution. Canonical [Wflow_Sediment](../models/Wflow_Sediment.md), **rejected main**.
+- HydroPol2D (https://github.com/marcusnobrega-eng/HydroPol2D) `interceptionModel.m` source `S_max=C*LAI`, throughfall, storage and evap with 2D hydrology, but original GitHub code searches `sediment`, `erosion` no source matches, and pollutant wash-off not soil erosion. Canonical [HydroPol2D](../models/HydroPol2D.md), **reject main**.
+- **New** 2026 current SWAT+ original `src/ero_ovrsed.f90` source actually inspected. Subdaily Green–Ampt erosion is **non-MUSLE raindrop + overland flow**, but HRU not true2D; raindrop fraction `min(LAI,1)` and gross rainfall partition, so no differentiation across LAI≥1 in that source. Canonical [SWAT+_Subdaily](../models/SWAT_PLUS_Subdaily_Erosion.md), **reject main**.
+- **New latest empirical reference** Li & Tian (2026), HESS 30:3203–3219 DOI 10.5194/hess-30-3203-2026: 9 datasets for leaf LAI + inclination plus drizzle splash/drip KE; R² total .769, splash .572, drip .773; auxiliary canopy energetics, **not a ready 2D erosion model**. Canonical [Li_Tian_2026](../papers/2026_Li_Tian_UnderCanopyKineticEnergy.md).
+
+## Decisions
+No passed completely open single native LAI canopy+2D runoff erosion+actual steep forest sediment source. Above models **excluded from native 2D main candidate**; do not rename D8 distributed model genuine 2D, don't claim stable dt/mass. No compiler/test numerical runs occurred this source-audit segment, do not invent output. Current archived OpenLISEM original Windows 7.5.2 FAIL persists.
+
+## Next research filter
+Only investigate new lineages if **author/official tagged binary+matching original erosion source** demonstrably exists, native LAI→canopy store/throughfall and leafdrip release, and 2D sediment flux in actual 2D runoff. Start from actual call graph/inputs. Then require native dt refinement and mass closure/finite soil depth before adoption. Equation-based model coupling must be clearly named novel.
