@@ -63,3 +63,7 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 
 ## 2026-10-26 사상 간 지표고도 갱신에 관한 정정
 **원본 SHETRAN에 사상 내부 Exner/rill 지형갱신이 없다는 것은 강우사상별 지형발달 연구에 사용할 수 없다는 뜻이 아니다.** 고운사에는 event-splitting sequential DEM update가 적절한 첫 구현이다. 원본 sediment output은 `src/visualisation/visualisation_interface_left.f90` 의 `s_v_er` = signed `GNU` *86400*1000 [mm/day], `s_t_dp` = `DLS` *1000 [mm]; `examples/Cobres/model/input_cob_visualisation_plan.txt`에는 원본 기능으로 둘 다 **grid_as_grid** 출력되도록 설정되어 있음. 시나리오 시간별 `s_v_er` 적분으로 원지반 박리 두께 `E_{soil}`를, `s_t_dp`의 사상 전후 차이로 느슨한 표층퇴적물 저장층 변화 `ΔDLS`를 구분한다. 사상 종료 후 `z_{soil,next}=z_{soil,current}-E_{soil}`; 정의 및 밀도변환 검증을 거쳐 물리적 지표고도 `z_{surface,next}=z_{soil,next}+DLS_{end}`를 준비한다. `DLS`는 **이동가능한 느슨한 표면 유사층 깊이**이지, 항상 안정적인 퇴적지형고도를 의미하지 않으므로 정착/공극률/퇴적 정착 조건을 확인할 것. 이전 이벤트의 초기 DLS는 중복 더하지 않는다. 이수송/퇴적입경, 암편과 토심도 새로운 상태로 갱신하고 다음 사건의 SHETRAN DEM에 입력한다. 원래 코드 `ZGRUND INTENT(IN)`은 **한 번의 실행 도중 갱신되지 않음**을 의미할 뿐, 서로 다른 강우사상 사이에 외부 모델이 입력 지형을 갱신하는 것을 금지하지 않는다. 사상별 교환을 하려면 습윤상태 및 지하수, 수관 저장고, 퇴적층 질량의 연결성과 물수지 유사수지를 검증한다. 한 사상 내 rill 형성이 유동을 크게 바꾸는 경우 사상 간 DEM 업데이트만으로는 충분하지 않을 수 있다. 앞서 '미구현'이라는 사실만으로 SHETRAN을 배제한 해석은 철회한다.
+
+
+## 2026-10-26 사상 간 DEM 갱신의 원본 출력 결함 및 상태변수 감사
+[새 결정문: SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT](../decisions/2026-10-26_SHETRAN_EVENT_BOUNDARY_DEM_STATE_AUDIT.md) 에 native `FRRESP` output 44의 `GNUCUM/PREVTM` 초기값과 `SEDSRT` baseline, contaminant `RESNOW=0` 호출 결함, `SY51/52/53` 초기 `DLS/FBETA/FDEL` 입력 및 hotstart 불완전성, 단순 모형 기반 지형 업데이트와 별도 물/유사수지 검증 계획을 기록했다. **원본 실행 검증 아님.**
