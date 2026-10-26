@@ -89,8 +89,8 @@ def main():
         except Exception as e:
             summary={}
             status="exception";output=repr(e)
-        rec=dict(engine=a.engine,tag=tag,scenario=name,rain_mm_h=rain,
-                 parameters=params,program_status=status,**{k:v for k,v in summary.items() if k not in ("scenario","parameters")})
+        rec={**summary,"engine":a.engine,"tag":tag,"scenario":name,"rain_mm_h":rain,
+             "parameters":params,"program_status":status}
         records.append(rec)
         print("RUN",len(records),len(cases),name,rain,status,
               json.dumps({k:rec.get(k) for k in ["water_pass","sediment_pass","independent_layer_pass","canopy","net_boundary_sediment_out_kg","net_erosion_kg","gross_detachment_kg"]}),flush=True)
