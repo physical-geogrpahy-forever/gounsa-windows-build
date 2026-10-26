@@ -1,0 +1,100 @@
+name: SHETRAN 4.7.2 pinned native Cobres sediment smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_native_cobres_smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-cobres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout pinned original SHETRAN, unchanged
+        uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies
+        run: |
+          python -m pip install --disable-pip-version-check fypp h5py numpy
+          gfortran --version | head -1
+          gcc --version | head -1
+          cmake --version | head -1
+          find original/external/tarballs -type f -printf '%f %s bytes\n'
+      - name: Build entire original SHETRAN executable with GNU Fortran
+        working-directory: original
+        run: |
+          ./build.sh -c gfortran -t Debug -j 2
+          test -x build/debug/bin/shetran
+          file build/debug/bin/shetran
+      - name: Run native Cobres 48h sediment event (input copy only)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/shetran-native-cobres
+          cp -a original/examples/Cobres/model/. /tmp/shetran-native-cobres/
+          python - <<'PY'
+          from pathlib import Path
+          f=Path('/tmp/shetran-native-cobres/input_cob_frd.txt')
+          lines=f.read_text().splitlines(keepends=True)
+          changes={'':None,
+             ':FR6   END TIME OF SIMULATION': '1977 10 3 0 0',
+             ':FR7a  START TIME OF SEDIMENT SIMULATION': '1977 10 1 0 0'}
+          seen=set()
+          for i,line in enumerate(lines[:-1]):
+              s=line.strip()
+              if s.startswith(':FR6') or s.startswith(':FR7a'):
+                  key=':FR6   END TIME OF SIMULATION' if s.startswith(':FR6') else ':FR7a  START TIME OF SEDIMENT SIMULATION'
+                  fields=list(map(int,lines[i+1].split()))
+                  assert len(fields)==5 and fields[0]==1977, (s,fields)
+                  lines[i+1]=''.join(f'{v:7d}' for v in map(int,changes[key].split()))+'\n'
+                  seen.add(key)
+          assert len(seen)==2, seen
+          f.write_text(''.join(lines))
+          print('ORIGINAL_SOURCE_UNCHANGED; input-copy-only shortened to 48 h with sediment active at t=0')
+          PY
+          EXE="$(pwd)/original/build/debug/bin/shetran"
+          ( cd /tmp/shetran-native-cobres && timeout 480s "$EXE" -f rundata_cob.txt ) > /tmp/shetran-native-cobres/native_stdout.log 2>&1 || {
+            tail -n 100 /tmp/shetran-native-cobres/native_stdout.log
+            exit 1
+          }
+          tail -n 40 /tmp/shetran-native-cobres/native_stdout.log
+      - name: Inspect native result files and HDF5 sediment fields
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import h5py
+          root=Path('/tmp/shetran-native-cobres')
+          outputs=sorted(root.glob('output_*'))
+          assert outputs, 'Native SHETRAN produced no output files'
+          print('NATIVE_OUTPUTS:', [(f.name,f.stat().st_size) for f in outputs])
+          h5s=sorted(root.glob('*.h5'))
+          assert h5s, 'No native shegraph HDF5 output'
+          for path in h5s:
+              with h5py.File(path) as f:
+                  datasets=[]
+                  def inspect(name,obj):
+                      if isinstance(obj,h5py.Dataset):
+                          datasets.append((name,tuple(obj.shape),str(obj.dtype)))
+                  f.visititems(inspect)
+                  print('HDF5_DATASETS:',datasets[:100])
+                  assert len(datasets)>0
+          print('NATIVE_COBRES_48H_EXIT0_AND_HDF5_PRESENT')
+          print('WARNING: EXTERNAL EVENT RESTART AND FULL SEDIMENT MASS CONSERVATION NOT TESTED')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-cobres-48h-forensic-logs
+          path: |
+            /tmp/shetran-native-cobres/native_stdout.log
+            /tmp/shetran-native-cobres/output_*txt
+            /tmp/shetran-native-cobres/output_*csv
+          if-no-files-found: warn
+          retention-days: 14
