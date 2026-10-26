@@ -57,7 +57,7 @@ for x in rows:
     report.append(f"| {x.get('rain_intensity_mm_h')} | {x.get('scenario')} | {x.get('mean_final_flow_depth_mm','-')} | {x.get('max_local_erosion_mm','-')} | {x.get('gross_bed_lowering_volume_m3','-')} | {x.get('gross_bed_rise_volume_m3','-')} | {x.get('issue')} |")
 
 for r in [10,20,30,40,50]:
-    p=ROOT/f"eurosem_{r:02d}"
+    p=Path(os.environ.get("AUDIT_EUROSEM_ROOT","qa_inputs_eurosem"))/f"eurosem_{r:02d}"
     x=dict(engine="EUROSEM",rain_intensity_mm_h=r,scenario="published_test",valid=False)
     if not p.exists():
         x["issue"]="MISSING ARTIFACT";rows.append(x);continue
