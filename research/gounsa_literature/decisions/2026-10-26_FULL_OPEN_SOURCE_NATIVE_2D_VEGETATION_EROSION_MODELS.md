@@ -55,3 +55,7 @@ openLISEM wiki https://github-wiki-see.page/m/vjetten/openlisem/wiki
 DHSVM official https://github.com/pnnl/DHSVM-PNNL
 GEOtopSed archive https://github.com/TanZiTT/GEOtopSed
 SMODERP 2D https://github.com/storm-fsv-cvut/smoderp2d
+
+
+## 2026-10-26 GitHub 원본 버전 고정
+감사 대상으로 확인한 `nclwater/Shetran` 공개 master HEAD: `cf9cd540add78ad3accbaf62b4199d2032887f6b`. 버전 정보는 CMake `project(SHETRAN VERSION 4.7.2.0)`. 미래 소스 변경이 생겨도 본 조사 결과는 이 commit의 실제 Fortran 원본 함수와 대응해야 한다. 원본 고정 링크: https://github.com/nclwater/Shetran/tree/cf9cd540add78ad3accbaf62b4199d2032887f6b
