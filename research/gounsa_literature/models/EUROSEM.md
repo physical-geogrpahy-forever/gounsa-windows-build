@@ -103,3 +103,16 @@ Original source https://github.com/TheSoilman/EUROSEM and customized diagnostic 
 
 ### 2026-10-26 추가 원본 시간간격 수렴 시험
 [실제 GNU Fortran 12회 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949)에서 H120cm, COVER.9, DINT1.5mm, EROD.9, 강우30mm/h 1시간, 100×145m 합성 단일 사면 조건으로 DELT=60,30,15s를 비교했다. Govers 순침식량 21.59255→21.68883→21.74793t/ha, Everaert 25.63028→25.72379→25.78255t/ha. 15s vs30s 차이 각 0.272%,0.228%; 12/12 수문 물수지 PASS. **이 조건에서 원본 계산은 시간간격 수렴 경향을 보임.** 독립 유사수지 미검증, 유한 토심 엄격 제한 미검증, 여전히 1D 연결 사면이므로 원본 2D 주 엔진 선정 안 됨. 결론 상세 [결정문](../decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md).
+
+
+## 2026-10-26 원본 유사수지 24회 새 실험: 세류 0/12 통과
+
+[고정밀 원본 유사수지 재검증](../decisions/2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md). 원본 eplanel.for 873–924행은 inrlbal=sumqirr+sumdir+suspir, rillbal=stout+sumdrl+susprl-sedin 수지 계산을 이미 포함한다. 과거 보고에서 독립 유사수지 검증만 미완료였고 해당 원본 수지식이 없었던 것은 아니다.
+
+**실제 24회**: RAIN30/50 mm/h, dt15/30/60초, rills off/on, Govers/Everaert 원본 Fortran source. 24회 수문 검사/원본 outlet Q×CT 재적분 통과, 독립 유사수지 tolerance 0.1% **9/24**만 통과. rills off 9/12, rills on 0/12.
+
+**15초 결과** rills on whole slope sediment residual: R30 Govers −3.55178m³ (outlet 대비14.32%), R30 Everaert −5.74281m³ (21.48%), R50 Govers −21.05008m³ (16.99%), R50 Everaert −27.29938m³ (20.50%). 반면 rills off 네 경우 잔차 0.0037–0.0291%. 시간간격 줄여도 세류 잔차 해결되지 않음. [원본24회](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40326142263).
+
+**세류간→세류 실제 유사 전달 재계측**: [24회](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40326648315). 15초 조건, interrill exported vs measured actual lateral into rill Govers30:11.80246 vs11.79962m³, Everaert30:18.96229 vs18.96267, Govers50:70.11043 vs70.10292, Everaert50:90.78222 vs90.78481. 대량 누락은 세류간-세류 연결점이 아니다. **세류 내부의 DLA/DRLNET/bed update 또는 미집계 저장량**을 추가 검사해야 함.
+
+**현 상태의 EUROSEM 세류 포함 유사수지는 FAIL**, 세류 없는 1D 원본만 한정적 통과이고 고운사 2D 주 모델의 필수조건과 별개다. 실험적 LAI 보강과 수관적하 오류 수정 포크를 1998년 원본 기능으로 혼동 금지.
