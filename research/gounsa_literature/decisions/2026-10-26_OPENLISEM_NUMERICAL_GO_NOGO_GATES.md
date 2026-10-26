@@ -69,3 +69,6 @@ Connected GitHub source `vjetten/openlisem` `v7.5.2` vs `main_C` independently i
 - `main_C/erosion/lisSWOF2DSediment.cpp` line ~640 `//detachment = DetachMaterial(...)`, line ~673 `//if(SS + detachment > MAXCONC * sswatervol)` still commented.
 - `main_C/model/lisDataInit.cpp` has `SwitchUseMaterialDepth = false;` at ~1990 and 2113. Native finite soil stock remains disabled there.
 - Conclusion: upgrading solely from 7.5.2 binaries to current main_C source cannot be asserted to fix erosion mass/stability problems. A fresh native convergence run with alternative **original-supported** settling scheme, properly enabled advanced controls and verified outlet is still necessary to distinguish correctable setup from native mathematical issue.
+
+## 2026-10-26 판정: 새 원본 2D 재실행 불합격 확정
+Windows 공식 원본 7.5.2 12개 2D 시나리오 재실행 및 원본 출력 독립 재검산 완료. 원본 기본/대체 침전속도 모두 시간간격 수렴성 **불합격**, 물/유사수지 단독 폐합은 **통과**, 가상 얕은 토층 최대 격자 보존은 기본식 20초에서 **불합격**. 2026-10-26 **NO-GO / 원본 OpenLISEM 7.5.2 고운사 유수침식 주 모델 후보 제외**, 고운사 억새/참나무 침식 비교에 사용 금지. 상세 [새 원본 계산 12회 검증 보고](2026-10-26_OPENLISEM_752_NATIVE_2D_STABILITY_FAILED.md), [실제 Windows run](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304135775). 1/2초 refinement 추가 결과가 확인되면 부록에 넣는다.
