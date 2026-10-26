@@ -72,6 +72,46 @@ jobs:
             exit 1
           }
           tail -n 40 /tmp/shetran-native-cobres/native_stdout.log
+      - name: Native SHETRAN fixed 3-hour rainfall events at 10 30 and 50 mm/h
+        run: |
+          set -euo pipefail
+          EXE="$(pwd)/original/build/debug/bin/shetran"
+          for MMH in 10 30 50; do
+            DIR="/tmp/shetran-native-cobres-rain${MMH}"
+            mkdir -p "$DIR"
+            cp -a original/examples/Cobres/model/. "$DIR/"
+            python - "$DIR" "$MMH" <<'PY'
+          from pathlib import Path
+          import sys
+          root=Path(sys.argv[1]);rain=float(sys.argv[2])
+          frd=root/"input_cob_frd.txt"
+          lines=frd.read_text().splitlines(keepends=True)
+          seen=set()
+          for i,line in enumerate(lines[:-1]):
+              if line.strip().startswith(":FR6"):
+                  lines[i+1]="".join(f"{v:7d}" for v in [1977,10,3,0,0])+"\n"
+                  seen.add("END")
+              elif line.strip().startswith(":FR7a"):
+                  lines[i+1]="".join(f"{v:7d}" for v in [1977,10,1,0,0])+"\n"
+                  seen.add("SED_START")
+          assert seen=={"END","SED_START"},seen
+          frd.write_text("".join(lines))
+          prd=root/"input_wet_prd.txt"
+          q=prd.read_text().splitlines(keepends=True)
+          assert len(q)>50 and "rainfall" in q[0].lower()
+          for i in range(1,49):
+              fields=q[i].split()
+              assert len(fields)==5, (i,fields)
+              q[i]="".join(f"{(rain if i<=3 else 0):10.4f}" for _ in range(5))+"\n"
+          prd.write_text("".join(q))
+          print(f"INPUT_COPY_ONLY_STORM_{rain:.0f}mmh_3h_then_dry")
+          PY
+            (cd "$DIR" && timeout 480s "$EXE" -f rundata_cob.txt) > "$DIR/native_stdout.log" 2>&1 || {
+              echo "FAILED_STORM=$MMH"; tail -n 100 "$DIR/native_stdout.log"; exit 1;
+            }
+            test -s "$DIR/output_cob_shegraph.h5"
+            echo "NATIVE_STORM_${MMH}MMH_SUCCESS"
+          done
       - name: Inspect native result files and HDF5 sediment fields
         run: |
           python - <<'PY'
@@ -96,7 +136,11 @@ jobs:
           print('WARNING: EXTERNAL EVENT RESTART AND FULL SEDIMENT MASS CONSERVATION NOT TESTED')
           PY
       - name: Quantify original native sediment HDF5 and hourly integration discrepancy
-        run: python audit/experiments/analyze_shetran_native_cobres.py /tmp/shetran-native-cobres
+        run: |
+          python audit/experiments/analyze_shetran_native_cobres.py /tmp/shetran-native-cobres
+          for MMH in 10 30 50; do
+            python audit/experiments/analyze_shetran_native_cobres.py "/tmp/shetran-native-cobres-rain${MMH}"
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -106,5 +150,11 @@ jobs:
             /tmp/shetran-native-cobres/output_*txt
             /tmp/shetran-native-cobres/output_*csv
             /tmp/shetran-native-cobres/native_cobres_48h_diagnostics.json
+            /tmp/shetran-native-cobres/output_*h5
+            /tmp/shetran-native-cobres-rain*/native_stdout.log
+            /tmp/shetran-native-cobres-rain*/output_*txt
+            /tmp/shetran-native-cobres-rain*/output_*csv
+            /tmp/shetran-native-cobres-rain*/output_*h5
+            /tmp/shetran-native-cobres-rain*/native_cobres_48h_diagnostics.json
           if-no-files-found: warn
           retention-days: 14
