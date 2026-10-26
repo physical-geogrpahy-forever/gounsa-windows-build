@@ -36,3 +36,9 @@
 - `MASTER.md` updated
 - Testing code `experiments/rainfall_10_50/verify_eurosem_reaudit_20261026.py`, `run_eurosem_bug_reaudit_20261026.py`, `run_eurosem_width_trial_20261026.py`
 - Workflows `.github/workflows/eurosem_drip_ratio_reaudit_20261026.yml`, `eurosem_splash_width_unit_recheck_20261026.yml`
+
+
+## 시간간격 검증 추가 완료
+- 12회 원본 vs 중복 적하비율 수정 Fortran을 1분,0.5분,0.25분 dt로 분리 실행. native original model reported net soil loss Govers [21.59255,21.68883,21.74793], Everaert [25.63028,25.72379,25.78255] t/ha at [60,30,15]sec; 15vs30 relative delta <.3%, 12/12 native hydrology closure. [run 40324676949](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949).
+- Native source now **passes provisional timestep refinement in one synthetic case**, in contrast to Classic OpenLISEM. It is still NOT a full 2D rain/sediment engine and lacks independent EUROSEM sediment flux/store ledger.
+- Reproduction branch adds `run_eurosem_timestep_reaudit_20261026.py` and workflow `eurosem_native_timestep_reaudit_20261026.yml`. Earlier source mass/height/drip findings remain in decision file.
