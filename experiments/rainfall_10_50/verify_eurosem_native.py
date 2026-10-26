@@ -29,7 +29,20 @@ def main():
         s=f.read_bytes().decode("latin1")
         lines=[z[:72] for z in s.splitlines() if "\x1a" not in z]
         dst=fixed/f.name
-        dst.write_text("\n".join(lines)+"\n")
+        if f.name=="eplanel.for":
+            z="\n".join(lines)+"\n"
+            start=z.index(" 1022 Format(")
+            stop=z.index("  470 FORMAT",start)
+            new_format=""" 1022 Format(3x,'GROSS INTERRILL EROSION',4X,E14.6,' kg',
+     - E14.6,' t/ha'//,
+     - 3X,'NET EROSION/DEPOSITION',5X,E14.6,' kg',
+     - E14.6,' t/ha',/,
+     - 3x,'(a minus denotes deposition)',/)
+"""
+            z=z[:start]+new_format+z[stop:]
+            dst.write_text(z)
+        else:
+            dst.write_text("\n".join(lines)+"\n")
         fs.append(str(dst))
     exe=ROOT/"EUROSEM_QA"
     compile_flags=["-O0","-g","-std=legacy","-fcheck=bounds","-finit-local-zero",
