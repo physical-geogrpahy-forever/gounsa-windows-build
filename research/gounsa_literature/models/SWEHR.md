@@ -1,5 +1,8 @@
 # SWEHR 원본 논문과 공개 코드의 생태수문 및 강우박리 저감항 대조
 
+> **2026-10-26 고운사 채택 정정:** 공개 공식 SWEHR V1.0이 빌드된다고 해서 McGuire et al. (2016)의 식생 수관모의가 재현되는 것은 아니다. 공식 원본에는 Rutter 수관차단/수관충격 차폐의 독립 구현을 확인하지 못했고, 기존 가상 식생 계수 부여 포크 38회 실행은 published vegetation validation이 아니다. 따라서 **SWEHR을 SHETRAN의 즉시 대체 가능한 완성 모형으로 추천한 판단을 철회**한다. 원본의 2D 수리 및 Hairsine-Rose 과정은 문헌의 참고 구현으로만 유지하며, 현장 적합성과 원논문 식생 구현 재현을 확인하기 전 고운사 완성 침식 엔진으로 명명하지 않는다. 관련 [원본 보존 및 기능 차이](../decisions/2026-10-26_OFFICIAL_SWEHR_V1_0_ORIGINAL_CODE_PROVENANCE.md).
+
+
 ## 핵심
 McGuire et al. (2016, DOI 10.1002/2016JF003867) **논문 수식에는 Rutter 수관차단(§3.5 식24–26)과 수관의 직접 빗방울 충격 차폐(§3.2 식3–4)가 각각 포함**된다. 그러나 CSDMS github.com/csdms-contrib/swehr 공개 단일 `SWEHR.c` 파일에는 시간별 Rutter 수관저류/배수 `C, Tc, Kc, gc, S, Cv` 계산과 직접 수관차폐 계수가 모두 **없다**. 논문상 수식 ≠ 해당 공개 구현. 원논문은 Rutter로 수관저류와 유효강우를 산출하나 실제 Nov/Dec wildfire 관측 재현에서는 수관이 완전 연소해 interception을 제외(§3.8). 재생 민감도 모의에서는 Cv 0.05–0.95, Ks 2–11mm/h와 Tc=0.35, S=2.2mm, gc=3.9mm^-1, Kc=5e-5mm/s 사용(§4.3).
 
