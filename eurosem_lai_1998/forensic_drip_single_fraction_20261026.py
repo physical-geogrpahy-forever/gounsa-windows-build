@@ -14,8 +14,7 @@ old="If(Rain(IZ) .gt. 0.) DMMSEC = RMMSEC*DRIPD(IZ)/RAIN(IZ)"
 new="If(Rain(IZ) .gt. 0.) DMMSEC = RMMSEC"
 assert s.count(old)==1,("original formula not identified",s.count(old))
 # Instrument-only original function comparison after RDETIN and DRDTIN source calculations.
-probe_src="""          IF (K.EQ.2.AND.MOD(L,50).EQ.0.AND.
-     1      T(L).GT.900.AND.T(L).LT.2700.) THEN
+probe_src="""          IF (K.EQ.1.AND.MOD(L,20).EQ.0) THEN
             WRITE(*,5766) ERODGJ(J),DRIPKE(IZ),DMMSEC,
      1           RDETIN(K),DRDTIN(K),XINDET(K)
  5766       FORMAT('FORENSIC_SPLASH ',6(E14.6,1X))
