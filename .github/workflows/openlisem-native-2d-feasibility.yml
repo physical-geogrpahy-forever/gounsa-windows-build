@@ -29,7 +29,7 @@ jobs:
           for d in ("runs","results","logs"): (root/d).mkdir(parents=True,exist_ok=True)
           base=Path("openlisem_reference_trial")/"runs"
           for s in ("Oak","Miscanthus"):
-              for dt, sv in ((5,1),(10,1),(20,1),(5,3),(10,3),(20,3)):
+              for dt, sv in ((1,1),(2,1),(5,1),(10,1),(20,1),(1,3),(2,3),(5,3),(10,3),(20,3)):
                   label=f"{s}_2D_{dt}s_sv{sv}"
                   old=(base/f"{s}_dt10_exponential_eff1.run").read_text(encoding="utf8")
                   assert "Routing Kin Wave 2D=0" in old
@@ -94,7 +94,7 @@ jobs:
           for s in ("Oak","Miscanthus"):
             for sv in (1,3):
               rows=[]
-              for dt in (5,10,20):
+              for dt in (1,2,5,10,20):
                 case=f"{s}_2D_{dt}s_sv{sv}"
                 p=R/case/"totals.csv"
                 if not p.exists():
