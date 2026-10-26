@@ -122,6 +122,15 @@ def main():
  9946   FORMAT('SED_LEDGER_NATIVE ',I3,16(1X,ES21.12))
         ENDIF
 """,1)
+                lat="        CALL SEDCOM (J,qlrav,dv,ar2,ar1,CLAT,NK,LCH)"
+                assert z.count(lat)==1
+                z=z.replace(lat,lat+"""
+        IF (RILLW(J).GT.1.E-4) THEN
+        WRITE(*,9947) T(L),QLRAV,CLAT,XL(J),DEPNO(J),
+     1     DT,QSIRR,QLT,QLTOL,CLIR,CLL
+ 9947   FORMAT('SED_LATERAL_STEP ',11(1X,ES21.12))
+        ENDIF
+""",1)
                 origin="       SEDTOT=SEDTOT+ qsav*RHOS(J)*1000.*DT"
                 assert z.count(origin)==1
                 z=z.replace(origin,origin+"""
@@ -235,6 +244,7 @@ def main():
        abs(result.get("rain_depth_mm",-999)-expected) < 0.3)
     result["sediment_ledger_native_trace"]=re.findall(r"SED_LEDGER_NATIVE[^\\r\\n]*",log)
     result["sediment_step_trace"]=re.findall(r"SED_OUTSTEP[^\\r\\n]*",log)
+    result["sediment_lateral_trace"]=re.findall(r"SED_LATERAL_STEP[^\\r\\n]*",log)
     result["sed_source_diagnostic"]=[v.strip() for v in re.findall(r"SED_SOURCE_DIAG[^\\r\\n]*",log)][:50]
     result["splash_diagnostic"]=[v.strip() for v in re.findall(r"SPLASH_DIAG[^\\r\\n]*",log)][:50]
     # EUROSEM output lacks independently integrated sediment export/storage/boundary ledger.
