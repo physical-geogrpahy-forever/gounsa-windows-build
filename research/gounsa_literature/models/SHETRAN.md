@@ -34,3 +34,7 @@ Leaf drip kinetic/momentum physics in `SYOVER` uses separate fall height and dro
 Wicks & Bathurst 1996, Journal of Hydrology 175:213–238, DOI 10.1016/S0022-1694(96)80012-6 (SHESED physical rain leaf drip flow erosion without rilling).
 Ewen, Parkin & O'Connell 2000 J Hydrologic Engineering 5:250–258 DOI 10.1061/(ASCE)1084-0699(2000)5:3(250)
 SHETRAN official https://research.ncl.ac.uk/shetran/
+
+
+## 2026-10-26 GitHub 원본 버전 고정
+감사 대상으로 확인한 `nclwater/Shetran` 공개 master HEAD: `cf9cd540add78ad3accbaf62b4199d2032887f6b`. 버전 정보는 CMake `project(SHETRAN VERSION 4.7.2.0)`. 미래 소스 변경이 생겨도 본 조사 결과는 이 commit의 실제 Fortran 원본 함수와 대응해야 한다. 원본 고정 링크: https://github.com/nclwater/Shetran/tree/cf9cd540add78ad3accbaf62b4199d2032887f6b
