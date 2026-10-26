@@ -49,7 +49,8 @@ class OriginalBoundaryBridgeTests(unittest.TestCase):
             self.assertAlmostEqual(z[2,1],9.995,places=6) # 10mm gross soil - 5mm deposition
             self.assertAlmostEqual(z[2,2],9.005,places=6) # only 5mm deposition
             self.assertAlmostEqual(z[1,1],8.0,places=6)
-            q=list(csv.DictReader(Path(args.output_dir,"next_soil_depth.csv").open()))
+            with Path(args.output_dir,"next_soil_depth.csv").open() as handle:
+                q=list(csv.DictReader(handle))
             self.assertAlmostEqual(float(next(x["depth_m"] for x in q
                 if x["iy"]=="2" and x["ix"]=="1")),.19,places=6)
             self.assertAlmostEqual(d["max_native_F7_rounding_m"],0,places=9)
