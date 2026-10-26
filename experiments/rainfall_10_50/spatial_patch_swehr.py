@@ -175,6 +175,15 @@ def main():
     source_sha=call(["git","rev-parse","HEAD"],src)[1].strip()
     original=(src/"SWEHR.c").read_text()
     source=add_patch(original,x.rain,1e-6,True,False,.08)
+    # Diagnostic probes in original C target y=50, outside the 25-row grid.
+    # Change only output sample positions; do not modify physical equations.
+    for old,new in [("YPOINT[2]=10;","YPOINT[2]=7;"),
+                    ("YPOINT[3]=20;","YPOINT[3]=12;"),
+                    ("YPOINT[4]=30;","YPOINT[4]=17;"),
+                    ("YPOINT[5]=40;","YPOINT[5]=21;"),
+                    ("YPOINT[6]=50;","YPOINT[6]=24;")]:
+        assert source.count(old)==1,(old,source.count(old))
+        source=source.replace(old,new,1)
     source=spatial_patch(source)
     (wd/"SWEHR_spatial_coupling.c").write_text(source)
     inputvals=list(map(float,(src/"input.txt").read_text().split()))
