@@ -1,0 +1,16 @@
+name: EUROSEM drip KE probe
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        height: [0.8, 80]
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - run: python3 experiments/rainfall_10_50/verify_eurosem_native.py --rain 30 --cover 0.3 --storage 1 --shape 2 --angle 80 --plant-height ${{ matrix.height }} --tag kinetic-${{ matrix.height }}
