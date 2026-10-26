@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 파일을 기준으로 생성한 인덱스다.
 
-## Papers (393)
+## Papers (395)
 
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
 - `papers/1960_Hack_Goodlett_ForestGeomorphology.md`
@@ -115,6 +115,7 @@
 - `papers/1996_Kirkby_MEDALUS_SlopeCatena.md`
 - `papers/1996_Retta_WEPS_BiomassPartition.md`
 - `papers/1996_Thornes_MEDALUS_Test.md`
+- `papers/1996_Wicks_Bathurst_SHESED.md`
 - `papers/1997_Ascough_WEPP_Watershed.md`
 - `papers/1997_Ghidey_Alberts_Plant_Root_Erodibility.md`
 - `papers/1998_Arnold_SWAT.md`
@@ -136,6 +137,7 @@
 - `papers/1999_Puigdefabregas_WaterSedimentRedistribution.md`
 - `papers/1999_Susko_KudzuGerminationEmergence.md`
 - `papers/1999_Tucker_Bras_VegetationRunoffErosion.md`
+- `papers/2000_Ewen_Parkin_OConnell_SHETRAN.md`
 - `papers/2001_Cerda_RockFragmentInfiltrationErosion.md`
 - `papers/2001_Johansen_PostfireRunoffErosionRainSimulation.md`
 - `papers/2001_Lexer_PICUS.md`
@@ -400,7 +402,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (59)
+## Models (60)
 
 - `models/4C_FORESEE.md`
 - `models/ARMOUR_mARM_SSSPAM.md`
@@ -451,6 +453,7 @@
 - `models/SCION_FLORA.md`
 - `models/SEIB_DGVM.md`
 - `models/SERGHEI_SE.md`
+- `models/SHETRAN.md`
 - `models/SIBERIA.md`
 - `models/SORTIE_ND.md`
 - `models/Stony_Soil_Hydraulics_GEM.md`
@@ -462,7 +465,7 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/Wu_2D.md`
 
-## Decisions (35)
+## Decisions (36)
 
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -499,3 +502,4 @@
 - `decisions/2026-10-26_OFFICIAL_SWEHR_V1_0_ORIGINAL_CODE_PROVENANCE.md`
 - `decisions/2026-10-26_SWEHR_REPRODUCIBILITY_REMEDIATION.md`
 - `decisions/2026-10-26_SWEHR_EVIDENCE_STATUS_MATRIX.csv`
+- `decisions/2026-10-26_FULL_OPEN_SOURCE_NATIVE_2D_VEGETATION_EROSION_MODELS.md`
