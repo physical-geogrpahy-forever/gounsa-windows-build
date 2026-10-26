@@ -111,3 +111,7 @@ New files:
 - original GNU Fortran input/outputs + per-run QA artifacts at linked Actions.
 
 **Update previous status:** original EUROSEM **not discarded for numerical instability under tested dt**, but still does NOT satisfy user uncompromised genuine 2D condition. It may be physically audited 1D supplementary canopy process benchmark.
+
+
+## 8. 2026-10-26 원본 24회 유사수지 재검증으로 최종 판정 정정
+[원본 코드 유사수지 24회 및 측방유사이동 24회](2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md): 원본 eplanel.for 873–924행에는 이미 세류간 및 세류 mass balance 항이 존재한다. 기존 낮은 식생 민감도 실험은 여전히 잘못됐지만, 이 발견이 원본 세류의 물리적 신뢰성을 입증하지는 않는다. 실제 독립 유출유사 적분은 24/24 원본과 일치, 전체 세류 없는 수지 9/12 상대잔차 0.1% 이내, **세류 있는 전 12회 상대잔차 14–21% 이상으로 불합격**. dt 15초에서도 불합격이며 세류간 배출과 세류 측방 공급은 일치했으므로, 세류 내부 source/soil/storage 또는 집계 차이가 크다. 고운사 2D 침식 주 엔진으로는 유지하지 않음. 원본 rill physics 코드를 임의로 보정해 부활시키지 말 것.
