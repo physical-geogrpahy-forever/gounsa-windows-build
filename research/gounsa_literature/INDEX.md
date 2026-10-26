@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (438)
+## Papers (439)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -431,6 +431,7 @@
 - `papers/2026_Jo_Oh_GounsaTempleForestFireDamage.md`
 - `papers/2026_Kantzenbach_GRASSMIND_BODIUM.md`
 - `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
+- `papers/2026_Li_Tian_UnderCanopyKineticEnergy.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Samoil_BurnSeverityHillslopeRainSimulator.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
@@ -445,7 +446,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (89)
+## Models (90)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -525,6 +526,7 @@
 - `models/SIBERIA.md`
 - `models/SORTIE_ND.md`
 - `models/Stony_Soil_Hydraulics_GEM.md`
+- `models/SWAT_PLUS_Subdaily_Erosion.md`
 - `models/SWEHR.md`
 - `models/TREX.md`
 - `models/tRIBS_FEaST.md`
@@ -537,7 +539,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (63)
+## Decisions (64)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -601,4 +603,5 @@
 - `decisions/2026-10-26_SWEHR_EVIDENCE_STATUS_MATRIX.csv`
 - `decisions/2026-10-26_SWEHR_REPRODUCIBILITY_REMEDIATION.md`
 - `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
+- `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
