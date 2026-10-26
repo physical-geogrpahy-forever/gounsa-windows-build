@@ -41,6 +41,19 @@ def main():
         s=f.read_bytes().decode("latin1")
         lines=[z[:72] for z in s.splitlines() if "\x1a" not in z]
         dst=fixed/f.name
+        if f.name=="eurseml.for":
+            # Observe original interception, throughfall, drip, stemflow WITHOUT
+            # replacing the original INTERC equations.
+            h="\\n".join(lines)+"\\n"
+            probe="""      WRITE(*,5005) RAIN(1),TFALL(1),DRIPD(1),STEMD(1),
+     & DINTRT(1)*1000.
+ 5005 FORMAT('CANOPY_QA ',5(E15.7,1X))
+"""
+            assert h.count("      CALL VEGWRI(J)")==1
+            h=h.replace("      CALL VEGWRI(J)",probe+"      CALL VEGWRI(J)",1)
+            dst.write_text(h)
+            fs.append(str(dst))
+            continue
         if f.name=="eplanel.for":
             z="\n".join(lines)+"\n"
             start=z.index(" 1022 Format(")
@@ -121,6 +134,12 @@ def main():
         m=re.search(pattern,stat+"\n"+dyn)
         if m:result[key]=float(m.group(1))
     sci=r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[EeDd][-+]?\d+)?)"
+    c=re.findall(r"CANOPY_QA\\s+([^\\r\\n]+)",log)
+    if c:
+        vals=[float(v.replace("D","E")) for v in c[-1].split()]
+        if len(vals)==5:
+            result["canopy"]=dict(zip(["incident_mm","free_throughfall_mm","leaf_drip_mm","stemflow_mm","interception_mm"],vals))
+            result["canopy_balance_error_mm"]=vals[0]-sum(vals[1:])
     result["gross_detachment_kg"]=[float(x.replace("D","E")) for x in re.findall(r"GROSS INTERRILL EROSION\s+"+sci+r"\s+kg",stat)]
     result["net_erosion_kg"]=[float(x.replace("D","E")) for x in re.findall(r"NET EROSION/DEPOSITION\s+"+sci+r"\s+kg",stat)]
     result["water_pass"]=bool(rc==0 and not result["bounds_error"] and
