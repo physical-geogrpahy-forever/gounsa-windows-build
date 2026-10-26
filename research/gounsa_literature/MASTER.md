@@ -1367,3 +1367,8 @@ Latest decision:
 ## 2026-10-26 종별 생태 특성과 PLANTH 단위 오류 정정
 
 [식생 특성 재검증](decisions/2026-10-26_OAK_MISCANTHUS_REAUDIT.md): 참나무 맹아의 줄기와 기존 뿌리, 억새의 포기별 지하경 및 가는뿌리 차이, 생육기와 비생육기의 차이를 원문으로 재검토함. 이전 EUROSEM에 2.5m라고 입력한 PLANTH=2.5는 원래 **2.5cm**였으며 원본 input routine은 /100으로 내부 m 변환. 구 수치 중 적하 운동에너지 관련 해석 오류를 폐기함. 6개 계절별 가상 구조×강우 5강도×두 엔진을 다시 실행함. EUROSEM은 TF/drip/SF 분리하지만 SF 국지침투 공간 집중 미구현, SWEHR는 canopy interception으로 차감한 유효강우를 균일하게 공급함. 두 식생 침식 억제 우열을 현장 수치 없이 주장 금지. 수정 실행: https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40261338013
+
+
+## 2026-10-26 밀생 억새와 산발적인 참나무 맹아 비교의 공간구조 오류 정정
+
+[핵심 결정: 실제 배치가 다른 두 식생을 평균피복과 균일 유효강우로 동일 취급하지 않는다](decisions/2026-10-26_DENSE_MISCANTHUS_SPARSE_OAK_SPATIAL_COMPARISON.md). 진짜 고운사 식생 대조는 밀생 Miscanthus tussock/roots/litter와 떨어진 Quercus oak stump/sprouts 사이의 **노출토양 연결성 및 runon/runaround/유사수송 경로**이다. 기존 110회+60회 native SWEHR/EUROSEM 균일사면 실험은 이 핵심 공간변수가 없었으므로 실제 두 식생의 침식량 유사성 또는 우열을 입증하지 않는다. Mayor et al. 2008 WRR DOI 10.1029/2007WR006367의 6 plot/3 catchment Flowlength 검증, Crompton et al. 2023 GRL DOI 10.1029/2022GL101801의 2D Saint-Venant runon/runaround 역학이 신규 직접근거. 비교는 UAV/TLS 기반 2D 지형과 포기/그루터기별 뿌리/낙엽/토양수리/암편 및 SF 위치를 모형입력으로 구성해야 하며 관련 통계는 10–50 mm/h 1시간마다 물수지와 유사수지를 통과해야 한다. Iber+ 주연산 모형 선택은 그대로 유지.
