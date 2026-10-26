@@ -8,7 +8,7 @@ import subprocess,shutil,re,json,csv
 R=Path(__file__).resolve().parent.parent;E=R/"eu";CASES=R/"eurosem_forensic_cases"
 p=E/"eusedl.for"
 s=p.read_text(encoding="latin1")
-needle="       SUP(I) = DTRC - CT(I)*DTRF"
+needle="      SUP(I) = DTRC - CT(I)*DTRF"
 assert s.count(needle)==1,(needle,s.count(needle))
 src_diag="""       IF(I.EQ.1.AND.LCH.EQ.0.AND.MOD(L,20).EQ.0) THEN
           WRITE(*,7616) REAL(L),RDET(I),DTRF*CEX,
