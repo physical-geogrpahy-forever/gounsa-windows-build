@@ -20,5 +20,38 @@ jobs:
         run: |
           curl -fLsS --retry 3 'https://raw.githubusercontent.com/nclwater/Shetran/cf9cd540add78ad3accbaf62b4199d2032887f6b/examples/Cobres/model/input_cob_frd.txt' -o /tmp/shetran_cobres_original_frd.txt
           python3 -c 'import sys;sys.path.insert(0,"experiments");from shetran_original_event_bridge import read_frd; from pathlib import Path; _,_,_,nx,ny,z=read_frd(Path("/tmp/shetran_cobres_original_frd.txt").read_text());assert (nx,ny)==(17,29);assert len(z)==493;print("ORIGINAL_COBRES_FR39_493_VALUES_PASSED")'
+      - name: Roundtrip original Cobres grid through external next-event FRD writer
+        run: |
+          python3 - <<'PY'
+          import csv,sys
+          from pathlib import Path
+          from types import SimpleNamespace
+          sys.path.insert(0, 'experiments')
+          from shetran_original_event_bridge import read_frd,run
+          root=Path('/tmp/original_cobres_bridge')
+          root.mkdir(exist_ok=True)
+          frd=Path('/tmp/shetran_cobres_original_frd.txt')
+          _,_,_,nx,ny,z=read_frd(frd.read_text())
+          def table(name,head,make):
+              p=root/name
+              with p.open('w',newline='') as f:
+                  w=csv.writer(f);w.writerow(head)
+                  for iy in range(1,ny+1):
+                      for ix in range(1,nx+1):
+                          for row in make(iy,ix):w.writerow(row)
+              return str(p)
+          d=table('soil.csv',['iy','ix','depth_m'],lambda y,x:[[y,x,1.0]])
+          a=table('before.csv',['iy','ix','s_t_dp_mm'],lambda y,x:[[y,x,0.0]])
+          b=table('after.csv',['iy','ix','s_t_dp_mm'],lambda y,x:[[y,x,0.0]])
+          r=table('rates.csv',['time_s','iy','ix','rate_mm_day'],
+                  lambda y,x:[[0,y,x,0.0],[3600,y,x,0.0]])
+          out=run(SimpleNamespace(frd=str(frd),soil_depth_csv=d,
+               loose_initial_csv=a,loose_final_csv=b,
+               erosion_rate_csv=r,output_dir=str(root/'out'),
+               event_seconds=3600.,max_rounding_m=1e-5))
+          z2=read_frd(Path(root,'out','input_next_frd.txt').read_text())[-1]
+          assert len(z2)==493 and z2==z and out['restart_ready'] is False
+          print('ORIGINAL_COBRES_UNCHANGED_493_CELL_FRD_ROUNDTRIP_PASS')
+          PY
       - name: Test external DEM update and original FR39 precision
         run: python3 experiments/test_shetran_original_event_bridge.py
