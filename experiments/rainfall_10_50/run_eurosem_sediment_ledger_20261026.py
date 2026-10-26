@@ -51,6 +51,17 @@ for rain,dt,rills,code in itertools.product((30,50),(1.0,.5,.25),(False,True),(0
             ts,seconds,q_now,q_prev,c_now,c_prev,rho,sedtot=nums
             integrated_m3+=.5*(q_now*c_now+q_prev*c_prev)*seconds
         if not steps:raise ValueError("No outlet time history")
+        lateral_integrated_m3=0.
+        lateral_from_interrill_integrated_m3=0.
+        for line in native.get("sediment_lateral_trace",[]):
+            vals=[float(x.replace("D","E")) for x in line.split()[1:12]]
+            if len(vals)!=11:raise ValueError("Malformed lateral record: "+line)
+            t,qlrav,clat,xl,number_rills,seconds,qsirr,qlt,qltol,clir,cll=vals
+            lateral_integrated_m3+=qlrav*clat*xl*number_rills*seconds
+            lateral_from_interrill_integrated_m3+=qsirr*number_rills*seconds
+        if rills and not native.get("sediment_lateral_trace"):
+            raise ValueError("Missing native rill lateral trace")
+
         downstream_volume=d["sediment_out_total_m3"]
         calculated_balance=(d["interrill_export_m3"]+
                             d["interrill_net_deposition_m3"]+
@@ -74,6 +85,18 @@ for rain,dt,rills,code in itertools.product((30,50),(1.0,.5,.25),(False,True),(0
         # Native soil thickness user input DERO=5m is not guaranteed to be finite-stock
         # physical limit under distinct erosion modules. Native max DIRNET needs
         # separate independent per-grid test, not silently count mass closure as cap.
+        whole_slope_residual=(d["sediment_out_total_m3"]+
+            d["interrill_net_deposition_m3"]+
+            d["rill_net_deposition_m3"]+
+            d["interrill_suspended_m3"]+
+            d["rill_suspended_m3"]-
+            d["external_sediment_in_m3"])
+        print("SEDIMENT_LATERAL_TRANSFER",tag,
+              "native_rill_lateral_input_m3",lateral_integrated_m3,
+              "native_interrill_export_m3",d["interrill_export_m3"],
+              "integral_of_native_qsirr_m3",lateral_from_interrill_integrated_m3,
+              "native_rill_balance_m3",d["rill_native_balance_m3"],
+              "whole_slope_residual_m3",whole_slope_residual,flush=True)
         summary={
             "case":tag,"rain_mm_h":rain,"timestep_s":dt*60,"has_rills":rills,
             "mcode":code,"native_return_code":native.get("return_code"),
@@ -87,7 +110,12 @@ for rain,dt,rills,code in itertools.product((30,50),(1.0,.5,.25),(False,True),(0
             "native_relative_balance_residual":native_residual/scale,
             "balance_check":bool(native_residual<=max(1e-6,0.001*scale)),
             "outlet_check":bool(outlet_rel<1e-4),
-            "step_count":len(steps)}
+            "step_count":len(steps),
+            "rill_lateral_integrated_m3":lateral_integrated_m3,
+            "independent_interrill_outflow_step_integrated_m3":lateral_from_interrill_integrated_m3,
+            "rill_lateral_minus_interrill_reported_m3":lateral_integrated_m3-d["interrill_export_m3"],
+            "whole_slope_budget_residual_m3":whole_slope_residual,
+            "whole_slope_budget_relative":abs(whole_slope_residual)/max(1e-9,abs(d["sediment_out_total_m3"]))}
         summary["status"]="PASS" if run.returncode==0 and summary["balance_check"] and summary["outlet_check"] else "FAIL"
         print("SEDIMENT_LEDGER",json.dumps({k:v for k,v in summary.items() if k!="native_ledger" and k!="net_erosion_reported_kg"}),flush=True)
         print("SEDIMENT_NATIVE_TERMS",tag,json.dumps(d),flush=True)
