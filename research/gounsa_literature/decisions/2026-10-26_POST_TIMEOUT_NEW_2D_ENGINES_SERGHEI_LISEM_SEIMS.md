@@ -1,0 +1,25 @@
+# 2026-10-26 추가 문헌조사: SERGHEI-SE, LISEM Integrated, SEIMS의 실제 배포 기능과 엄격 판정
+
+## 결정 이유
+사용자가 OpenLISEM 7.5.2 원본 수치적 비수렴 및 여러 후보 부적합으로 인해 **추가 공개 모델을 엄격 조사**, '의심이 되면 버려'를 확정했다. 새 엔진을 기능 소개 또는 유사 모델명으로 곧바로 채택 금지.
+
+## 이 세션 새로 확인한 실체
+1. **SERGHEI-SE** 진짜 공개 2D hydro-erosion-sediment/bed morphology HPC: existing canonical [SERGHEI_SE](../models/SERGHEI_SE.md), [Braga 2026](../papers/2026_Braga_SERGHEI_SE_Finite_Volume_Evaluation.md) found already in archive; NO duplicate. Braga, Martínez-Aranda & García-Navarro (2026), Water 18(15):1870 DOI 10.3390/w18151870, tests analytical hillslope, V catchment, laboratory dam-break erodible bed, numerical stability concerns and UWBU. Published original source GitLab `serghei-model/serghei` BSD-3, tests `serghei-model/serghei-tests` / `sediment-transport` group. 2026 IAHR Braga et al. prefire Añón de Moncayo forest mountains case **only hydrodynamic pre-fire calibration, sediment field validation not proven**. 2025 model preprint SEHS includes vegetation/land management/bedrock **modification factor**, not demonstrated source LAI-driven canopy storage/throughfall/leafdrip KE in actual SERGHEI-SE. **Reject Gounsa complete-native main engine under nonnegotiable canopy rule**. Important scientifically as independent fully2D numerical/stability reference; no identical original native build/test this session.
+2. **LISEM Integrated Spatial Earth Modeller** actually independent GitHub C++/OpenCL `bastianvandenbout/LISEM` SHA `6a5ef17d87bab4227d48673c95c12c61462114dd`; *NOT identical* to excluded Classic OpenLISEM 7.5.2 source. Original `model_hydrology.cl` reads `SMAX Canopy`, but Smaxc unused within hydrology kernel and `SCANOPYN` resets 0; `model_sediment.cl` has rain/leaf height KE + 2D flux but sets `throughfall=vegcover*rain_m` instead of actual LAI/throughfall water-store state. Thus false confidence in complete native quantitative interception: **reject as main without rebuilding, independent Classic fail**. Source `GetSV` has corrected `sqrt(1+X)-1` compared to Classic, but no native erosion convergence test.
+3. **SEIMS**, [lreis2415/SEIMS](https://github.com/lreis2415/SEIMS) actual complete GPL3 C++ plugins (Zhu et al. 2019 DOI 10.1016/j.envsoft.2019.104526). `SPLASHERO_PARK` separate splash uses canopy fraction, `KinWavSed_OL` separate flow detachment and transported upstream/downstream kinematic-wave sediment, `CASC2D_OF` water model. No verified **genuine 2D sediment flux** with x/y conservative shallow-water transport, nor native dynamic LAI canopy/leafdrip source into splash function. **Reject main**.
+
+## Process decision matrix
+| Code branch | Original source | Genuine 2D water+sediment | Dynamic LAI throughfall→erosion native | mountain / controlled numerical evidence | Gounsa strict main |
+|--|--|--|--|--|--|
+| SERGHEI-SE (2026) | official GitLab BSD3 | YES in primary paper | NO positive source verification, SEHS vegetation protection coefficient ≠ plant-water canopy | 2026 tested analytic, experimental, 2026 prefire mountain hydro conference abstract (not sediment validation) | NO |
+| LISEM Integrated 0.2x | actual GitHub code | 2D flow and suspended sediment XY flux source confirmed, computational stability untested | **FAIL** source canopy Smax ignored/reset, `throughfall` computed veg cover × rain | field multi-hazard hazard studies, native this-branch event runoff/erosion/soil ledger untested | NO |
+| SEIMS | actual source C++ | sediment module routed KinWav by upstream graph, not shown 2D multi-face | canopy fraction in splash but native LAI/drip absent | 2019 watershed application, not high-resolution burned steep 2D hillslope field sediment | NO |
+
+## Explicit source/verification boundaries
+- Public GitLab SERGHEI source project/test groups confirmed; current runtime does NOT support raw GitLab file API retrieval (web blocked), so no false claim direct C++ `SERGHEI_SE` function read, no native build/run. Actual code source directly checked for the other two using GitHub app.
+- LISEM 0.2.x unique project has separate licensing metadata: root `LICENSE` MIT attributed to Can Güney Aksakalli vs `licence.txt` GPLv3 and LISEM developer website GPLv3. Do not identify total model licence as MIT without verifying file-level scopes.
+- Lack of verified native quantitative interception is a **selection exclusion**, not proof that the public publications are fraudulent or unsuitable for their own applications.
+- No candidate newly passes full user criteria, no native numerical QA executed this source search. Do not present code search alone as mass or timestep convergence.
+
+## Next focus if source search continues
+Only genuinely new codebase (not previously failed LISEM family) with `LAI → Smax CStor → throughfall/leafdrip → rain/splash detachment` AND `rain+overland flow → 2D sediment advection → deposition/morphodynamics` all active in same original executable, actual mountainous validation, exact source/test data available. Test source call graph first; immediately discard blocked projects rather than spending days compiling.
