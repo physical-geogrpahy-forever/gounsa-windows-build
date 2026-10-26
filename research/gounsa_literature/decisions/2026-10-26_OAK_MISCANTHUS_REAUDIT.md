@@ -32,3 +32,7 @@ PLANTH cm 수정 재실행: https://github.com/physical-geogrpahy-forever/gounsa
 - 원본 높이 입력을 바꾼 30mm/h EUROSEM 직접 동작 확인: PLANTH 0.8cm일 때 내부 height .008m, DRIPKE=0.0, PLANTH80cm일 때 height .8m, DRIPKE=1.980338; 그런데 gross detachment 45986.5kg과 net soil 45684.2kg, runoff4.098mm 출력은 표시 정밀도 내 동일. 추가 코드 계보 또는 소스항 연결 점검 없이는 높이/수관적하 효과가 없다고 결론내릴 수 없다. 실험 https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40261969796
 - 원본 문서: PLANTH 입력 cm, PLANGLE 줄기각도, PBASE 기부 면적비, SHAPE 1/2. PBASE 타입별 표(숲1.0, bunchgrass .2–.4)는 실제 줄기 단면적을 세어서 계산하라는 가이드와 해석상 불일치가 있어 현장 직접 측정 없이는 일괄 식생상수 대체 금지.
 - EUROSEM 독립 유사수지는 여전히 미검증이므로 강우박리 및 순침식량 값은 진단용 기록이며 고운사 결과로 불가. SWEHR 숫자 역시 가상 수관저류를 반영한 균일강우 조건이므로 실제 SF 뿌리 주변 집중효과를 반영하지 못함.
+
+
+## 추가 2026-10-26 새 A/B 실험에 따른 제한적인 이전 판정 정정
+기존 OAT/2025 factorial에서 '피복률, LAI, EROD가 거의 효과 없다'는 해석의 원인을 정확히 재분리하였다. 그때 LAI는 original native state가 아니라 `LAI.PAR` 확장 포크였으며 `SKLAI=min(COVER,0.046×LAI)`가 피복률 응답을 포화시켰다. `PLANTH` cm 오류는 본 문서 앞부분에서 이미 시인했으며, 새 원본 소스/LAI 포크 24회 재실행에서 3→150cm로 내부 KE를 양수로 만들어도 첫 요소 순침식은 계속 불변이었다. 원본 1998 `KINET/DRIPS` 수관적하 비율은 **제곱 적용**되며 진단 수정본 12쌍 A/B에서 실제 drip 박리항 2.65–28.12x 상승에도 최종 원본 출력은 동일했다. 강우박리 `RDET`는 특정 계측조건에서 수송용량 평형항 `DTRF*CEX`에 비해 5e5–6e5배 작았다. 이를 '식생/수관효과가 실제 물리세계에서 없거나 EUROSEM 식에서 원리적으로 없다'는 근거로 쓰지 않는다. [검증 결정, 모든 실행 링크](2026-10-26_EUROSEM_PREVIOUS_LOW_VEGETATION_SENSITIVITY_FORENSIC.md). Original EUROSEM non2D+sediment ledger 미검증으로 주엔진 배제는 유지.
