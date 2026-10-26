@@ -22,6 +22,13 @@ jobs:
           run-id: 40202181315
           github-token: ${{ github.token }}
           path: qa_inputs
+      - name: Retrieve EUROSEM compilation/outputs from original run
+        uses: actions/download-artifact@v4
+        with:
+          name: original-rainfall-10-50-native-results
+          run-id: 40203485045
+          github-token: ${{ github.token }}
+          path: qa_inputs_eurosem
       - name: Audit original native runs
         run: |
           python3 experiments/rainfall_10_50/audit_existing_outputs.py
