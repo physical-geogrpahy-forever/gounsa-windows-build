@@ -74,6 +74,20 @@ def main():
             dst.write_text(h)
             fs.append(str(dst))
             continue
+        if f.name=="eusedl.for" and args.trace_splash:
+            h="\n".join(lines)+"\n"
+            target=next(line for line in h.splitlines() if "SUP(I) = DTRC - CT(I)*DTRF" in line)
+            diag="""        IF (I.EQ.NM .AND. LCH.LE.0 .AND.
+     1      MOD(L,40).EQ.0) THEN
+        WRITE(*,9949) L,RDET(I),DTRF*CEX,DTRF,
+     1    CEX,CT(I),SUP(I),PAVF,VSU
+ 9949   FORMAT('SED_SOURCE_DIAG ',I5,8(1X,E12.4))
+        ENDIF
+"""
+            h=h.replace(target,target+"\n"+diag,1)
+            dst.write_text(h)
+            fs.append(str(dst))
+            continue
         if f.name=="eplanel.for":
             z="\n".join(lines)+"\n"
             start=z.index(" 1022 Format(")
@@ -181,6 +195,7 @@ def main():
        len(result["net_erosion_kg"])==1 and result["canopy_water_pass"] and
        abs(result.get("water_error_pct",100)) <= 1 and
        abs(result.get("rain_depth_mm",-999)-expected) < 0.3)
+    result["sed_source_diagnostic"]=[v.strip() for v in re.findall(r"SED_SOURCE_DIAG[^\\r\\n]*",log)][:50]
     result["splash_diagnostic"]=[v.strip() for v in re.findall(r"SPLASH_DIAG[^\\r\\n]*",log)][:50]
     # EUROSEM output lacks independently integrated sediment export/storage/boundary ledger.
     # Do NOT equate its native erosion summary with strict complete sediment mass closure.
