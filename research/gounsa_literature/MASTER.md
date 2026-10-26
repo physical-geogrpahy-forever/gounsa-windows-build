@@ -1337,3 +1337,13 @@ Latest decision:
 - **실측 비교**: Johansen et al. 2001(60mm/h burned 76kg ha^-1 per mm rainfall), Samoil et al. 2026(185mm/h 30min unburned 0.0178 / moderate burn 1.05 / high burn 5.29t/ha), Kinner & Moody 2008(20/35/50mm/h infiltration response), 한국 Shin et al. 2024(RUSLE 0.07–94.9 / SEMMA 0.24–83.6t/ha/storm **모형 예측**). 극심한 침식은 실제 가능하지만 어느 숫자도 고운사 허용범위 상한이 아님.
 - **기존 HETEROFOR, Charlier, Rutter/Gash**는 interception / SF / runoff 중 일부를 산출하지만 독립적으로 erosion mass를 직접 생성하지 않음. **WEPP/OpenLISEM/Apip**은 erosion 가능한 기성 구조지만 10~50 실험은 이번에 수행하지 않음.
 - **현재 결론**: 검증된 고운사 t/ha/event 숫자는 아직 없음. 본문에 임의 곡선을 넣지 않는다. source archive는 다음 수행에서 물수지, 유사수지 및 단위를 확인하는 토대로만 사용.
+
+
+---
+
+## 2026-10-26 원본 수문-침식 모형 보존시험: 검증된 결과와 한계
+
+- [실제 원본 SWEHR 및 EUROSEM 재검증](decisions/2026-10-26_SWEHR_EUROSEM_SOURCE_CLOSURE_VERIFICATION.md). **SWEHR는 원본 예제의 강제 외부 물/토사 유입 제거, 초기 U[1]/M/SOLID/TOTM 정의 후 9/9 물수지 및 원토양-퇴적층-부유사-경계유사량 독립 수지 검증 통과**. 10~50mm/h×1h에서 단위면적당 경계유실량은 시험조건 0.0000024~0.0694 t/ha/event. **고운사 현장 예측값 아님**.
+- **EUROSEM**은 불연결 2사면 및 누적우량 자료의 세 지점 수 불일치 해소 후 10~50mm/h 수문 물수지 5/5 통과(잔차 -0.0333~+0.0088%), 하지만 유사수지 독립 검증은 아직 없음. 모델이 출력한 수만~수십만kg 규모의 총박리량 및 순침식량을 고운사 연구값으로 사용 금지.
+- 기존 2026-09-22 잠정 Iber+ / SSSPAM/mARM 생산 구조는 유지하며 SWEHR/EUROSEM은 실행환경 및 방정식 검증 기준으로만 사용. 고운사의 수간유하 집중 위치와 수관적하 에너지, 뿌리 우선침투에 의한 2D 침식 효과는 새 결합 및 현장 매개변수 검증이 아직 필요.
+- 코드 및 raw output: [swehr-water-sediment-closure-20261026 실험 브랜치](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50).
