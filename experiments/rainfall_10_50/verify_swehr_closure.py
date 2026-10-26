@@ -50,7 +50,7 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
     p=replace_once(p,"    idum=-2999;",
          """    double qa_w0=0,qa_wf=0,qa_rain=0,qa_infil=0,qa_wboundary=0,qa_sboundary=0;
     double qa_susp=0,qa_bed=0,qa_sed_vol=0,qa_min_depth=1e200,qa_min_sed=1e200;
-    double qa_loose=0,qa_bed_down=0,qa_bed_up=0;
+    double qa_loose=0,qa_bed_down=0,qa_bed_up=0,qa_original_detach=0;
     idum=-2999;""")
     afterinit="    // Remaining Set Up"
     p=replace_once(p,afterinit,"""    for (i=1;i<=nx;i++) for (j=1;j<=ny;j++) qa_w0+=U[1][i][j]*dx*dx;
@@ -60,6 +60,8 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
     anchor="        // Time Update\n        //#pragma omp parallel for private(j,k,chtemp,redetach,beta)"
     diag="""        // QA finite-volume boundary fluxes, positive = net outward volume or mass.
         qa_rain+=dt*R*(nx*ny)*dx*dx;
+        for(i=1;i<=nx;i++) for(j=1;j<=ny;j++) if(SOLID[i][j]==0)
+            for(k=1;k<=sclass;k++) qa_original_detach+=dt*dx*dx*(E[1][k][i][j]+E[3][k][i][j]);
         for (j=1;j<=ny;j++) {
            qa_wboundary+=dt*dx*(FLUXX[1][nx+1][j]-FLUXX[1][1][j]);
            for (k=4;k<=nn;k++)
@@ -96,6 +98,8 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
     }
     double qa_wres=(qa_wf-qa_w0) - qa_rain + qa_infil + qa_wboundary - qa_sed_vol;
     double qa_sres=qa_bed+qa_susp+qa_sboundary;
+    double qa_orig_res=qa_original_detach-qa_loose-qa_susp-qa_sboundary;
+    double qa_geom_res=qa_bed-qa_loose+qa_original_detach;
     printf("QA_JSON {\\\"initial_water_m3\\\":%.15g,\\\"final_water_m3\\\":%.15g,"
       "\\\"rain_m3\\\":%.15g,\\\"infil_m3\\\":%.15g,\\\"net_boundary_water_out_m3\\\":%.15g,"
       "\\\"sediment_volume_correction_m3\\\":%.15g,\\\"water_residual_m3\\\":%.15g,"
@@ -107,6 +111,8 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
       qa_w0,qa_wf,qa_rain,qa_infil,qa_wboundary,qa_sed_vol,qa_wres,
       qa_bed,qa_susp,qa_sboundary,qa_sres,qa_bed_down,qa_bed_up,qa_loose,
       qa_min_depth,qa_min_sed);
+    printf("QA_LAYER {\\"original_soil_detachment_kg\\":%.15g,\\"deposited_layer_kg\\":%.15g,\\"original_layer_residual_kg\\":%.15g,\\"geometry_layer_residual_kg\\":%.15g}\\n",
+       qa_original_detach, qa_loose, qa_orig_res, qa_geom_res);
 """
     p=replace_once(p,before_end,conclusion+"\n"+before_end)
     return p
@@ -152,10 +158,18 @@ def main():
     except subprocess.TimeoutExpired:raise RuntimeError("Native C run exceeded 440 seconds")
     (work/"run.log").write_text(output)
     matches=re.findall(r"QA_JSON (\{[^\n]*\})",output)
+    layer_matches=re.findall(r"QA_LAYER (\{[^\n]*\})",output)
     result=dict(source_sha=sha,scenario=vars(args),run_exit=rc,qa_json_lines=len(matches))
     if matches:
         qa=json.loads(matches[-1])
         result.update(qa)
+        if layer_matches:
+            layer=json.loads(layer_matches[-1]);result.update(layer)
+            lscale=max(layer["original_soil_detachment_kg"], 1e-8)
+            result["original_layer_relative_residual"]=abs(layer["original_layer_residual_kg"])/lscale
+            result["geometry_layer_relative_residual"]=abs(layer["geometry_layer_residual_kg"])/lscale
+            result["independent_layer_pass"]=bool(result["original_layer_relative_residual"]<1e-2 and result["geometry_layer_relative_residual"]<1e-2)
+        else:result["independent_layer_pass"]=False
         # Strict residual validation on total water and net solid ledger, incl sediment volume displacement.
         wscale=max(qa["rain_m3"]+qa["initial_water_m3"]+abs(qa["net_boundary_water_out_m3"]),1e-8)
         sscale=max(abs(qa["bed_mass_delta_kg"])+abs(qa["suspended_sediment_kg"])+abs(qa["net_boundary_sediment_out_kg"]),1e-8)
@@ -167,7 +181,7 @@ def main():
         result["zero_sediment_pass"]=bool(args.erosion!="off" or 
           (abs(qa["bed_mass_delta_kg"])+abs(qa["suspended_sediment_kg"]))<1e-5)
         result["pass"]=bool(rc==0 and result["water_pass"] and result["sediment_pass"] and
-                            result["nonnegative_pass"] and result["zero_sediment_pass"])
+                            result["nonnegative_pass"] and result["zero_sediment_pass"] and result["independent_layer_pass"])
     else: result["pass"]=False
     (work/"qa_result.json").write_text(json.dumps(result,indent=2,ensure_ascii=False))
     print("FINAL_QA "+json.dumps(result,ensure_ascii=False))
