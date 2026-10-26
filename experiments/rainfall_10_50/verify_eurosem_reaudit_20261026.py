@@ -17,6 +17,8 @@ def main():
     a.add_argument("--dt-minute",type=float,default=1.0,help="Original model outer timestep in minutes")
     a.add_argument("--trace-splash",action="store_true")
     a.add_argument("--test-splash-width",action="store_true",help="Experimental dimensional source-transport width test; NOT original model")
+    a.add_argument("--trace-sediment-ledger",action="store_true",help="Observation-only source native original sediment inventory at every event")
+    a.add_argument("--rilled-geometry",action="store_true",help="Original model native explicit 15 rill geometry")
     a.add_argument("--repeat",type=int,default=1)
     a.add_argument("--tag",default="baseline")
     a.add_argument("--cover",type=float,default=0.15)
@@ -107,6 +109,26 @@ def main():
      - 3x,'(a minus denotes deposition)',/)
 """
             z=z[:start]+new_format+z[stop:]
+            if args.trace_sediment_ledger:
+                # Source unchanged; observation-only float diagnostic of ORIGINAL
+                # native implemented sediment volume balance at last event step.
+                native="        inrlbal = sumqirr + sumdir + suspir"
+                assert z.count(native)==1
+                z=z.replace(native,native+"""
+        IF (T(L).GE.(TFIN-0.1)) THEN
+        WRITE(*,9946) J,T(L),sumqirr,sumdir,suspir,
+     1    inrlbal,stout,sumdrl,susprl,sedin,rillbal,
+     2    sedtot,rillw(j),xl(j),w(j),porpl(j),rhos(j)
+ 9946   FORMAT('SED_LEDGER_NATIVE ',I3,16(1X,ES21.12))
+        ENDIF
+""",1)
+                origin="       SEDTOT=SEDTOT+ qsav*RHOS(J)*1000.*DT"
+                assert z.count(origin)==1
+                z=z.replace(origin,origin+"""
+        WRITE(*,9945) T(L),DT,Q(L),Q(L-1),
+     1      CONC(L),CONC(L-1),RHOS(J),SEDTOT
+ 9945   FORMAT('SED_OUTSTEP ',8(1X,ES21.12))
+""",1)
             # Observation-only: inspect native drip/rain KE before erosion calculations.
             assert z.count("        CALL KINET(J)")==1
             z=z.replace("        CALL KINET(J)", """        CALL KINET(J)
@@ -155,6 +177,10 @@ def main():
     new_sed=f"     25.      {args.erod:.5f}       {args.spltex:.5f}     1.00    2.6    0.0    0.00     {args.mcode}"
     assert orig_sed in par
     par=par.replace(orig_sed,new_sed,1)
+    if args.rilled_geometry:
+        orig_rill="     0.0      0.0        0.0        0.     .0      0.0    .85"
+        assert par.count(orig_rill)==1
+        par=par.replace(orig_rill,"    15.0      0.25       0.02        1.0     .0      0.0    .85",1)
     # Rain hyetograph: 3 pairs (0,0), (60,rain), (100,rain).
     # Keep trailing 28min recession (TFIN 88 min). 3 explicit pair count fixes malformed example.
     pcp="\n".join(ln for ln in pcp.splitlines() if not re.fullmatch(r"\s*2\s+1\s+1\.0\s*",ln))+"\n"  # one active plane: remove second element gauge assignment
@@ -207,6 +233,8 @@ def main():
        len(result["net_erosion_kg"])==1 and result["canopy_water_pass"] and
        abs(result.get("water_error_pct",100)) <= 1 and
        abs(result.get("rain_depth_mm",-999)-expected) < 0.3)
+    result["sediment_ledger_native_trace"]=re.findall(r"SED_LEDGER_NATIVE[^\\r\\n]*",log)
+    result["sediment_step_trace"]=re.findall(r"SED_OUTSTEP[^\\r\\n]*",log)
     result["sed_source_diagnostic"]=[v.strip() for v in re.findall(r"SED_SOURCE_DIAG[^\\r\\n]*",log)][:50]
     result["splash_diagnostic"]=[v.strip() for v in re.findall(r"SPLASH_DIAG[^\\r\\n]*",log)][:50]
     # EUROSEM output lacks independently integrated sediment export/storage/boundary ledger.
