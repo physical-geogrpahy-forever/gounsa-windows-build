@@ -43,3 +43,18 @@ None of these 4 new lines satisfies **all** strict requirements at native releas
 - https://www.fest.polimi.it/doc/module/sediment.html
 - https://www.fest.polimi.it/reference/canopy.html
 - https://www.kjoas.org/articles/xml/P91L/
+
+## Follow-on additional source candidates that do NOT pass the all-native gates
+
+### HydroPol2D (GPL MATLAB, 2026 source: confirmed)
+- Verified current original source https://github.com/marcusnobrega-eng/HydroPol2D `HydroPol2D_Functions/interceptionModel.m`:`S_max=C*LAI` [mm], dynamic canopy store/throughfall/evap. `interception_module.m` passes native `LAI_raster.Z` to it. Actual 2D local-inertial hydrodynamics.
+- Repo README only describes one generic pollutant with buildup/washoff parameters `C1-C4`, no scientifically modeled rain-induced soil detachment, bed erodibility/sediment grains, flow entrainment, deposition or Exner. Repository code search sediment/erosion/splash returned no indexed matches. Pollutant wash-off ≠ soil erosion. **REJECT** unmodified full native Gounsa model; source record [HydroPol2D model](../models/HydroPol2D.md).
+
+### HydroSed2D (Penn State, original GPL 2D sediment engine)
+- Official hydrodynamics group page https://water.engr.psu.edu/liu/hydrosed2d.html describes 2D shallow-water unstructured mesh and sediment equation, v1.0 GPL v3, not under active development. Published river/dam-break cases, **no native forest canopy LAI interception or leaf-drip erosion evidence**. Exclude from one-model all-process requirement at screening; potentially numerical benchmark only, not necessarily deficient at core hydraulics.
+
+### WASA-SED
+- University of Potsdam original model overview https://tillf.github.io/WASA-SED/ explicitly says **semi-distributed** water availability and sediment routing, hillslope-to-channel process modeling; no evidence genuine 2D Saint-Venant surface + 2D sediment, or LAI-driven leaf-drop source. **REJECT** for exact 2D.
+
+### ParFlow and HydroPol2D are not the same
+- ParFlow physically represents the plant-to-bedrock water cycle and parallel coupled surface/subsurface flow (https://www.parflow.org/), but no native soil detachment / particle sediment transport in official model description. Native hydrology is not native erosion. Screening-only exclusion, no unwarranted source compile.
