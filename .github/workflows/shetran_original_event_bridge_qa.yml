@@ -1,0 +1,20 @@
+name: SHETRAN original source external event bridge unit checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/shetran_original_event_bridge.py'
+      - 'experiments/test_shetran_original_event_bridge.py'
+      - '.github/workflows/shetran_original_event_bridge_qa.yml'
+  workflow_dispatch:
+jobs:
+  bridge-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test external DEM update and original FR39 precision
+        run: python3 experiments/test_shetran_original_event_bridge.py
