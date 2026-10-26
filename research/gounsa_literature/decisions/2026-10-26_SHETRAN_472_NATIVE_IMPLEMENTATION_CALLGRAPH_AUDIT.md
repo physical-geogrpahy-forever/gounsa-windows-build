@@ -77,3 +77,7 @@
 - https://github.com/nclwater/Shetran/blob/cf9cd540add78ad3accbaf62b4199d2032887f6b/src/sediment/SYmod.f90#L4660-L4672
 - https://github.com/nclwater/Shetran/tree/cf9cd540add78ad3accbaf62b4199d2032887f6b/examples/Cobres/model
 - https://www.sciencedirect.com/science/article/abs/pii/S0022169496800126
+
+## 6. 정확한 2차원 지표유동 방식 (OCQGRD 추가 확인)
+`src/overland_channel/OCmod2.f90` `OCQGRD` L909–1064: grid-to-grid shared face surface flux uses signed water-level head difference `DZ=ZI(1)-ZI(0)`, higher-side water depth `HM=ZI(HI)-ZGI(HI)`, flow-path length `L=LI(0)+LI(1)`, width-weighted Strickler `STRW`. It evaluates hydraulic conveyance `CONVM` through `CONVEYAN` and calculates `Q(LO)=CONVM*sqrt(abs(DZ))/sqrt(L)`, `Q(HI)=-Q(LO)`. Away from smoothing `CONVM≈K*W*h^(5/3)`. This is physically a **Manning–Strickler gradient-based diffusive-wave hydraulic face law**, computed on 2D planar grid; it is **not a full two-momentum-equation 2D Shallow Water Equations solver**. It supports four-face spatial flow paths but lacks resolved inertia/hydraulic shock on steep rough microtopography. Original `OCSIM` solves water depths implicitly by block-tridiagonal matrix with `OCQGRD` Jacobian. Proper comparison: SHETRAN = 2D spatial diffusive-wave surface hydrology plus fully coupled subsurface, whereas SWEHR and openLISEM full SWOF modes = true 2D dynamic SWE; **do not equate them just because both use raster cells**.
+Original code: https://github.com/nclwater/Shetran/blob/cf9cd540add78ad3accbaf62b4199d2032887f6b/src/overland_channel/OCmod2.f90#L909-L1064
