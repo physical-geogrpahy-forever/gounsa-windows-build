@@ -9,7 +9,7 @@ jobs:
   report:
     runs-on: ubuntu-24.04
     permissions:
-      contents: read
+      contents: write
       actions: read
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,15 @@ jobs:
           path: experiments/rainfall_10_50/spatial_patch_experiments/archive/controls
       - name: Verify all 38 numerical and spatial cases
         run: python3 experiments/rainfall_10_50/aggregate_spatial_sensitivity.py
+      - name: Commit verified numerical outputs permanently to experiment branch
+        run: |
+          mkdir -p experiments/rainfall_10_50/spatial_patch_experiments/verified_20261026
+          cp experiments/rainfall_10_50/spatial_patch_experiments/consolidated/* experiments/rainfall_10_50/spatial_patch_experiments/verified_20261026/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/rainfall_10_50/spatial_patch_experiments/verified_20261026/
+          git commit -m 'results(gounsa): preserve 38 QA-passed spatial native SWEHR runs and patch masks'
+          git push origin HEAD:spatial-vegetation-runoff-erosion-20261026
       - name: Preserve validated result tables and vegetation rasters
         if: always()
         uses: actions/upload-artifact@v4
