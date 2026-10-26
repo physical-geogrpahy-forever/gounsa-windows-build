@@ -73,7 +73,7 @@ for r in [10,20,30,40,50]:
             "basin_area_m2":r"BASIN AREA\s*=\s*([-+]?\d+(?:\.\d+)?)",
             }
         for key,pattern in patterns.items():
-            m=re.search(pattern,static,re.I)
+            m=re.search(pattern,static if key!="basin_area_m2" else (static+"\n"+dynamic),re.I)
             if m:results[key]=float(m.group(1))
         gross=re.findall(r"GROSS INTERRILL EROSION\s+([-+]?\d+(?:\.\d+)?)\s+kg",static,re.I)
         net=re.findall(r"NET EROSION/DEPOSITION\s+([-+]?\d+(?:\.\d+)?)\s+kg",static,re.I)
@@ -83,6 +83,8 @@ for r in [10,20,30,40,50]:
             results["summed_gross_detachment_t_ha"]=sum(map(float,gross))/results["basin_area_m2"]*10
         if "basin_runoff_mm" in results and "basin_area_m2" in results:
             results["basin_runoff_m3"]=results["basin_runoff_mm"]*1e-3*results["basin_area_m2"]
+            if net and results["basin_runoff_m3"]>0:
+                results["net_to_runoff_mass_ratio_kg_m3_if_all_exported"]=sum(map(float,net))/results["basin_runoff_m3"]
         x.update(results)
         x["issue"]="Nonempty" if "rain_depth_mm" in x else "No parseable native summary"
         # Note: output success not assumed, even for populated files
