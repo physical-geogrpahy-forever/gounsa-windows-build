@@ -34,3 +34,12 @@ LPJ-GUESS-derived LAI and canopy storage/throughfall to TREX rain interface woul
 https://www.engr.colostate.edu/~pierre/ce_old/Projects/TREX%20Web%20Pages/TREX-Overview.html
 https://www.engr.colostate.edu/~pierre/ce_old/Projects/TREX%20Web%20Pages/TREX-Research.html
 https://pubmed.ncbi.nlm.nih.gov/18649925/
+
+
+## 2026-10-26 additional original source discovery and definitive model-screen rejection
+Original C source is **actually accessible** from independent archival mirror https://github.com/WatershedModels/trex_src_csu (master SHA 5cfe714557333ecf8062ac04b5fba3165906a775), 233 `src` files, May 2018 TREX 101017 source copy. Source verification in `Interception-r4.c`, `OverlandSolidsErosion.c`, `OverlandWaterRoute-r3.c`:
+- fixed interception-depth subtraction per timestep (m, m/s), NO demonstrated LAI-dependent canopy storage and drain kinetics or separate canopy drop vs rainfall kinetic erosion process.
+- flow detachment and finite available sediment stock enforced, but missing demanded vegetation process outweighs those strengths.
+- exact source GitHub code search `throughfall`/`drip`/`raindrop`/`splash` = no match, while `canopy` only a solar radiation note.
+
+**REJECT** for original single native Gounsa model. Source not missing; missing physical process is fatal.
