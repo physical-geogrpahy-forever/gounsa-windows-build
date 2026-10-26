@@ -141,6 +141,12 @@ jobs:
           for MMH in 10 20 30 40 50; do
             python audit/experiments/analyze_shetran_native_cobres.py "/tmp/shetran-native-cobres-rain${MMH}"
           done
+      - name: Isolate rainfall and flow detachment with native 20mmh mechanism probes
+        run: |
+          python audit/experiments/shetran_native_mechanism_probes.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --workdir /tmp/shetran-mechanism-probes
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -156,5 +162,7 @@ jobs:
             /tmp/shetran-native-cobres-rain*/output_*csv
             /tmp/shetran-native-cobres-rain*/output_*h5
             /tmp/shetran-native-cobres-rain*/native_cobres_48h_diagnostics.json
+            /tmp/shetran-mechanism-probes/mechanism_summary.csv
+            /tmp/shetran-mechanism-probes/*_diagnostics.json
           if-no-files-found: warn
           retention-days: 14
