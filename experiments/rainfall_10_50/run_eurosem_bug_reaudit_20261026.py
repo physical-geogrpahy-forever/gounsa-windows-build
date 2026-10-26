@@ -40,6 +40,7 @@ for i,(height,cover,erod,fix) in enumerate(cases):
         r["splash_diag_count"]=len(r.get("splash_diagnostic",[]))
         q=r.get("energy_probe",{})
         if height==120 and cover==.9 and erod in (.1,.9): print("SPLASH_INTERNAL",case,json.dumps(r.get("splash_diagnostic",[])[:4]),flush=True)
+        if height==120 and cover==.9 and erod in (.1,.9): print("TRANSPORT_INTERNAL",case,json.dumps(r.get("sed_source_diagnostic",[])[:4]),flush=True)
         print("NATIVE_AUDIT",case,r["status"],"runoff_mm",r.get("runoff_mm"),
               "net_t_ha",r["net_erosion_t_ha"],"height_m",q.get("effective_drop_height_m"),
               "dripKE",q.get("drip_kinetic_energy"),"rainKE",q.get("free_rain_kinetic_energy"),
