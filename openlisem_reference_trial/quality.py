@@ -24,7 +24,7 @@ for folder in sorted((ROOT/"results").glob("*")):
         boundary=v("Water across boundary (mm):")
         # Kinematic-wave runs report export at the LDD pit, not as a 2D
         # domain-boundary crossing. Use the right native totals keys.
-        wave_config=(folder/(folder.name+".run")).read_text(encoding="utf8")
+        wave_config=(ROOT/"runs"/(folder.name+".run")).read_text(encoding="utf8")
         kin="Routing Kin Wave 2D=0" in wave_config
         if kin:
             boundary=v("Total outflow (overland+channel) (mm):")
