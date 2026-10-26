@@ -1,0 +1,39 @@
+name: Consolidate SWEHR 38 spatial cases
+on:
+  push:
+    branches: [spatial-vegetation-runoff-erosion-20261026]
+    paths:
+      - '.github/workflows/aggregate_swehr_2d.yml'
+  workflow_dispatch:
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download native 22 storm and spatial baseline artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40264048008
+          pattern: spatial-*
+          github-token: ${{ github.token }}
+          merge-multiple: false
+          path: experiments/rainfall_10_50/spatial_patch_experiments/archive/base
+      - name: Download native 16 ablation and relocated stemflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40264354578
+          pattern: controlled-*
+          github-token: ${{ github.token }}
+          merge-multiple: false
+          path: experiments/rainfall_10_50/spatial_patch_experiments/archive/controls
+      - name: Verify all 38 numerical and spatial cases
+        run: python3 experiments/rainfall_10_50/aggregate_spatial_sensitivity.py
+      - name: Preserve validated result tables and vegetation rasters
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consolidated-native-swehr-spatial-38-runs
+          path: experiments/rainfall_10_50/spatial_patch_experiments/consolidated/
