@@ -1,0 +1,19 @@
+name: Native SWEHR AddressSanitizer debug
+on:
+  push:
+    branches: [spatial-vegetation-runoff-erosion-20261026]
+    paths:
+      - '.github/workflows/spatial_swehr_asan.yml'
+  workflow_dispatch:
+jobs:
+  asan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Debug original SWEHR native C dynamic 2D domain
+        run: python3 experiments/rainfall_10_50/spatial_patch_swehr.py --scenario oak_sparse --rain 30 --stemflow off --seconds 120 --asan
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spatial-swehr-asan-native-logs
+          path: experiments/rainfall_10_50/spatial_patch_experiments/runs/**/run.log
