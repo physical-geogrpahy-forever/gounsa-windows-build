@@ -134,7 +134,7 @@ def main():
         m=re.search(pattern,stat+"\n"+dyn)
         if m:result[key]=float(m.group(1))
     sci=r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[EeDd][-+]?\d+)?)"
-    c=re.findall(r"CANOPY_QA\\s+([^\\r\\n]+)",log)
+    c=re.findall(r"CANOPY_QA\s+([^\r\n]+)",log)
     if c:
         vals=[float(v.replace("D","E")) for v in c[-1].split()]
         if len(vals)==5:
@@ -142,10 +142,15 @@ def main():
             result["canopy_balance_error_mm"]=vals[0]-sum(vals[1:])
     result["gross_detachment_kg"]=[float(x.replace("D","E")) for x in re.findall(r"GROSS INTERRILL EROSION\s+"+sci+r"\s+kg",stat)]
     result["net_erosion_kg"]=[float(x.replace("D","E")) for x in re.findall(r"NET EROSION/DEPOSITION\s+"+sci+r"\s+kg",stat)]
+    # EUROSEM's TOTAL RAINFALL DEPTH is post-interception input, not
+    # gross incident rainfall: validate against its own INTERC partition.
+    result["canopy_water_pass"]=bool("canopy" in result and abs(result.get("canopy_balance_error_mm",1e9))<1e-3)
+    expected=args.rain-result["canopy"]["interception_mm"] if result["canopy_water_pass"] else -1e9
+    result["expected_ground_rain_mm"]=expected
     result["water_pass"]=bool(rc==0 and not result["bounds_error"] and
-       len(result["net_erosion_kg"])==1 and
+       len(result["net_erosion_kg"])==1 and result["canopy_water_pass"] and
        abs(result.get("water_error_pct",100)) <= 1 and
-       abs(result.get("rain_depth_mm",-999)-args.rain) < 0.3)
+       abs(result.get("rain_depth_mm",-999)-expected) < 0.3)
     # EUROSEM output lacks independently integrated sediment export/storage/boundary ledger.
     # Do NOT equate its native erosion summary with strict complete sediment mass closure.
     result["sediment_pass"]=False
