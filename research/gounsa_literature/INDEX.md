@@ -445,7 +445,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (88)
+## Models (89)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -479,6 +479,7 @@
 - `models/ForSAFE_Veg_2D.md`
 - `models/GOplus.md`
 - `models/HETEROFOR.md`
+- `models/HydroPol2D.md`
 - `models/Iber.md`
 - `models/iLand_LiDAR_Audit.md`
 - `models/JSBACH4_ForestAge.md`
