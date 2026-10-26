@@ -154,6 +154,7 @@ def main():
     ap.add_argument("--rain",type=int,choices=[0,10,20,30,40,50],required=True)
     ap.add_argument("--stemflow",choices=["off","on"],default="off")
     ap.add_argument("--seconds",type=int,default=3600)
+    ap.add_argument("--asan",action="store_true")
     x=ap.parse_args()
     name=f"{x.scenario}_p{x.rain:02d}_sf{x.stemflow}_{x.seconds}s"
     wd=ROOT/"spatial_patch_experiments"/"runs"/name
@@ -195,7 +196,8 @@ def main():
     (wd/"rain.txt").write_text("\n".join([f"{x.rain/3600000:.16g}"]*int(inputvals[10]))+"\n")
     for p in ("particlesizein.txt","particlepercentin.txt"):
         (wd/p).write_bytes((src/p).read_bytes())
-    cc,build=call(["gcc","-O2","-std=gnu99","-o",str(wd/"native"),str(wd/"SWEHR_spatial_coupling.c"),"-lm"],wd,60)
+    flags=["-O0","-g","-fsanitize=address,undefined","-fno-omit-frame-pointer"] if x.asan else ["-O2"]
+    cc,build=call(["gcc",*flags,"-std=gnu99","-o",str(wd/"native"),str(wd/"SWEHR_spatial_coupling.c"),"-lm"],wd,60)
     (wd/"build.log").write_text(build)
     if cc:raise RuntimeError(build[-5000:])
     try:rc,out=call([str(wd/"native")],wd,300)
@@ -226,5 +228,7 @@ def main():
          abs(r.get("rain_m3",0)-info["effective_rain_volume_m3"])<.000001)
     (wd/"qa_result.json").write_text(json.dumps(r,ensure_ascii=False,indent=2))
     print("SPATIAL_QA "+json.dumps(r,ensure_ascii=False),flush=True)
-    if not r["qa_pass"]:sys.exit(2)
+    if not r["qa_pass"]:
+        print("NATIVE_STDERR_TAIL "+out[-6000:].replace("\n"," | "),flush=True)
+        sys.exit(2)
 if __name__=="__main__":main()
