@@ -29,13 +29,19 @@ jobs:
           for d in ("runs","results","logs"): (root/d).mkdir(parents=True,exist_ok=True)
           base=Path("openlisem_reference_trial")/"runs"
           for s in ("Oak","Miscanthus"):
-              for dt in (5,10,20):
-                  label=f"{s}_2D_{dt}s"
+              for dt, sv in ((5,1),(10,1),(20,1),(5,3),(10,3),(20,3)):
+                  label=f"{s}_2D_{dt}s_sv{sv}"
                   old=(base/f"{s}_dt10_exponential_eff1.run").read_text(encoding="utf8")
                   assert "Routing Kin Wave 2D=0" in old
                   old=old.replace("Routing Kin Wave 2D=0","Routing Kin Wave 2D=2")
                   old=old.replace("End time=001:0120","End time=001:0070")
                   old=old.replace("Timestep=10",f"Timestep={dt}")
+                  old=re.sub(r"(?m)^Advanced Options=.*$", "Advanced Options=1", old)
+                  old=re.sub(r"(?m)^Deposition continuous=.*$", "Deposition continuous=1", old)
+                  old=re.sub(r"(?m)^Deposition exponential=.*$", "Deposition exponential=1", old)
+                  old=re.sub(r"(?m)^Flow Boundary 2D=.*$", "Flow Boundary 2D=1", old)
+                  old=re.sub(r"(?m)^Settling Velocity=.*$",f"Settling Velocity={sv}",old)
+                  old+=f"\nSettlingVelocity={sv}\n"
                   old=old.replace("Rainfall file=P20_dt10.txt",f"Rainfall file=P20_dt{dt}.txt")
                   old=re.sub(r"(?m)^Rainfall Bias Correction=.*$",f"Rainfall Bias Correction={3600/(3600+dt)}",old)
                   old=re.sub(r"(?m)^Result Directory=.*$",lambda m:"Result Directory="+str((root/"results"/label).resolve())+"\\",old)
@@ -74,6 +80,50 @@ jobs:
             Write-Host "2DRESULT $case exit=$exit totals=$tot seconds=$($stopwatch.Elapsed.TotalSeconds)"
             "$case,$exit,$tot,$($stopwatch.Elapsed.TotalSeconds)"|Add-Content $status
           }
+      - name: Print native 2D quantitative convergence controls
+        shell: pwsh
+        if: always()
+        run: |
+          @'
+          import csv,math
+          from pathlib import Path
+          import numpy as np
+          import rasterio
+          R=Path("openlisem_2d_trial/results")
+          groups={}
+          for s in ("Oak","Miscanthus"):
+            for sv in (1,3):
+              rows=[]
+              for dt in (5,10,20):
+                case=f"{s}_2D_{dt}s_sv{sv}"
+                p=R/case/"totals.csv"
+                if not p.exists():
+                  print("2D_GATE_MISSING",case);continue
+                v={}
+                for line in p.read_text(encoding="utf-8-sig",errors="replace").splitlines():
+                  try:
+                    c=next(csv.reader([line]))
+                    if len(c)>1:v[c[0].strip()]=float(c[1])
+                  except:pass
+                get=lambda key:v.get(key,float("nan"))
+                rain=get("Total Precipitation (mm):")
+                runoff=get("Water across boundary (mm):")
+                exported=get("Average soil loss (kg/ha):")
+                soilmap=R/case/"soilloss.map"
+                maxsoil=float("nan")
+                if soilmap.exists():
+                  with rasterio.open(soilmap) as ds:
+                    q=ds.read(1,masked=True).compressed()
+                    if len(q):maxsoil=float(np.max(q))
+                rows.append(dict(case=case,dt=dt,rain=rain,runoff=runoff,exported=exported,maxsoil=maxsoil))
+                print("2D_GATE_NATIVE",case,"rain_mm",rain,"boundary_mm",runoff,"sed_export_kg_ha",exported,"max_erosion_t_ha",maxsoil)
+              for a,b in zip(rows,rows[1:]):
+                delta=abs(a["exported"]-b["exported"])/max(abs(a["exported"]),abs(b["exported"]),1e-10)
+                print("2D_GATE_RELATIVE_CHANGE",s,"SV",sv,"dt",a["dt"],b["dt"],"ratio",round(delta,8))
+              bad=[r for r in rows if not(19.9<r["rain"]<20.1 and r["runoff"]>0 and 0<=r["maxsoil"]<=3375 and r["exported"]>0)]
+              print("2D_GATE_PRELIM_VERDICT",s,"SV",sv,"INVALID_PHYSICAL_OR_BOUNDARY" if bad else "CHECK_DT_CONVERGENCE")
+          '@ | Set-Content -Encoding utf8 openlisem_2d_trial/numerical_gate_qa.py
+          python openlisem_2d_trial/numerical_gate_qa.py
       - name: Upload raw 2D run logs even if solver times out
         uses: actions/upload-artifact@v4
         if: always()
