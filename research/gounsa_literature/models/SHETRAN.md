@@ -71,3 +71,10 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 
 ## 2026-10-26 전 호출경로 재감사
 [SHETRAN 4.7.2 전체 호출경로 원본 코드 감사](../decisions/2026-10-26_SHETRAN_472_FULL_PATH_SOURCE_AUDIT.md) 참조. 이전 사상별 DEM 갱신 가능성에 추가 조건: **첫 SYMAIN 호출은 초기화만 수행하여 최초 수문 시간간격의 sediment 계산을 건너뜀**, `DLSMAX` 억제율은 수문 timestep 동안 고정된 `GNU`에 늦게 반영, `VS08` 지반기준층이 DEM 갱신 시 그대로 하강할 위험, 원본 sediment hotstart 불완전, 출력 44 초기화/시간 오류. native 빌드/실행 및 수지검증은 아직 하지 않음.
+
+
+## 2026-10-26: 원본 native 실행으로 이전 "미구동" 판정 갱신
+- [원본 native Cobres 강우사상 검증](../decisions/2026-10-26_SHETRAN_472_NATIVE_COBRES_RAIN_QA.md)은 앞선 정적 코드검토 뒤 추가 수행한 실증 단계다. upstream SHETRAN 원본 Fortran 4.7.2.0을 GNU Fortran Debug로 성공적으로 컴파일하고 실제 입력 복제 사상 0,10,30,50 mm/h(3시간)를 native 실행하였다. 핵심 수치: max s_v_er=0/2.708/105.330/430.591 mm/day. 자세한 수치와 모든 조건은 링크에 기록. 20,40 mm/h native 재검증도 추가 자동화 실행 중(현재 결과 확인 전).
+- 원본의 t=0 HDF5 s_t_dp=0 mm는 SY51 초기퇴적층 30 mm가 초기화되기 전 출력되는 현상으로서 30mm 실제 퇴적으로 해석하면 오류. native 외부 bridge는 SY51을 기준으로 해야 한다.
+- 사건 종료 시각 FR6 48h를 native 최종 기록이 48.315~48.632h로 초과하였다. 다음 사건을 정확히 시간 연결하려면 timestep end cap 및 수문입력 적산 검증 필요.
+- **native Cobres 물리모형 실행 성공과 native 고운사 DEM 피드백, 유사수지 폐합, sediment hotstart는 구분해야 함.**
