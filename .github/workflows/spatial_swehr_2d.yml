@@ -1,0 +1,42 @@
+name: Native SWEHR 2D spatial vegetation validation
+on:
+  push:
+    branches: [spatial-vegetation-runoff-erosion-20261026]
+    paths:
+      - 'experiments/rainfall_10_50/spatial_patch_swehr.py'
+      - '.github/workflows/spatial_swehr_2d.yml'
+  workflow_dispatch:
+jobs:
+  patches:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scenario: grass_dense
+            rain: 30
+            stemflow: off
+          - scenario: oak_sparse
+            rain: 30
+            stemflow: off
+          - scenario: barrier_equal
+            rain: 30
+            stemflow: off
+          - scenario: island_equal
+            rain: 30
+            stemflow: off
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run native 2D spatial map input and finite volume ledgers
+        run: python3 experiments/rainfall_10_50/spatial_patch_swehr.py --scenario ${{ matrix.scenario }} --rain ${{ matrix.rain }} --stemflow ${{ matrix.stemflow }}
+      - name: Archive native outputs, masks and QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spatial-${{ matrix.scenario }}-rain-${{ matrix.rain }}-sf-${{ matrix.stemflow }}
+          path: |
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/qa_result.json
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/vegetation_map.csv
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/run.log
+            experiments/rainfall_10_50/spatial_patch_experiments/runs/**/build.log
