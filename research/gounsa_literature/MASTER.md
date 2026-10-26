@@ -1469,3 +1469,6 @@ Latest decision:
 
 
 > **EUROSEM 2026-10-26 원본 dt 수렴 확인:** 12회 GNFortran 실제 재시험(15/30/60s)에서 합성 단일 사면 30mm/h, H1.2m 원본 수송계열의 출력 침식량은 15vs30초 Govers .272%, Everaert .228% 차이만 보이고 12회 수문 물수지 통과. OpenLISEM7.5.2와 달리 이 시험 조건에서 침식출력이 시간간격에 따라 안정적으로 수렴하는 경향. **원본 EUROSEM을 수치불안정 모델이라고 단정할 근거 없음**, 다만 원본 LAI 미구현, 1D 공간구조, 독립 유사보존 실패/미검증, 빗방울 중복분배와 박리항 단위 문제는 계속 존재. [전체 판정](decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md), [12회 Actions](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40324676949).
+
+
+> **2026-10-26 EUROSEM 1998 원본 독립 유사수지 실제 검증 완료:** [결정문](decisions/2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md) 원본 Fortran eplanel.for에는 기존에 놓쳤던 inrlbal/rillbal 내부 질량수지 항이 존재. 실제 24개 강우30/50×dt15/30/60초×세류 유무×Govers/Everaert 실행과 Q×CT 출구 유사량 독립적분 비교는 모두 성공. **세류 없는 계산만 9/12에서 유사수지 0.1% 이내**, 15초 모든 no-rill 통과. **세류 있는 원본 12/12 불합격**, 15초에서도 전체 사면 유사수지 잔차 14.32%,21.48%,16.99%,20.50%(4조건). [측방 공급 실계측](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40326648315)은 세류간 유사 배출과 세류 측방 유입 일치, 결함 범위는 세류 내부 원토양 침식/퇴적 및 미기록 저장량 또는 수지 집계로 좁혀짐. **시간간격 수렴은 유사 질량보존을 증명하지 못한다.** EUROSEM은 원본 1D이며 LAI 자체는 native가 아니므로 고운사 주 2D 침식엔진으로 탈락 유지. 식생 민감도 이전 폐기근거 오류 정정은 유지하되, 세류 대량 질량불일치를 무시한 재선정 금지.
