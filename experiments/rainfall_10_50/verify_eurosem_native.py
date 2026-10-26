@@ -13,13 +13,25 @@ def main():
     a=argparse.ArgumentParser()
     a.add_argument("--rain",type=int,required=True)
     a.add_argument("--repeat",type=int,default=1)
+    a.add_argument("--tag",default="baseline")
+    a.add_argument("--cover",type=float,default=0.15)
+    a.add_argument("--storage",type=float,default=0.90,help="DINT maximum canopy storage mm")
+    a.add_argument("--shape",type=int,default=2)
+    a.add_argument("--angle",type=float,default=55.0)
+    a.add_argument("--plant-height",type=float,default=3.0)
+    a.add_argument("--pbase",type=float,default=0.05)
+    a.add_argument("--fmin",type=float,default=5.0)
+    a.add_argument("--manning",type=float,default=0.188)
+    a.add_argument("--erod",type=float,default=0.9)
+    a.add_argument("--spltex",type=float,default=2.0)
+    a.add_argument("--slope",type=float,default=0.85)
     args=a.parse_args()
     src=ROOT/"source_eurosem"
     if not src.exists():
         p=subprocess.run(["git","clone","--depth","1","https://github.com/TheSoilman/EUROSEM.git",str(src)],capture_output=True,text=True)
         if p.returncode:raise RuntimeError(p.stderr[-4000:])
     version=cmd(["git","rev-parse","HEAD"],src)[1].strip()
-    workspace=ROOT/f"eurosem_QA_r{args.rain:02d}_rep{args.repeat}"
+    workspace=ROOT/f"eurosem_QA_{args.tag}_r{args.rain:02d}_rep{args.repeat}"
     workspace.mkdir(parents=True,exist_ok=True)
     fixed=ROOT/"eurosem_fixed72"
     fixed.mkdir(exist_ok=True)
@@ -60,6 +72,24 @@ def main():
     second=par.find("*      potatoes",par.find("*      potatoes")+1)
     assert second>=0
     par=par[:second]
+    # Parameter substitutions limited to original single-plane vegetation/hydraulic
+    # input records. All original erosion and flow equations remain unchanged.
+    original_geom="   100.0    145.   0.85    0.0    0.0    0.0       0.188   0.188"
+    new_geom=f"   100.0    145.   {args.slope:.5f}    0.0    0.0    0.0       {args.manning:.5f}   {args.manning:.5f}"
+    assert original_geom in par
+    par=par.replace(original_geom,new_geom,1)
+    orig_hydro="      5.       400.    0.4  0.15  0.3     0.0    1.     0.90"
+    new_hydro=f"      {args.fmin:.5f}       400.    0.4  0.15  0.3     0.0    1.     {args.storage:.5f}"
+    assert orig_hydro in par
+    par=par.replace(orig_hydro,new_hydro,1)
+    orig_veg="      0.15        2      55.0      0.05       3.0      5.0    1"
+    new_veg=f"      {args.cover:.6f}        {args.shape:d}      {args.angle:.5f}      {args.pbase:.5f}       {args.plant_height:.5f}      5.0    1"
+    assert orig_veg in par
+    par=par.replace(orig_veg,new_veg,1)
+    orig_sed="     25.      .9       2.     1.00    2.6    0.0    0.00     1"
+    new_sed=f"     25.      {args.erod:.5f}       {args.spltex:.5f}     1.00    2.6    0.0    0.00     1"
+    assert orig_sed in par
+    par=par.replace(orig_sed,new_sed,1)
     # Rain hyetograph: 3 pairs (0,0), (60,rain), (100,rain).
     # Keep trailing 28min recession (TFIN 88 min). 3 explicit pair count fixes malformed example.
     pcp="\n".join(ln for ln in pcp.splitlines() if not re.fullmatch(r"\s*2\s+1\s+1\.0\s*",ln))+"\n"  # one active plane: remove second element gauge assignment
@@ -78,7 +108,7 @@ def main():
     dyn=(workspace/"dynamic.out").read_text(errors="replace") if (workspace/"dynamic.out").exists() else ""
     (workspace/"static.log").write_text(stat)
     (workspace/"dynamic.log").write_text(dyn)
-    result={"rain_mm_h":args.rain,"repeat":args.repeat,"source_sha":version,"return_code":rc,
+    result={"rain_mm_h":args.rain,"repeat":args.repeat,"source_sha":version,"parameters":vars(args),"return_code":rc,
             "stat_bytes":len(stat),"dynamic_bytes":len(dyn),
             "bounds_error":bool(re.search("out of bounds|runtime error|segmentation|array bound",log,re.I))}
     for key,pattern in {
