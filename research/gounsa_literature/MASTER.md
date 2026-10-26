@@ -1,5 +1,8 @@
 # Gounsa Literature Master
 
+
+> **2026-10-26 신규 확인(OpenLISEM, 기존 미확정 판정 유지):** 원본 `vjetten/openlisem` `main_C` SHA `d894c72428947247ce49eb88353dadf49b3123e8`의 `lisInterception.cpp` LAI 저장/수관통과, `lisErosionSplash.cpp` 직접강우와 잎 적하 에너지 분리, `lisSWOF2DSediment.cpp` 원본 2D 유출박리/수송 확인. **Opedes et al. (2025, DOI 10.1002/esp.70074)** 는 Mount Elgon Ukha 44.5km² 산지, 12.5m, 15s, 실제 2D dynamic wave와 LAI/height/litter/rock/root extra cohesion 입력을 사용했고 유출 NSE .72/KGE .61이나 침식 관측 검증은 없음. 코드는 stemflow input 주석 처리, 자동 개체별 SF 및 RLD 변환 없음. Windows 7.5.2 실행과 코드 hash 일치/물유사수지도 아직 미검증. **세 사용자 우선 조건에 매우 유망하나 stricter native dynamic root criterion 및 최종 실행 QA를 통과한 엔진으로 간주하지 않는다.** 기록: [원본 소스 + 급경사지 판정](decisions/2026-10-26_OPENLISEM_THREE_CRITERIA_SOURCE_AND_STEEP_SLOPE_AUDIT.md), [Opedes 2025](papers/2025_Opedes_OpenLISEM_MountElgon_Trenches.md), [OpenLISEM model lineage](models/OpenLISEM.md).
+
 > **2026-10-26 긴급 정정: 고운사 유수침식 모형 채택 상태 = 미확정.** 이전 채팅에서 제안된 "SHETRAN 제외 → SWEHR이면 된다"는 결론을 명시적으로 철회한다. 원본 SWEHR 2017 공개 C에는 2016 연구논문의 Rutter 수관차단과 수관충격 차폐가 구현되었다고 입증되지 않으며, 기존 38개 사례는 임의 계수를 넣은 수정 포크일 뿐 원본 식생 모델이나 현장 결과가 아니다. SHETRAN 4.7.2의 native 강우사상 실행 성공은 고운사 세류 침식과 공간별 DEM 변화의 검증이 아니다. EUROSEM은 본질적 2D 유동 요구조건을 충족하지 않는다. Iber+는 학술 검증 연구가 있지만 연구자의 요구인 온전한 공개 소스 및 필요한 식생 결합 인터페이스가 확인되지 않아 오늘의 채택 판정을 내릴 수 없다. **유효한 단일 주 엔진이 확보되었다고 주장 금지.** 근거: [SWEHR 원본 코드 부재 확인](decisions/2026-10-26_OFFICIAL_SWEHR_V1_0_ORIGINAL_CODE_PROVENANCE.md), [SHETRAN 적합성 재검토](decisions/2026-10-26_SHETRAN_FIT_FOR_PURPOSE_REASSESSMENT.md), [Iber+ 등 기존 비교](decisions/2026-10-26_EUROSEM_SWEHR_IBERPLUS_COMPARISON.md).
 
 
