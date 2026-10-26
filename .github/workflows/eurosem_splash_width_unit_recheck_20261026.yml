@@ -1,0 +1,31 @@
+name: EUROSEM source-width dimensional test experimental fork
+on:
+  push:
+    branches: [swehr-water-sediment-closure-20261026]
+    paths:
+      - ".github/workflows/eurosem_splash_width_unit_recheck_20261026.yml"
+      - "experiments/rainfall_10_50/run_eurosem_width_trial_20261026.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native_dimensions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GNU Fortran
+        run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - name: Native original versus explicitly experimental width-converted splash term
+        run: python3 experiments/rainfall_10_50/run_eurosem_width_trial_20261026.py
+      - name: Archive original and patched Fortran results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eurosem-original-versus-splash-width-diagnostic
+          path: |
+            experiments/rainfall_10_50/eurosem_reaudit_20261026/width_experiment.json
+            experiments/rainfall_10_50/eurosem_QA_*/qa_result.json
+            experiments/rainfall_10_50/eurosem_QA_*/console.log
+            experiments/rainfall_10_50/eurosem_QA_*/static.log
+          retention-days: 21
