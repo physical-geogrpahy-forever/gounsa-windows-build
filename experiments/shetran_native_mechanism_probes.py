@@ -22,6 +22,9 @@ SCENARIOS = [
     ("no_source_detachment", "BOTH", 0.0),
     ("no_canopy_drip_impact", "FDRIP", 0.0),
     ("ground_cover_90pct", "FCG", 0.9),
+    ("critical_shear_clay_option", "ISTEC", 1.0),
+    ("flow_coefficient_tenth", "GKF_SCALED", 1.0e-6),
+    ("flow_coefficient_hundredth", "GKF_SCALED", 1.0e-7),
 ]
 PIN="cf9cd540add78ad3accbaf62b4199d2032887f6b"
 def replace_after(lines, tag, editor):
@@ -46,7 +49,7 @@ def setup_model(source:Path, dst:Path,mode:str,value:float|None):
     rain.write_text("".join(q))
     syd=dst/"input_cob_syd.txt"
     a=syd.read_text().splitlines(keepends=True)
-    if mode in ("GKR","GKF","BOTH"):
+    if mode in ("GKR","GKF","BOTH","GKF_SCALED"):
         inds=[i for i,line in enumerate(a[:-1]) if line.strip().startswith(":SY22")]
         assert len(inds)==1
         for j in range(inds[0]+1,inds[0]+4):
@@ -55,7 +58,15 @@ def setup_model(source:Path, dst:Path,mode:str,value:float|None):
             assert float(f[0])==2.5 and float(f[1].replace("D","E"))==1e-5
             if mode in ("GKR","BOTH"): f[0]="0.0"
             if mode in ("GKF","BOTH"): f[1]="0.0"
+            elif mode=="GKF_SCALED": f[1]=str(value)
             a[j]=" ".join(f)+"\n"
+    if mode=="ISTEC":
+        def set_istec(line):
+            f=line.split()
+            assert len(f)>=5 and int(f[2])==0, f
+            f[2]="1"
+            return " ".join(f)+"\n"
+        replace_after(a,":SY11 -",set_istec)
     if mode=="FDRIP":
         def set_drip(line):
             f=line.split()
