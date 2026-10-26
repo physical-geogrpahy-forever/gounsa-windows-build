@@ -31,7 +31,8 @@ for rain,dt,rills,code in itertools.product((30,50),(1.0,.5,.25),(False,True),(0
         summaries=native.get("sediment_ledger_native_trace",[])
         steps=native.get("sediment_step_trace",[])
         if len(summaries)!=1:raise ValueError("Expected one final native ledger, got "+str(len(summaries))+" values "+repr(summaries))
-        parts=summaries[0].split()
+        # Legacy Fortran progress display appends carriage-return spinner text to the last numerical line.
+        parts=summaries[0].split()[:18]
         names=["T_s","interrill_export_m3","interrill_net_deposition_m3","interrill_suspended_m3",
                "interrill_native_balance_m3","sediment_out_total_m3","rill_net_deposition_m3",
                "rill_suspended_m3","external_sediment_in_m3","rill_native_balance_m3",
