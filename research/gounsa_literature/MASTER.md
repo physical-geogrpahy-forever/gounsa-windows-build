@@ -1394,3 +1394,8 @@ Latest decision:
 ## 2026-10-26 최종 정정: 공식 SWEHR 1.0 원본 코드 별도 보존
 
 [원본 코드 및 원논문 차이 검증](decisions/2026-10-26_OFFICIAL_SWEHR_V1_0_ORIGINAL_CODE_PROVENANCE.md): 저자 등록 CSDMS SWEHR V1.0 (2017-07 최초 커밋 4e6f783f3...) 7개 원본 파일을 `main/third_party/SWEHR_original_v1_0_2017/`에 바이트 **7/7 동일**하게 보존. 수정하지 않은 원본 C/입력 예제 GCC 컴파일 및 실행 success (GitHub Actions 40272368386). 그러나 2016 논문 원식 `Rutter C(t),D(t)` + `(1-Cv)+TcCv` canopy direct-rain shield는 공식 C 버전에 없음. 연구에 꼭 필요한 것은 **저자가 실제 논문 실험에 사용한 수관 모듈 포함 원 구현 버전**으로, 현재 공개자료에서 확보되지 않았음. 기존 38회 공간민감도 및 110/60회 가상 식생 모의는 원본 vegetation physics 재현이 아닌 modified fork 민감도임을 명시하고, 고운사 억새/참나무의 차이가 4.2배라는 결론 등 이전 정량연구 주장을 철회. 기존 모든 가상 실행을 원본 프로그램 실행 결과처럼 취급하지 않는다. [원본 7파일](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/main/third_party/SWEHR_original_v1_0_2017), [원본 무수정 컴파일 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40272368386).
+
+
+## 2026-10-26 SWEHR 연구결과 신뢰성 전수감사 및 공식 정정
+
+[종합 정정 보고서](decisions/2026-10-26_SWEHR_REPRODUCIBILITY_REMEDIATION.md) 및 [결과 상태 CSV](decisions/2026-10-26_SWEHR_EVIDENCE_STATUS_MATRIX.csv): 2016년 논문에 기술한 Rutter 수관저류 §3.5와 독립 수관 강우충격 차폐 §3.2는 공식 SWEHR V1.0의 C 소스에 없음. 2017 V1.0은 바이트 동일 7/7로 보존하고 기본 예제 무수정 컴파일/실행 확인함. 본 연구가 실행한 38회 SWEHR synthetic mask 공간 실험과 기타 억새/참나무 식생 사례는 **2016 SWEHR original published vegetation model reproduction이 아니며, 4.2배 수치는 실제 종별 효과로 사용하면 안 된다**. 논문 데이터는 교신저자 요청을 통해 입수한다는 2016년 원문 안내를 확인했고, Luke A. McGuire 논문 게재 연락처 `lmcguire@email.arizona.edu`를 정정 보고서에 명시함. 원논문의 해당 코드 버전과 Figure 9/10 입력자료를 확보해 최초 상태 그대로 재현하는 것이 이전 실험 복원보다 우선임. 저자 문의는 발송하지 않은 초안이며 응답이나 코드 확보를 주장하지 않음.
