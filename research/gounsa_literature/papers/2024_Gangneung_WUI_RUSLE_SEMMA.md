@@ -1,5 +1,5 @@
 # 서지정보
-(2024). Applicability evaluation of GIS-based erosion models for post-fire small watershed in the wildland-urban interface. *Journal of Korea Water Resources Association, 57*(6), 421 ff. DOI: 10.3741/JKWRA.2024.57.6.421. 저자 목록과 정확한 마지막 쪽수는 이번에 확인한 초록만으로 확정하지 않음.
+Shin, S. S., Ahn, S., Song, J., Chae, G. S., & Park, S. D. (2024). Applicability evaluation of GIS-based erosion models for post-fire small watershed in the wildland-urban interface. *Journal of Korea Water Resources Association, 57*(6), 421–435. https://doi.org/10.3741/JKWRA.2024.57.6.421
 
 # 이 논문을 찾은 이유
 한국 산불지역에서 단일 사건 t/ha/storm 범위를 같은 단위로 제시하는 비교근거를 확보.
@@ -11,7 +11,7 @@ GIS 기반 RUSLE 및 SEMMA 모형 예측 비교. **실측 침식량이 아님**.
 2023년 4월 강릉 WUI 산불 소유역, 평균 경사 10.0±7.4도.
 
 # 적용 환경
-양질사토, 유기물 함량 높고 토심 깊은 강릉 소유역. 고운사 얕은 토심 급경사 사암과 큰 차이.
+양질사토, 유기물 함량 높고 토심 깊은 강릉 소유역. 원문 현장 조사에서 토심 0.70±0.22 m, 건조용적밀도 0.89±0.09 g/cm³, 자갈 함량 12.0%를 확인함. 고운사 얕은 토심 급경사 사암과 큰 차이.
 
 # 핵심 과정
 RUSLE/SEMMA에 강우-식생 인자를 적용. 사상별 예상 침식량 RUSLE 0.07–94.9 t/ha/storm, SEMMA 0.24–83.6 t/ha/storm.
