@@ -52,7 +52,7 @@ def add_patch(src,rain_mm_h,ks_m_s,erosion,onclosed):
     double qa_susp=0,qa_bed=0,qa_sed_vol=0,qa_min_depth=1e200,qa_min_sed=1e200;
     double qa_loose=0,qa_bed_down=0,qa_bed_up=0;
     idum=-2999;""")
-    afterinit="    // Time Parameters"
+    afterinit="    // Remaining Set Up"
     p=replace_once(p,afterinit,"""    for (i=1;i<=nx;i++) for (j=1;j<=ny;j++) qa_w0+=U[1][i][j]*dx*dx;
     
 """+afterinit)
