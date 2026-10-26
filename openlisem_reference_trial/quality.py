@@ -70,3 +70,7 @@ if rows:
         writer.writeheader();writer.writerows(rows)
     for r in rows:print("QA",r["case"],"rain",round(r["rain_mm"],4),"runoff",round(r["boundary_runoff_mm"],4),"sed_export kg/ha",round(r["export_kg_ha"],6),"max ero t/ha",round(r["max_erosion_t_ha"],3),"stock pass",r["physically_plausible_soil_stock"])
 else:raise RuntimeError("NO_VALID_SIMULATIONS")
+
+# 2026-10-26: native full-model output-only numerical gate readback.
+exec(compile((ROOT / "strict_gate_qa_20261026.py").read_text(encoding="utf-8"),
+             str(ROOT / "strict_gate_qa_20261026.py"), "exec"))
