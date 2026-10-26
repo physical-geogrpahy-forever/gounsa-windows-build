@@ -16,5 +16,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify untouched original Cobres FR39 fixed-width input parser
+        run: |
+          curl -fLsS --retry 3 'https://raw.githubusercontent.com/nclwater/Shetran/cf9cd540add78ad3accbaf62b4199d2032887f6b/examples/Cobres/model/input_cob_frd.txt' -o /tmp/shetran_cobres_original_frd.txt
+          python3 -c 'import sys;sys.path.insert(0,"experiments");from shetran_original_event_bridge import read_frd; from pathlib import Path; _,_,_,nx,ny,z=read_frd(Path("/tmp/shetran_cobres_original_frd.txt").read_text());assert (nx,ny)==(17,29);assert len(z)==493;print("ORIGINAL_COBRES_FR39_493_VALUES_PASSED")'
       - name: Test external DEM update and original FR39 precision
         run: python3 experiments/test_shetran_original_event_bridge.py
