@@ -1,0 +1,39 @@
+name: EUROSEM actual original drip fraction A-B source regression
+on:
+  push:
+    branches: [eurosem-forensic-audit-20261026]
+    paths:
+      - ".github/workflows/eurosem-forensic-drip-ab-20261026.yml"
+      - "eurosem_lai_1998/forensic_drip_single_fraction_20261026.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y gfortran
+      - name: Recreate 24 original comparative scenarios
+        run: python3 eurosem_lai_1998/forensic_native_20261026.py
+      - name: Run source-instrumented original and one-line diagnostic fork matched A-B
+        run: python3 eurosem_lai_1998/forensic_drip_single_fraction_20261026.py
+      - name: Archive every original vs altered program output and exact input
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: EUROSEM_original_vs_single_drip_fraction_process_diagnostic
+          path: |
+            eurosem_forensic_cases/drip_single_fraction_comparison.csv
+            eurosem_forensic_cases/*_original/summary.json
+            eurosem_forensic_cases/*_single_fraction/summary.json
+            eurosem_forensic_cases/*_original/stdout.log
+            eurosem_forensic_cases/*_single_fraction/stdout.log
+            eurosem_forensic_cases/*_original/static.out
+            eurosem_forensic_cases/*_single_fraction/static.out
+            eurosem_forensic_cases/*_original/test.par
+            eurosem_forensic_cases/*_single_fraction/test.par
+            eu/eurseml.for
+          if-no-files-found: warn
+          retention-days: 60
