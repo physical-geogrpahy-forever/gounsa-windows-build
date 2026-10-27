@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (461)
+## Papers (464)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -297,6 +297,7 @@
 - `papers/2021_Gabet_HillslopeTransportEfficiency.md`
 - `papers/2021_Greenwood_TreeThrowSedimentGeneration.md`
 - `papers/2021_Mekonnen_Ecosys_Hillslope_Shrubs.md`
+- `papers/2021_Naranjo_OpenLISEM_DTM_1to15m_4m_Sediment_Anomaly.md`
 - `papers/2021_Parhizkar_ForestDetachment.md`
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
 - `papers/2021_Parhizkar_NaturalPlantedForests.md`
@@ -321,6 +322,7 @@
 - `papers/2022_Liu_UnderstoryShadingErosion.md`
 - `papers/2022_Ma_LandUseDetachment.md`
 - `papers/2022_Ma_RootEffectsDetachment.md`
+- `papers/2022_Maggioli_RodriguezCaballero_LISEM_5cm_TLS_LAI_Interception_Erosion.md`
 - `papers/2022_Naseri_HYDRUS3D_VirtualStonySoils.md`
 - `papers/2022_Pfeiffer_aDGVM2_LandscapeRangeland.md`
 - `papers/2022_QuijanoBaron_BiomassPools_Erosion.md`
@@ -402,6 +404,7 @@
 - `papers/2025_CrutchfieldPeters_DeepRhizosphere.md`
 - `papers/2025_EckesShephard_DemographyModels.md`
 - `papers/2025_Eltner_RillGrow_3D_Calibration.md`
+- `papers/2025_Epple_Bienert_Grothum_LISEM_1cm_PTV_DoD_Erosion.md`
 - `papers/2025_Gao_FATES_AnnualGrass.md`
 - `papers/2025_Gao_FATES_GrassFire.md`
 - `papers/2025_Geyman_RockStrengthSoilProduction.md`
@@ -564,7 +567,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (80)
+## Decisions (81)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -646,3 +649,4 @@
 - `decisions/2026-10-27_SHETRAN_SUB10CM_CANOPY_EROSION_MODEL_SCREEN.md`
 - `decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md`
 - `decisions/2026-10-27_SINGLE_STORM_MIXED_OAK_MISCANTHUS_CANOPY_ABLATION_PROTOCOL.md`
+- `decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md`
