@@ -56,12 +56,12 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
         fcodes_end=next(i for i,s in enumerate(l) if "GROUND SURFACE ELEVATION" in s)
         replacements=0
         for n in range(fcodes_start+1,fcodes_end):
-            f=l[n].split()
-            if len(f)==2 and all(ch in "IR.W" for ch in f[1]):
-                old=f[1]
+            fields=l[n].split()
+            if len(fields)==2 and all(ch in "IR.W" for ch in fields[1]):
+                old=fields[1]
                 new=old.replace("R",".").replace("W","I")
                 replacements+=old.count("R")+old.count("W")
-                l[n]=f"{int(f[0]):7d} {new}"+chr(10)
+                l[n]=f"{int(fields[0]):7d} {new}"+chr(10)
         assert replacements>0,"No channel links in copied Cobres FRD"
         ratio=grid_m/2000.0
         def replace_spacing(start,end,n):
