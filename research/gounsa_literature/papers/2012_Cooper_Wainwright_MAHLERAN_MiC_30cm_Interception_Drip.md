@@ -40,3 +40,13 @@ Kinematic-wave finite-difference routing, Smith-Parlange infiltration, direct/dr
 # 참고자료
 https://doi.org/10.1029/2012JF002499
 https://draem.webspace.durham.ac.uk/software/
+
+
+## 2026-10-27 원문 전체 재확인: 수관 에너지 보정은 존재하나 실제 검증판은 나지
+
+**Original journal accessible full text** https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JF002499:
+- §2: underlying `Mahleran` hydrodynamic overland is **kinematic wave + cardinal-direction steepest-descent single flow outlet per cell**, NOT free XY 2D SWE. §3.1: when vegetation is present, **the impact KE of rain is scaled for interception losses, throughfall and leafdrip** following Wainwright et al. (1999), but no explicit event Rutter/Gash LAI-dependent water-storage solver from this sentence.
+- §4.1: bare **13.75m×6.5m** synthetic sandy slope, 3° and 5°, 60mm/h for 20 min; survey 0.30m map, actual numerical **0.30m grid**. Artificial sediment layers include 0.05m upper loose sand **SOIL DEPTH, not computational 5cm**. Spatial tracer mapping 0.30m with `137Cs` soil. **No vegetation canopy active in published calibration/validation runs**.
+- §5: observed water runoff534L vs model580L (reported 9% difference), outlet hydrograph NSE0.93; `137Cs` cell-level tracer redistribution spatial NSE0.98. Authors run 20 stochastic repeats and cell-wise 137Cs distribution. **Strong deposition validation**, but at 30cm in bare soil only.
+- Other original documentation https://draem.webspace.durham.ac.uk/software/ offers authors/contact route, not independently downloadable same-matching 2012 exact compiler source in this audit.
+- This evidence rules out promotion to **native 5–10cm, dynamic canopy-active, free XY 2D hydrodynamics**, regardless of marker positions calculated continuously within each grid. Stochastic subcell particle movement is **not equivalent to native free two-dimensional hydrodynamic grid solving**.
