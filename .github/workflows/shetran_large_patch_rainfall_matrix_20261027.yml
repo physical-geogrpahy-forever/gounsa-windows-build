@@ -6,6 +6,7 @@ on:
       - '.github/workflows/shetran_large_patch_rainfall_matrix_20261027.yml'
       - 'experiments/shetran_large_patch_matrix_20261027.py'
       - 'experiments/shetran_large_patch_diagnostics_20261027.py'
+      - 'experiments/shetran_large_patch_capacity_20261027.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +31,9 @@ jobs:
         run: |
           python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
           python audit/experiments/shetran_large_patch_diagnostics_20261027.py original/src/sediment/SYmod.f90
+      - name: Increase OC boundary *array capacity only* from 20 to 80 for 54 interfaces
+        run: |
+          python audit/experiments/shetran_large_patch_capacity_20261027.py original/src/core/sglobal.f90
       - name: Build original physical SHETRAN solver in Debug with diagnostic WRITEs
         working-directory: original
         run: |
@@ -64,6 +68,7 @@ jobs:
             /tmp/gounsa_native_large_smoke/*/scenario_metadata.json
             /tmp/gounsa_native_large_smoke/*/summary.json
             /tmp/gounsa_native_large_smoke/*/simulation_diagnostics.txt
+            /tmp/gounsa_native_large_smoke/*/native_failure_diagnostics.json
             /tmp/gounsa_native_large_matrix/full_factorial_results.json
             /tmp/gounsa_native_large_matrix/summary_matrix.csv
             /tmp/gounsa_native_large_matrix/*/summary.json
