@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 20:53 Maggioli 2022 원논문-실제 당시 OpenLISEM GitHub SHA 교차검증
+- **[엄격 결정문](decisions/2026-10-27_MAGGIOLI_2022_EXACT_CODE_INPUT_PROVENANCE_AND_VALIDATION_AUDIT.md)**, [원 논문 canonical 보강](papers/2022_Maggioli_RodriguezCaballero_LISEM_5cm_TLS_LAI_Interception_Erosion.md), [세션 인계](sessions/2026-10-27_2053_MAGGIOLI_2022_EXACT_CODE_AUDIT_HANDOFF.md): 원문에서 LISEM **실제 5cm 계산과 1초 시간해상도, 식생피복→LAI→수관저류, 강우/침식** 재확인. 단 실제 지표수 이동은 원문에 **kinematic wave routine**으로 명시, 완전 XY 동역학 2D는 사용하지 않음. 1초는 모의 맵 시간해상도로 기술돼 있으며 solver 내부 fixed dt 1초라고 단정 금지.
+- **2001–2022 공개 소스 계보:** 논문 발표일과 같은 **2022-02-11** `vjetten/openlisem` historical commit `3b0264ef557c031fe39fb6d523c3669bf6e1296a` 실제 버전 **6.837 beta**, 당시 `lisInterception.cpp` canopy LAI/drainage, `lisErosion.cpp` direct/leafdrip splash, `lisSWOF2DSediment.cpp` free XY 유사수송, `lisOverlandflow.cpp` kin vs FullSWOF 둘 다 구현됨. **Maggioli에 실제 사용된 SHA/버전이라는 증거 없음, 논문에서는 kin 선택**, 2026 v7.5.2 동일시 금지.
+- **검증 범위 정정:** 18개 이벤트 기간 총 TLS 침식으로 PSI를 보정 후 동일 기간 총량 모델3.55t vs 실측2.81t 비교한 연구. 보고 RMSE=17.79%는 완전 독립적인 holdout 검증/5cm 격자별 DoD 정확도가 아님. 식생 시나리오도 LAI 수관차단만 바꾼 실험이 아니라 Ksat/토양강도/피복 조건을 같이 변경, canopy isolated effect 미입증. Data Availability에 데이터 제공 약속만 있으며 정확한 binary/runfile/raster input 아카이브 위치 미확인.
+- **수치문제 근거도 확인:** 2022 `lisErosion.cpp::GetSV` 이미 100μm에서 `d/1000` 단위 처리의 비정상 분기 후보(논문 D50=5μm라 결과오류 추정 금지). 과거 7.5.2 1/2초 재실행 [40304815539](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304815539)은 **20분 타임아웃으로 검증 미완료**, 2m 보조 실행 [40303685346](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40303685346)은 **30분 타임아웃 및 NO_VALID_SIMULATIONS**. 이미 완료한 7.5.2 5/10/20초 수치 비수렴 NO-GO를 지우지 못함.
+- **결정:** 타인의 published 5cm canopy+erosion **선례로 인용 가능**, 사용자의 genuine 2D+국지 퇴적+matching original reproducible code를 통과한 고운사 주모델로 **채택 불가**. LISEM 기능 존재와 5cm에서 논문이 검증한 solver를 혼동 금지. SHETRAN 5cm 확대 철회 결정 유지.
+
 ## 2026-10-27 정책 정정: 선행 실증모델 우선, SHETRAN 5cm 임의 확장안 철회
 - **[수정 결정](decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md)**: 선행된 SHETRAN 4m 가상사면 35회 실행은 유지하되 5~10cm 새로운 확대를 우선 추진하자는 계획은 철회. 사용자는 타 연구자가 실제 5~10cm에서 수행한 단일 수관/침식 모델을 우선 원함.
 - **문헌상 5~10cm**: Maggioli et al.(2022) classic LISEM 5cm LAI canopy storage+rain/erosion kinematic routing, Cuomo(2018) LISEM 10cm vegetated splash/runoff. 진정 자유로운 2D SWE 입증 및 exact reproducible code unresolved; 7.5.2 native 2D timestep sediment nonconvergence NO-GO 그대로 유지. Epple2025 1cm new LISEM canopy same-run 미검증.
