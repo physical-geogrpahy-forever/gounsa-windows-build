@@ -49,6 +49,21 @@ jobs:
             --workdir /tmp/gounsa_shetran_microscale \
             --grid-m 4.0 \
             --allow-native-failure
+      - name: Apply diagnostic-only source logging after pristine native cases
+        run: |
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+      - name: Rebuild debug EXPLICITLY instrumented variant (no physical equations changed)
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Exact internal-step sediment solid-volume ledger on 0.282ha 4m plot
+        run: |
+          python audit/experiments/shetran_sediment_ledger_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --workdir /tmp/gounsa_shetran_sediment_ledger \
+            --grid-m 4
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -62,5 +77,9 @@ jobs:
             /tmp/gounsa_shetran_microscale/failure.json
             /tmp/gounsa_shetran_microscale/*/summary.json
             /tmp/gounsa_shetran_microscale/*/native_stdout.log
+            /tmp/gounsa_shetran_sediment_ledger/pair_summary.json
+            /tmp/gounsa_shetran_sediment_ledger/*/mass_ledger.json
+            /tmp/gounsa_shetran_sediment_ledger/*/mass_steps.json
+            /tmp/gounsa_shetran_sediment_ledger/*/qa_native_stdout.log
           retention-days: 14
           if-no-files-found: warn
