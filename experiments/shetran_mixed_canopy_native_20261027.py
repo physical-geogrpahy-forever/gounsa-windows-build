@@ -153,6 +153,15 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     assert len(l[i+1].split())==3
     l[i+1]="    2.0    0.004    0.50\n"
     l.insert(i+2,"    0.8    0.003    0.50\n")
+    if grid_m!=2000.0:
+        # No links NLF=0: SYREAD intentionally skips link-only cards.
+        # They MUST be absent from the sequential input file, otherwise the
+        # next ':SY41' reader sees ':SY31' and all following fields shift.
+        for header in (":SY31",":SY32",":SY52d"):
+            ii=[i for i,row in enumerate(l) if row.strip().startswith(header)]
+            assert len(ii)==1,(header,ii)
+            assert ii[0]+1<len(l),header
+            del l[ii[0]:ii[0]+2]
     f.write_text("".join(l))
     # 3h rain, 9h recession; only synthetic test storm.
     f=dest/"input_wet_prd.txt";l=f.read_text().splitlines(keepends=True)
