@@ -1,6 +1,7 @@
 # Gounsa Literature Master
 
 ## 2026-10-27 별도 담당 문헌조사: OpenLISEM 제외 2D 수관차단과 침식 모형 재검증
+- **WASA-SED LAI 실제 계산식 재확인:** `src/Hillslope/soilwat.f90` L945, L976, L996에서 `maxintc = lai_act(...) * intcfc(i_ce)` 활성 연산으로 **수관저류 [mm] = LAI × 단위 LAI당 저류계수**가 구현됨. 개발 주석에 0.25mm/LAI 기준을 언급하나 현장보정값이 아님. 저장량 및 증발 포함. **LAI 기반 수관차단 원본 PASS, 자유 2D SWE 및 5–10cm 세류침식 원본 FAIL.**
 - **[독립 문헌조사 판정](decisions/2026-10-27_NON_LISEM_2D_CANOPY_EROSION_LITERATURE_FOLLOWUP.md)** 및 [세션 인계](sessions/2026-10-27_2100_NONLISEM_2D_CANOPY_EROSION_RESEARCH_HANDOFF.md): OpenLISEM 원본 수정/검증은 사용자가 Work에 위임했으므로 **그와 별개로 다른 연구만 조사**. 신규 논문 원문과 실제 코드가 입증하는 범위만 남김.
 - **[Abrantes et al. (2021)](papers/2021_Abrantes_Simoes_2D_Experimental_Two_Direction_Erosion.md)** DOI10.2478/johh-2021-0003: 실제 2×2m 두 방향 사면 X1%/Y10%의 runoff+sediment 실측비교, 2D flow, Horton-SCS infiltration, rill/interrill detachment/deposition. X방향 미소유출 과소추정, Y방향/총량 성능 양호. **실제 Δx=5cm 여부 및 LAI canopy/same-public-code 확인 불가**. 출판사 PDF 확보 제약 때문에 세부 수식·격자 폭 원문 미열람 명시.
 - **[Hinsberger & Yörük (2025)](papers/2025_Hinsberger_Yoruk_HydroAS_2D_Rill_Erosion_025m.md)** DOI10.1007/s40710-025-00797-9: HydroAS Full SWE 2D + Govers erosion + Exner DEM feedback, field rill calibration. 실제 해상도 0.25m/1m(원 DEM cm와 구분), **infiltration과 rain splash 제외**, LAI canopy 미구현 실증. 공식 [유료 소프트웨어](models/HydroAS_Govers_2D_Sediment_NonOpen_Canopy_Audit.md) 별도 license와 등록 제한 download, 공개 editable solver source 없음. **탈락**.
