@@ -1,5 +1,18 @@
 # Gounsa Literature Master
 
+## 2026-10-27 최신 SHETRAN 사용 논문 조사: 2022~2026
+- 2026 Tafesse et al. (2025-12-30 online, Geocarto International 2026): GRACE+SHETRAN 5km×5km 지표·지하수 저장량 대조. 침식모듈 검증은 아님.
+- 2025 Sayers et al. (J Flood Risk Management): 영국 전국 산림/홍수관리 SHETRAN 시나리오에서 수관차단수 잠재 증발을 산림 피복비율과 연동. 유사침식 계산 근거 아님.
+- 2025 Oyarmoi et al. (Ecohydrology): 우간다 파피루스 습지에서 관개와 유역 습지유입 시계열 수문계산.
+- **2024 Adams & Johnston (Nature-Based Solutions, 100118)**: 북아일랜드 버드나무/초지 비교. SHETRAN CLAI=0.2–1.2 vs1.0, CSTCAP=5mm vs1mm, RD1.6 vs1.0m, 조도 다르게 입력. 수관차단 증발 163→209mm와 모의 유출수고 569→560mm. 직접 SHETRAN sediment 모델을 검증한 것은 아님.
+- 2024 Smith et al. (Frontiers in Water 1468855): 698 영국 유역 수문 보정, 중앙 NSE0.82; 기후/자연홍수관리/산림 시나리오. 수문중심.
+- 2023 Barnes et al. (Hydrological Processes e14920): SHETRAN 100% 산림 vs 100% 초지, Irthing 큰첨두 4.4% 감소, 평균 20첨두17.7% 감소(일반화를 피할 것). 수문중심.
+- **2022 Escobar-Ruiz et al. (Hydrological Processes e14474)**: **84 강우사상**, 2개 영국 농경유역의 피복 공간배치/완충대 변화, 유사량 사건별 차이. 산림 완충대 일부 사상 유사량 최대 20% 감소.
+- **2022 Sreedevi et al. (Catena 106427)**: 인도 서고츠 Vamanapuram 787km², 수문과 유사수송(토지피복변화와 기후) 통합. 과거 토지피복 변화 유사량 -10.4% 모의.
+- **2026-10-18 Rehman et al.**: SHETRAN+NSGA-II 자연홍수관리 최적화 preprint, 미동료심사. 저널 출판 연구로 혼동 금지. https://doi.org/10.31223/X51V57 .
+- 신규 개별 기록 `papers/2026_Tafesse_GRACE_SHETRAN_Ethiopia_WaterStorage.md`, `2025_Sayers_National_NFM_SHETRAN_Woodland.md`, `2025_Oyarmoi_Papyrus_SHETRAN_Flow_Regime.md`, `2024_Adams_Johnston_SHETRAN_SRC_Willows_Phosphorus.md`, `2024_Smith_Birkinshaw_UK_698_SHETRAN_Climate.md`, `2023_Barnes_Bathurst_Afforestation_LeakyDams_SHETRAN.md`.
+- 중요: 최신 논문에서 명시적 SHA `cf9cd540...` SHETRAN 4.7.2 사용 입증하지 못함. 학술적 계보와 정확 코드버전 인용을 구분한다.
+
 ## 2026-10-27 SHETRAN 4.7.2 코드-논문 계보 및 실제 적용 연구 조사
 - **[원본 버전과 13편의 주요 연구를 연결한 기록](decisions/2026-10-27_SHETRAN_472_CODE_PAPER_PROVENANCE_AND_APPLICATIONS.md)**: SHETRAN4.7.2 원본 `nclwater/Shetran` commit `cf9cd540`(2026-10-12), 정식모델 Ewen et al.(2000), 침식물리식 Wicks & Bathurst(1996), 기존 식생/침식 적용 Lukey(1995,2000), Birkinshaw(2011), 소사면 Bathurst et al.(1998) 0.133ha/5m, Adams(2005) 970m² 및 Adams & Elliott(2006) 토사량, Dano(2017) 공간 E/D 지도를 구분 정리. **과거 논문이 2026 commit을 그대로 이용한 것은 아님**.
 - **141mm 국지 퇴적은 150mm 누적 강우와 모순되지 않음**. 외부 유사 유입/사면내 집중에 따라 국지 퇴적이 발생할 수 있으므로 물리적 불가능이라고 단정하지 않는다. DLS 느슨한 표면층 체적, 실제 토심/안정 퇴적, 고체체적은 구별한다.
