@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (460)
+## Papers (461)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -157,6 +157,7 @@
 - `papers/2005_Bathurst_SHETRAN_Valsassina_Landslides.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
+- `papers/2005_Nord_Esteves_PSEM2D_5cm_BareSoil.md`
 - `papers/2005_Nord_Esteves_PSEM_2D.md`
 - `papers/2005_Roering_Gerber_PostfireHillslopeTransport.md`
 - `papers/2006_Adams_Elliott_SHETRAN_LargeRainfallSimulator.md`
@@ -563,7 +564,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (79)
+## Decisions (80)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -642,5 +643,6 @@
 - `decisions/2026-10-27_SHETRAN_OPEN_FOUR_SIDES_0P648HA_35_SCENARIOS_NATIVE.md`
 - `decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md`
 - `decisions/2026-10-27_SHETRAN_STRICT_NATIVE_SMALL_PLOT_VALIDATION_VERDICT.md`
+- `decisions/2026-10-27_SHETRAN_SUB10CM_CANOPY_EROSION_MODEL_SCREEN.md`
 - `decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md`
 - `decisions/2026-10-27_SINGLE_STORM_MIXED_OAK_MISCANTHUS_CANOPY_ABLATION_PROTOCOL.md`
