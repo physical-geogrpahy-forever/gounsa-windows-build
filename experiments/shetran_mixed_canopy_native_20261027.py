@@ -96,7 +96,7 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     # as the second vegetation ET7 heading, and then reads ':ET7' as numeric data.
     while block and not block[-1].strip():
         block.pop()
-    block[-1]=block[-1].rstrip("\\n")+"\\n"
+    block[-1]=block[-1].rstrip(chr(10))+chr(10)
     assert block[1].strip().startswith("F")
     block_oak=block.copy()
     block_grass=block.copy()
