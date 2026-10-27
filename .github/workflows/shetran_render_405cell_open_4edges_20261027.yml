@@ -1,0 +1,45 @@
+name: Render real native SHETRAN four OPEN borders erosion deposition maps
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_render_405cell_open_4edges_20261027.yml'
+      - 'experiments/shetran_render_405cell_open_all_edges_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  render-native-open405:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install graph dependencies
+        run: python -m pip install --disable-pip-version-check numpy matplotlib
+      - name: Download the five completed native four-open-edges rainfall results
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/gounsa_native_open_inputs
+          gh run download 40455147463 --repo "${{ github.repository }}" \
+            --dir /tmp/gounsa_native_open_inputs
+          test "$(find /tmp/gounsa_native_open_inputs -name cells.csv | wc -l)" -eq 35
+          test "$(find /tmp/gounsa_native_open_inputs -name open_intensity_summary.csv | wc -l)" -eq 5
+      - name: Render four-cover 10 30 50 mmph spatial net erosion and deposition ON minus OFF
+        run: |
+          python experiments/shetran_render_405cell_open_all_edges_20261027.py \
+            --input /tmp/gounsa_native_open_inputs \
+            --output /tmp/gounsa_native_open_maps
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-0p648ha-open-all-edges-17-spatial-maps
+          path: |
+            /tmp/gounsa_native_open_maps/*.png
+            /tmp/gounsa_native_open_maps/README_rendered_maps.json
+          retention-days: 30
+          if-no-files-found: warn
