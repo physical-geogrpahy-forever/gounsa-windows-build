@@ -54,3 +54,7 @@ LAI 연동 canopy storage의 문헌상 대안이라는 학술 참고근거. 고�
 - `ReadControlFile.c`는 landuse별 `retention[i]` mm, `InitializeVars.c`는 `ret=retention/1000`, `intercept.c`는 강우에서 남은 초기 저장량을 우선적으로 완전히 차감하는 22행 함수. **LAI 또는 가변 수관저류, 수관낙수 배수 계산은 없음.**
 - 따라서 본 논문이 제시한 `Smax=0.935+0.498LAI-0.00575LAI²`은 당시 저자 산림 개량판의 수문 계산 기여이지, 지금 확보한 CASC2D-SED C 원본 소스의 내장 계산이라고 주장할 수 없음.
 - 공개 C에는 흐름수송능력 기반 2D sediment module 자체는 있고 단일 `jout,kout` exit, independent raindrop splash 없음. 논문의 forest canopy hydrology + 2003 sediment code를 사후에 **임의로 합치면 새로운 coupling**. 동일 실행판의 forest canopy/rill sediment/5cm 성공 근거는 현재 없음.
+
+## 2026-10-27 2017년 후속 논문의 직접 모델 계보 연결
+- [Wei et al.(2017) JHER](2017_Wei_Kinouchi_Velleux_Fukushima_TREX_Forest_Interception_2D_Erosion.md) DOI10.1016/j.jher.2017.09.003은 **Wei & Kinouchi(2014) 산림 TREX/CASC2D hydrology improvement를 직접 인용**하며 당시 침식연구 원본 안에 강우차단/ET, 2D overland diffusive wave, 독립 rain splash source, flow-based erosion and deposition, sand/silt/clay transport를 **한 번에 구현했다고 논문에서 명시함**. 2017 연구에서 사용한 DEM mesh는 실제 **90m**이며 5–10cm가 아님. 따로 2017 업데이트 실행 소스 SHA는 발견 못했음.
+- 2014 수관 capacity LAI 관계식이 산림 hydrology 계보에 발표돼 있어도 2017 연구 동일 빌드에서 정확히 동일 식을 켜고 사용한 상태량/매개변수 로그는 미확인이다. 과학적 모델 계보 연결과 재현가능한 정확 소스 연결을 혼동 금지.
