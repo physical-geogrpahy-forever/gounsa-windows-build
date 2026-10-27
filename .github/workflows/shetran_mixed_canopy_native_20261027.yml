@@ -72,6 +72,12 @@ jobs:
             --exe original/build/debug/bin/shetran \
             --workdir /tmp/gounsa_shetran_sediment_ledger \
             --grid-m 4
+      - name: Same-domain native timestep refinement with native mass ledgers
+        run: |
+          python audit/experiments/shetran_timestep_refinement_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_shetran_dt_refinement
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -92,5 +98,8 @@ jobs:
             /tmp/gounsa_shetran_sediment_ledger/*/mass_ledger.json
             /tmp/gounsa_shetran_sediment_ledger/*/mass_steps.json
             /tmp/gounsa_shetran_sediment_ledger/*/qa_native_stdout.log
+            /tmp/gounsa_shetran_dt_refinement/timestep_convergence.json
+            /tmp/gounsa_shetran_dt_refinement/*/qa_dt.json
+            /tmp/gounsa_shetran_dt_refinement/*/native_log.txt
           retention-days: 14
           if-no-files-found: warn
