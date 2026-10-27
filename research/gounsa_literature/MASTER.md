@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 21:00 새로운 2D SWE + Gash 수관차단 + 침식/퇴적 + 세류 지형변화 선행연구 발견
+- **[신규 모델 엄격 판정](decisions/2026-10-27_2100_NEW_LONG_HE_2009_2010_2D_GASH_EROSION_SOURCE_VERDICT.md)** 및 [후속 작업 인계](sessions/2026-10-27_2100_NEW_GASH_2D_EROSION_LONG_HE_HANDOFF.md): **Long & He (2009, 2010)** 논문 2편에서 기존 모델 목록에 없던 **2D SWE Godunov FVM + modified Gash 수관차단 + Green–Ampt 침투 + 침식/퇴적 + 지형변화/세류 발달**의 **같은 논문 모델** 물리과정 발표 확인. Maggioli2022 5cm 실증 (운동파)보다 모형기능상 사용자 요구에 가까움.
+- [**2009 JICS FVM 논문**](papers/2009_Long_He_Rill_Evolution_FVM_Modified_Gash.md) (6(6):2349–2356), [**2010 Journal of System Simulation 논문**](papers/2010_Long_He_2D_Gash_Rill_Erosion_Morphodynamics.md) (22(2):348–352), [**2009 GPU 논문**](papers/2009_Long_He_GPU_2D_SWE_Hydraulic_Erosion.md) (IEEE DOI10.1109/ICIECS.2009.5363863) 및 [**원본 공개경로 감사**](models/Long_He_2D_Gash_Morphodynamics_Code_Audit.md) 별도 보존.
+- **핵심 제한:** 두 paper abstract에서 실제 **5–10cm computational mesh 불명**, **LAI 활성 저장용량/leaf-drip KE 세부 불명**, exact source code / input / executable GitHub 검색 **미발견**. 2009 GPU 논문은 그 자체에 Gash canopy를 명시하지 않으므로 동일 실행판이라고 연결 금지. 초록 단계 연구를 공개 실행 가능한 고운사 주엔진으로 선정 불가.
+- 2024 Perrini *WRR* DOI10.1029/2023WR036421의 LAI interception + genuine 2D SWE는 DREAM+Iber 두 모형 연계며 5cm 유수침식 단일실행판이 아님(기존 `papers/2024_Perrini_RunoffOnGrid_DREAM_Iber.md` 확인). 타 탈락 Iber+, TREX, SHETRAN5cm 무선례, LISEM7.5.2 수치문제 결론 유지.
+- **진실한 전체 PASS 실행모델은 여전히 확인 안 됨.** 새로운 것은 **학술선례가 존재한다는 부분적 반증**이며, 실행 가능한 전체코드 확보 및 5cm 실증이라고 기록하면 안 됨.
+
 ## 2026-10-27 7.5.2 원본 소스 및 과거 native 수치검증 교차감사: 기존 NO-GO 유지
 - **[원본 재감사 결정문](decisions/2026-10-27_OPENLISEM_752_SOURCE_NATIVE_REAUDIT_NO_GO.md)**: Classic openLISEM `v7.5.2` 태그와 `main_C` (태그보다 +8 commits)를 직접 비교. 원본 `GetSV`·`SedimentSSContinuous`·수관차단·낙수 함수는 동일 blob; 2D SWE 함수만 차이. 브랜치 최신이라는 이유로 수치 오류 해결 주장은 금지.
 - 기존 Windows Actions [원본 native 12회](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304135775) job success 확인. 5m 2D 1ha, 20mm 강우 조건에서 참나무 SV1 유사배출 외부 Δt=5/10/20초 각각 0.005993 / 123.037727 / 832.588686 kg/ha, 각격자 침식 유한토층 초과 → 원본 고운사 정량엔진 불합격. 전역질량수지 폐합은 수렴 증거 아님.
