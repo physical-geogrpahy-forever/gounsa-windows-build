@@ -1,0 +1,53 @@
+name: Audit Ouyang 2018 original Massflow solver ZIP provenance
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gounsa_ouyang2018_massflow_original_solver_source_audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: anhuicong323/Ouyang_2018
+          ref: master
+          path: ouyang2018
+      - name: Inspect original archives without executing untrusted code
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import zipfile, pathlib, io, re, json, hashlib
+          root=pathlib.Path("ouyang2018")
+          matches = []
+          result={}
+          for arc in sorted(root.glob("*.zip")):
+              d={"zip_name":arc.name,"sha256":hashlib.sha256(arc.read_bytes()).hexdigest(),"size":arc.stat().st_size,"entries":[],"matches":[]}
+              with zipfile.ZipFile(arc) as z:
+                  for e in z.infolist():
+                      if e.is_dir(): continue
+                      d["entries"].append({"path":e.filename,"size":e.file_size})
+                      if e.file_size > 1000000 or not e.filename.lower().endswith((".f90",".f",".for",".f95",".cpp",".c",".h",".h90",".vfproj",".sln",".txt",".md",".inc",".def",".bat",".mak",".cmd")): continue
+                      raw=z.read(e)
+                      s=raw.decode("utf-8",errors="replace")
+                      for i,line in enumerate(s.splitlines(),1):
+                          if re.search(r"comp_one_region|comp_fbx|comp_fby|comp_bfx|comp_bfy|mpi_data_merge|set_before_every_step|solver.dll|massflow.exe|rain_model_Interception",line,re.I):
+                              d["matches"].append(f"{e.filename}:{i}: {line[:170]}")
+              result[arc.name]=d
+          pathlib.Path("source_audit.json").write_text(json.dumps(result,ensure_ascii=False,indent=2))
+          for name,d in result.items():
+              print("=== ORIGINAL ARCHIVE",name,"SHA256",d["sha256"],"ENTRIES",len(d["entries"]),"===")
+              for x in d["entries"][:130]: print("FILE",x["path"],x["size"])
+              for x in d["matches"][:90]: print("SYMBOL",x)
+          print("AUDIT_COMPLETE")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ouyang2018-original-Massflow-source-archive-structure
+          path: source_audit.json
+          retention-days: 30
