@@ -1,0 +1,54 @@
+name: SHETRAN genuine TMAX 2D local deposition hotspot convergence
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_native_cellwise_true_tmax_20261027.yml'
+      - 'experiments/shetran_native_cellwise_true_tmax_20261027.py'
+      - 'experiments/shetran_net_surface_change_tmax_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-spatial-hotspots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Add source immutable physics and per-cell sediment QA diagnostics only
+        run: |
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_spatial_flux_instrument_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_morphology_diag_instrument_20261027.py original/src/sediment/SYmod.f90
+      - name: Build original Fortran with only QA WRITEs
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Run spatial local event-end positive and negative Δz under actual TMAX fixed PMAX
+        run: |
+          python audit/experiments/shetran_native_cellwise_true_tmax_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_cellwise_dt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-original-native-localized-deposition-true-tmax
+          path: |
+            /tmp/gounsa_native_cellwise_dt/spatial_native_tmax_convergence.json
+            /tmp/gounsa_native_cellwise_dt/*/net_elevation_summary.json
+            /tmp/gounsa_native_cellwise_dt/*/net_elevation_cells.json
+          retention-days: 30
+          if-no-files-found: warn
