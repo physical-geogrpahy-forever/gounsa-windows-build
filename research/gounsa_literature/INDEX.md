@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (509)
+## Papers (511)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -200,6 +200,7 @@
 - `papers/2009_Moustakas_SavannaPatchDynamics.md`
 - `papers/2009_Scheiter_aDGVM_Africa.md`
 - `papers/2010_Cohen_mARM3D.md`
+- `papers/2010_Downer_Ogden_Pradhan_Liu_Byrd_Improved_GSSHA_Erosion.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Jomaa_HairsineRose_SplashWidth.md`
 - `papers/2010_Long_He_2D_Gash_Rill_Erosion_Morphodynamics.md`
@@ -379,6 +380,7 @@
 - `papers/2023_Crompton_PatchHillslope_2DConnectivity.md`
 - `papers/2023_DeCaceres_MEDFATE.md`
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
+- `papers/2023_Garcia_GSSHA_Forest_LAI_Interception_Harvest.md`
 - `papers/2023_GarciaAlen_Iber_SoilMoistureAssimilation.md`
 - `papers/2023_Godziek_PitMoundDetection.md`
 - `papers/2023_Guignabert_HETEROFOR_Validation.md`
@@ -516,7 +518,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (112)
+## Models (113)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -556,6 +558,7 @@
 - `models/FullSWOF_2D_2015_Le_HairsineRose_CodeLineage_And_Numerical_Gates.md`
 - `models/GOplus.md`
 - `models/GRASS_SIMWE_RSimTerrain.md`
+- `models/GSSHA.md`
 - `models/HETEROFOR.md`
 - `models/HydroAS_Govers_2D_Sediment_NonOpen_Canopy_Audit.md`
 - `models/HydroPol2D.md`
@@ -631,7 +634,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (112)
+## Decisions (113)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -743,6 +746,7 @@
 - `decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md`
 - `decisions/2026-10-27_WEI_2017_FOREST_TREX_CANOPY_SPLASH_2D_INTEGRATED_90M_NO_CODE.md`
 - `decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md`
-- `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
+- `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
+- `decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md`
 
