@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (507)
+## Papers (508)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -193,6 +193,7 @@
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Cohen_mARM.md`
 - `papers/2009_Kim_Yang_Kim_Onda_Korean_Forest_Canopy_Interrill_Erosion.md`
+- `papers/2009_Lai_SRH_W_HybridMesh_2D_Watershed_Erosion.md`
 - `papers/2009_Liang_StemflowThreeDimensionalSoilWater.md`
 - `papers/2009_Long_He_GPU_2D_SWE_Hydraulic_Erosion.md`
 - `papers/2009_Long_He_Rill_Evolution_FVM_Modified_Gash.md`
@@ -627,7 +628,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (107)
+## Decisions (108)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -706,6 +707,7 @@
 - `decisions/2026-10-27_2345_WANG_2023_SLOPE_EROSION_AND_IBER_EXACT_BENCHMARK_CODE_GATE.md`
 - `decisions/2026-10-27_2355_NEW_AKSOY_WASH123D_PIHM_STRICT_PUBLISHED_SOURCE_SCREEN.md`
 - `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
+- `decisions/2026-10-27_FINAL_STRICT_ORIGINAL_SINGLE_MODEL_SOURCE_GATE_SRH_W_AND_RECENT.md`
 - `decisions/2026-10-27_FULLSWOF_HR_LE2015_VS_HYDROSED2D_NATIVE_2D_SOURCE_GATE.md`
 - `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_INDEPENDENT_NEW_2D_EROSION_AND_CANOPY_PHYSICS_PAPERS.md`
