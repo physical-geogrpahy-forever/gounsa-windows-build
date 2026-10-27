@@ -1,5 +1,9 @@
 # Gounsa Literature Master
 
+## 2026-10-27 실행 결정: 5~10cm SHETRAN 네이티브 검증으로 전환
+- **[진행 순서와 중단기준](decisions/2026-10-27_SUB10CM_SHETRAN_CONCRETE_GO_NOGO_EXECUTION_DECISION.md)** [인계서](sessions/2026-10-27_1940_SUB10CM_NATIVE_GO_NOGO_ACTION_HANDOFF.md): 신규모델 반복 검색을 중단하고 이미 수관+2D 유사수송 전체 연결 검증된 SHETRAN 4.7.2부터 **동일 20×20m 물리영역 1/0.5/0.2/0.1/0.05m** 단계별 native 실행으로 판정. 소영역 5cm=160000 active, 10cm=40000 active여서 원본 NELEE250000 아래; 0.648ha 전체 10cm=648000, 5cm=2592000은 capacity 확장 필수. 기존 실험 생성기는 NX17 NY29 DX4m, 고정 row length 및 boundary 80개이므로 **숫자만 DX=0.1로 수정 불가**. 같은 연속 경사/패치와 4방향 실제 BC/물-유사 mass/시간·공간수렴/가용토심 확인한 뒤 전체영역 10cm로 확대한다.
+- **중요:** 현 단계는 실행 설계이며 **5cm/10cm 네이티브 계산을 수행했다는 근거가 아직 없음**. SHETRAN 5cm published precedent 없음, 4m 35개 native 결과를 cm 실증으로 과장 금지. 불합격 시 현재 공개 단일모형의 필수해상도 적용 불가를 인정하고, 기각된 LISEM7.5.2 등을 근거 없이 대체채택하지 않음.
+
 ## 2026-10-27 19:40 GitHub 우선: 산림 수관차단과 2D 유사수송 새 코드 대조
 - [**엄격 원본 기능 판정문**](decisions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_SOURCE_SCREEN.md) 및 [세션 인계서](sessions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_HANDOFF.md): 기존 INDEX/MASTER를 확인한 뒤 새로운 이름 두 종의 공개 코드 및 급경사 산림 2D 연구를 조사. **전 조건 만족 5–10cm 공개 원본 아직 미발견**.
 - **[HydroSed2D 실제 Fortran 소스감사](models/HydroSed2D_Fortran_Original_Source_Audit.md)**: Penn State `psu-efd/HydroSed2D/src/sediment.f90` SHA `7e6be598...`에서 진정한 X/Y 2D SWE + MPM/Grass 기반 bedload + Exner dynamic topography 실제 구현 확인. 그러나 **강우, LAI 수관차단, 침투, 빗방울 박리 부재**. **탈락**.
