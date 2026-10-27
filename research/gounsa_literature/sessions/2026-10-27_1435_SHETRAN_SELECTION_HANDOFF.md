@@ -36,3 +36,12 @@
 ## 주의
 - 원본 코드의 강우사상 중 DEM 자동 지형갱신 및 개별 세류 self-incision 구현을 주장하지 않는다.
 - 141.487 mm는 가상 사면의 국지 최대값이며 고운사 실측 결과가 아니다.
+
+
+## 2026-10-27 후속 업데이트: SHETRAN 적용연구 문헌조사
+- 원본/출판사/기관원문 대조하여 기존 5편의 판정 상태를 정정하고 신규 7편을 `papers/`에 저장함.
+- 신규: `2006_Adams_Elliott_SHETRAN_LargeRainfallSimulator.md`, `2006_Birkinshaw_Bathurst_SHETRAN_SedimentYield_BasinArea.md`, `2011_Birkinshaw_Bathurst_Iroume_SHETRAN_ForestCover_Chile.md`, `2022_EscobarRuiz_SHETRAN_EventScale_LandCover.md`, `2022_Sreedevi_Eldho_Jayasankar_SHETRAN_HumidTropical.md`, `2005_Bathurst_SHETRAN_Valsassina_Landslides.md`, `2017_Janes_SHETRAN_Riverbank_Vegetation.md`.
+- 기존 5편: `1992_Wicks_Calibrating_SHE_Soil_Erosion.md`, `1996_Wicks_Bathurst_SHESED.md`, `2000_Lukey_Reforestation_SHETRAN_Draix.md`, `2017_OpDeHipt_SHETRAN_Dano_Validation.md`, `2019_EscobarRuiz_SHETRAN_ProxyCatchment.md`에 현재 선정 판정 주석 추가.
+- MASTER 및 INDEX 동기화(현재 papers 449, models 93, decisions 78).
+- **141.487mm 격자 최대 퇴적 자체는 반증이 아님:** 4m 격자 면적 16m²에서 환산시 약 2.26m³의 국지 두께. 입력한 합성 사면의 퇴적층/토양실체/공극률 및 4방향 유사 flux로 형성원인을 검사할 것.
+- 확보된 사례 중 뉴질랜드 Adams & Elliott 2006은 가장 직접적인 단일강우 사면 유사량 검증; Chile Birkinshaw et al. 2011은 산림/벌채, 강우규모 및 토심 영향. Op de Hipt 2017은 자체 Figure 6에서 국지 침식/퇴적 공간지도를 제시했지만 외부 유사량 NSE는 0.4/0.2, 정확한 공간침식 독립현장 검증은 아님.
