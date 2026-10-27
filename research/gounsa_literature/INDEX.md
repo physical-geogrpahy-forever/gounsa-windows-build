@@ -2,9 +2,9 @@
 
 업데이트: 2026-10-28
 
-이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
+실제 GitHub 파일 트리 기준으로 생성한 인덱스다. 포함 개수에는 `.gitkeep`가 포함된다.
 
-## Papers (511)
+## Papers (512)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -382,6 +382,7 @@
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
 - `papers/2023_Garcia_GSSHA_Forest_LAI_Interception_Harvest.md`
 - `papers/2023_GarciaAlen_Iber_SoilMoistureAssimilation.md`
+- `papers/2023_Gatti_Bonaventura_Menafoglio_Papini_Longoni_SMART_SED_Coupled_Runoff_Erosion.md`
 - `papers/2023_Godziek_PitMoundDetection.md`
 - `papers/2023_Guignabert_HETEROFOR_Validation.md`
 - `papers/2023_Jia_Wells_Momm_Zhang_Bennett_CCHE2D_Raindrop_Rill_Gully_Morphology.md`
@@ -518,7 +519,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (114)
+## Models (115)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -614,6 +615,7 @@
 - `models/SERGHEI_SE.md`
 - `models/SHETRAN.md`
 - `models/SIBERIA.md`
+- `models/SMART_SED.md`
 - `models/SMODERP2D_2019_2026_Native_Interception_Rill_Without_Sediment_Source_Audit.md`
 - `models/SORTIE_ND.md`
 - `models/SPHY_MMF_2018_2026_LAI_Canopy_LeafDrip_Sediment_Original_Code_Audit.md`
@@ -635,7 +637,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (114)
+## Decisions (115)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -750,5 +752,6 @@
 - `decisions/2026-10-28_HEC_HMS_414_SINGLE_PROGRAM_NATIVE_CANOPY_2D_SEDIMENT_GATE.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
 - `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
+- `decisions/2026-10-28_SMARTSED_ORIGINAL_2023_PAPER_AND_CPP_FOUND_BUT_CANOPY_NO_GO.md`
 - `decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md`
 
