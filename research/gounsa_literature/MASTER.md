@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+## 2026-10-27 결정 확정: 단일 강우사상 유수침식 주모델 SHETRAN 4.7.2 선정
+- **[공식 모델 선정 결정문](decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md)**. 고운사 참나무 맹아 및 억새 혼재 사면의 **수관차단 ON/OFF, 강우사상별 2D 국지 침식 및 퇴적, 네 방향 경계 물과 유사배출** 분석을 위해 **SHETRAN 4.7.2를 단일 유수침식 주모델로 채택**. EUROSEM 및 OpenLISEM 등의 주엔진 재탐색은 중단하고 SHETRAN 자체 검증과 실제 입력자료 구축에 집중한다.
+- 선정 근거: 공개 Fortran 원본의 수관저류/수관적하/직접강우 및 유수박리/4면 유사수송 연계, 합성 0.648ha 사면 **35/35 실제 실행**, 네 방향 Type 5 개방경계의 물과 유사배출 및 최대 상대 이동가능 유사수지 잔차 5.84668e−14.
+- **연구용 주모델 선정과 현장 정량 검증은 별개:** 가상 개방계수 k=50 미보정, 혼재 50mm/h 최대 국지 퇴적 141.487mm 물리적 타당성 미확인, 4m→2m→1m 공간수렴 및 실측 DEM/LAI/식생배치/토심/토양자료 필요. 이전 보고서에 적힌 '주모델 채택 보류'는 **이번 사용자 결정으로 연구용 엔진에 한하여 변경**되나, '고운사 현장 침식량 검증 보류'는 유지.
+- 다음 우선순위: **경계배출계수와 방향별 배출량 → 극단 국지 퇴적 원인/물질수지 → 공간수렴 → 현장보정 및 ON/OFF 차분**. 지표고도는 사상 내 유동 계산에 자동 재투입되지 않음.
+
 ## 2026-10-27 완료: SHETRAN 0.648ha 참나무 맹아 및 억새 4피복 × 강우10–50mm/h 네이티브 35시나리오
 - **[최종 35회 결과 및 한계](decisions/2026-10-27_SHETRAN_LARGER_HILLSLOPE_35_NATIVE_RESULTS.md)**. 한 모델 SHETRAN 4.7.2 원본 물리식, static `NOCTAB 20→80` 배열상한 확장/진단출력 추가만 실행. 405개 육상4m 셀=0.648ha, 17×29 격자 경계 포함0.7888ha, 10/20/30/40/50mm/h×3h; 나지, 억새 전면, 참나무 맹아102/나지303, 참나무102+억새228+나지75 패치; canopy ON/OFF 별도 35 조합.
 - **원본 물리식 엔진 35/35 성공, 유사고체체적 native mass ledger 각 0.1% 이내 통과, 순차 35회와 독립 병렬 35회 source 및 ∆z 총계가 소수점까지 완전 동일 재현**. [순차 결과 CSV](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448419992/artifacts/12710245614), [5강우 독립 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448993167).
