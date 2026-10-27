@@ -98,3 +98,10 @@ Strict quantitative vegetation coupling fails in current implementation.
 **Epple et al.(2025)** 1cm 실험 논문은 공식 `https://lisemmodel.com/`을 `LISEM (2024)`로 인용하고 Bastian van den Bout에게 연구지원 감사, LISEM scripting 사용을 명시하여 신형 계열로 강하게 판정. 동일 소스태그는 미확인. 따라서 **Gounsa OpenLISEM Classic 7.5.2 수치 불안정성 검증은 신형 LISEM에 대한 검증이 전혀 아니다.**
 **Maggioli et al.(2022)** 5cm + LAI 수관저류 + erosion은 원 LISEM과 Jetten/De Roo 2001을 인용하고 운동파 사용을 명시하여 Classic 계열 적용 논문으로 추정. v7.5.2 적용 단정 불가.
 공식 신형 LISEM hydrology https://lisemmodel.com/docs/hydrology/ 의 입력은 `vegetation cover`, `vegetation height`, `SMax Canopy`, LAI, 예를 들어 `Smax Broadleaved Forest=0.2856 LAI`, `Smax Clumped Grass=0.59 LAI^0.88`. **식생 및 수관저류가 새로운 LISEM 계열에도 명시적으로 존재**하는 독립 개발자 근거. 다만 1cm Epple 시나리오에서 interception을 활성화한 것은 아님.
+
+## 2026-10-27 원본 태그/브랜치 재감사 및 네이티브 판정 재확인
+- 상세 [감사 결정문](../decisions/2026-10-27_OPENLISEM_752_SOURCE_NATIVE_REAUDIT_NO_GO.md) 및 2026-10-26 Windows [원본 NO-GO](../decisions/2026-10-26_OPENLISEM_752_NATIVE_2D_STABILITY_FAILED.md)를 참조.
+- `v7.5.2`와 `main_C` 직접 blob 비교에서 `lisErosionAux.cpp`, `lisSWOF2DSediment.cpp`, `lisInterception.cpp`, `lisErosionSplash.cpp`, `lisBoundary.cpp` 동일. `lisSWOF2DopenMUSCL.cpp`은 다르지만 태그와 동일 핵심 유사/침전속도 코드를 사용하는 main_C를 미시험 상태에서 수정판으로 추천하지 말 것.
+- 실제 active 2D path는 `OverlandFlow2Ddyn -> fullSWOF2openMUSCL -> SWOFSediment -> SedimentSSContinuous -> SWOFSedimentAdvection -> Boundary2Ddyn`. `fullSWOF2open()`은 obsolete.
+- 소스에 실제 LAI canopy storage/drain, direct/leaf drip splash, full 2D SWE 및 flow erosion/deposition이 있지만 **Windows 원본 2D native 12회 외부 dt 민감도(유사배출 수백~수천배)와 국지 유한토사재고 비현실성으로 NO-GO**. 전역수지 닫힘은 문제 해결이 아님.
+- 1/2초 및 2m 추가 native Actions는 timeout으로 수치결과 미확보; cm격자 genuine2D 침식 검증 없음. 해당 모델을 다시 선행논문 5cm를 근거로 재채택하지 말 것.
