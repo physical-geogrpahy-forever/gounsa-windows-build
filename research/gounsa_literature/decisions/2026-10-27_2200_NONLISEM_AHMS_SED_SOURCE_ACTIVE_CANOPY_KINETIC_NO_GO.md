@@ -30,3 +30,8 @@ Current code blob source trace:
 
 ## Next
 Search actual published ≤10cm plot vegetation+free2D+sediment with publicly archived same version; no all-pass as of this decision.
+
+## 2026-10-27 22:05 후속 논문: Juez et al. (2018) full 2D SWE + HEM
+- [원문 검토](../papers/2018_Juez_Tena_FernandezPato_2D_SWE_HEM_Algars_Erosion.md): DOI 10.18172/cig.3320, 저자 실제 2D **dynamic Saint-Venant** (triangular finite volume) + cellwise SCS + 2D extended HEM for rainstorm erosion. 419km2 Algars catchment 158000 triangular elements **min AREA 150m2, max AREA 600m2** (published §4.1), *not* 5cm/10cm grid.
+- **Crucial exact limitation from full paper §4.3**: author explicitly says **sediment depositional processes that change local topography are NOT included in the erosion source term**, so one cannot call native model spatial deposition/morphodynamic feedback complete. No LAI interception or leafdrip active, exact public simulation source package not verified. Note 2017 abstract proposed future RiverFlow2D, but exact 2018 executable provenance unconfirmed.
+- Model calibration on event1 runoff/sedigraph with trade-offs 2% sediment cumulative but 30% peak error vs event2 12% volume 40% peak for fitted alternative. Not independent field prediction. Valid hydraulic benchmark only, **strict stand-alone FAIL**.
