@@ -15,7 +15,7 @@ def run_one(source,exe,out,tmax,on):
     assert len(loc)==1,loc
     i=loc[0]+1
     assert abs(float(lines[i][:7])-1.0)<1e-6,lines[i]
-    lines[i]=f"{tmax:7.3f}"+lines[i][7:]
+    lines[i]=f"{tmax:7.5f}"+lines[i][7:]
     frd.write_text("".join(lines))
     p=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],cwd=out,
         capture_output=True,text=True,timeout=180)
