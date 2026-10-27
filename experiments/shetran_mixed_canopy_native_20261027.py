@@ -49,6 +49,20 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     j=next(i for i,s in enumerate(l) if s.strip().startswith(":FR52"))
     l[j:j]=[":FR49 - VEGETATION GRID FOR NVC PER CELL\n"]+grid
     if grid_m!=2000.0:
+        # This is a separate synthetic *hillslope* case, not scaled Cobres
+        # channel hydraulics. Turn river links into regular overland grid faces;
+        # close the former channel outlet. We do not import the 2km river widths.
+        fcodes_start=next(i for i,s in enumerate(l) if "EAST TO WEST FLOW CODES" in s)
+        fcodes_end=next(i for i,s in enumerate(l) if "GROUND SURFACE ELEVATION" in s)
+        replacements=0
+        for n in range(fcodes_start+1,fcodes_end):
+            f=l[n].split()
+            if len(f)==2 and all(ch in "IR.W" for ch in f[1]):
+                old=f[1]
+                new=old.replace("R",".").replace("W","I")
+                replacements+=old.count("R")+old.count("W")
+                l[n]=f"{int(f[0]):7d} {new}"+chr(10)
+        assert replacements>0,"No channel links in copied Cobres FRD"
         ratio=grid_m/2000.0
         def replace_spacing(start,end,n):
             nonlocal l
@@ -61,7 +75,7 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
         replace_spacing("GRID SPACING IN Y DIRECTION","PRINT CONTROL PARAMETERS",29)
         # Ground datum differences scale with the spatial dimensions to maintain original slopes.
         i=next(i for i,s in enumerate(l) if "GROUND SURFACE ELEVATION" in s)
-        j=next(i for i,s in enumerate(l) if "RAINFALL STATIONS" in s)
+        j=next(i for i,s in enumerate(l) if s.strip()=="RAINFALL STATIONS")
         section=l[i+1:j]
         numbers=[]
         for line in section:
@@ -86,6 +100,14 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
                 new.append("".join(f"{v:7.2f}" for v in vs[k:k+10])+"\n")
         l[i+1:j]=new
     f.write_text("".join(l))
+    if grid_m!=2000.0:
+        # OC35 river-link geometry from original 2km watershed must not be
+        # recycled as local channels. With no R face links there should be no
+        # OC35 link records to read.
+        oc=dest/"input_cob_ocd.txt"
+        ocl=oc.read_text().splitlines(keepends=True)
+        cut=next(i for i,v in enumerate(ocl) if "OC35 : CHANNEL DATA" in v)
+        oc.write_text("".join(ocl[:cut]))
     # Duplicate ORIGINAL ET7-through-ET17 vegetation record with a modified 2nd type.
     f=dest/"input_cob_etd.txt"
     l=f.read_text().splitlines(keepends=True)
@@ -137,6 +159,24 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     (dest/"synthetic_metadata.json").write_text(json.dumps(meta,indent=2))
     return meta
 
+def valid_land_mask(frd_path, loose):
+    lines=frd_path.read_text().splitlines()
+    i=next(i for i,s in enumerate(lines) if "COMPUTATIONAL GRID DEFINITION" in s)
+    shape=[]
+    for row in lines[i+1:i+30]:
+        f=row.split()
+        assert len(f)==2 and len(f[1])==17,repr(row)
+        shape.append([c!="0" for c in f[1]])
+    mask=np.asarray(shape,dtype=bool)
+    assert mask.shape==loose.shape[:2], (mask.shape,loose.shape)
+    # FRD lists rows from north to south, HDF storage direction must be checked,
+    # not assumed. A known 30mm initialized loose sediment mask is independent.
+    observed=loose[:,:,1]>1.
+    opts=[mask,mask[::-1]]
+    picked=max(opts,key=lambda m:int(np.count_nonzero(m&observed)))
+    assert np.count_nonzero(picked)==176,np.count_nonzero(picked)
+    return picked
+
 def extract(path):
     with h5py.File(path) as f:
         ds={}
@@ -153,7 +193,8 @@ def extract(path):
     assert E.shape==D.shape and E.ndim==3,(E.shape,D.shape)
     valid=np.all(np.isfinite(E)&(np.abs(E)<1e10),axis=-1)
     valid&=np.all(np.isfinite(D)&(np.abs(D)<1e10),axis=-1)
-    assert valid.sum()>=1
+    valid &= valid_land_mask(path.parent/"input_cob_frd.txt",D)
+    assert valid.sum()==176,int(valid.sum())
     return dict(erosion=E,loose=D,mask=valid,n_valid=int(valid.sum()),
                 peak_erosion_mm_day=float(np.max(E[valid])),
                 final_loose_mm_mean=float(np.mean(D[valid][:,-1])))
