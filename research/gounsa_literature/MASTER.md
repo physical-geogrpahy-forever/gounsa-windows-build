@@ -1,5 +1,9 @@
 # Gounsa Literature Master
 
+## 2026-10-27 SHETRAN 4.7.2 코드-논문 계보 및 실제 적용 연구 조사
+- **[원본 버전과 13편의 주요 연구를 연결한 기록](decisions/2026-10-27_SHETRAN_472_CODE_PAPER_PROVENANCE_AND_APPLICATIONS.md)**: SHETRAN4.7.2 원본 `nclwater/Shetran` commit `cf9cd540`(2026-10-12), 정식모델 Ewen et al.(2000), 침식물리식 Wicks & Bathurst(1996), 기존 식생/침식 적용 Lukey(1995,2000), Birkinshaw(2011), 소사면 Bathurst et al.(1998) 0.133ha/5m, Adams(2005) 970m² 및 Adams & Elliott(2006) 토사량, Dano(2017) 공간 E/D 지도를 구분 정리. **과거 논문이 2026 commit을 그대로 이용한 것은 아님**.
+- **141mm 국지 퇴적은 150mm 누적 강우와 모순되지 않음**. 외부 유사 유입/사면내 집중에 따라 국지 퇴적이 발생할 수 있으므로 물리적 불가능이라고 단정하지 않는다. DLS 느슨한 표면층 체적, 실제 토심/안정 퇴적, 고체체적은 구별한다.
+
 ## 2026-10-27 SHETRAN 실제 적용 연구 7편 추가 확인 및 문헌보강
 - **[소규모 사면 강우침식 직접검증](papers/2006_Adams_Elliott_SHETRAN_LargeRainfallSimulator.md)**: 뉴질랜드 약 970m² 인공강우 사면에서 강우충격/유수박리계수 및 유사량 대조. 단일 강우사상 고운사 연구와 가장 근접.
 - **[산림과 벌채 유사배출 및 극한강우](papers/2011_Birkinshaw_Bathurst_Iroume_SHETRAN_ForestCover_Chile.md)**: 칠레 La Reina 35ha 모의 숲 3.6 대 벌채 8.3t/ha/년, 1000년 합성강우에서 고강우 조건 상대 수문효과 감소와 침식저감 지속. 관측된 유사량의 독립 전수 검증은 아님.
