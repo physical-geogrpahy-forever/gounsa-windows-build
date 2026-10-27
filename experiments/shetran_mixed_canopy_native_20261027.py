@@ -108,6 +108,25 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
         ocl=oc.read_text().splitlines(keepends=True)
         cut=next(i for i,v in enumerate(ocl) if "OC35 : CHANNEL DATA" in v)
         oc.write_text("".join(ocl[:cut]))
+        # Original Cobres visualisation plan asks for river-only datasets. A
+        # true hillslope with zero channel links must remove those requests.
+        plan=dest/"input_cob_visualisation_plan.txt"
+        vv=plan.read_text().splitlines()
+        start=next(i for i,z in enumerate(vv)
+                   if z.strip()=="mask" and i+1<len(vv)
+                   and vv[i+1].strip().startswith("8 1 29 1 17"))
+        end=next(i for i in range(start+1,len(vv)) if vv[i].strip()=="times")
+        mask_section=vv[start:end]
+        head=[
+          "'visualisation plan'","! synthetic hillslope, no river links",
+          "diag","item",
+          "NUMBER^1 : NAME^s_v_er : BASIS^grid_as_grid : SCOPE^squares : EXTRA_DIMENSIONS^none",
+          "GRID_OR_LIST_NO^8 : TIMES^10 :ENDITEM",
+          "item",
+          "NUMBER^2 : NAME^s_t_dp : BASIS^grid_as_grid : SCOPE^squares : EXTRA_DIMENSIONS^none",
+          "GRID_OR_LIST_NO^8 : TIMES^10 :ENDITEM"]
+        plan.write_text(chr(10).join(head+mask_section+
+                 ["times","10 1 !no of entries","1 8760","stop",""]))
     # Duplicate ORIGINAL ET7-through-ET17 vegetation record with a modified 2nd type.
     f=dest/"input_cob_etd.txt"
     l=f.read_text().splitlines(keepends=True)
