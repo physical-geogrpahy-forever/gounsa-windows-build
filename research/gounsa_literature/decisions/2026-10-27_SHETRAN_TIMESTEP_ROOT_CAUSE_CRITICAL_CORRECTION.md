@@ -76,3 +76,39 @@ lines[i] = f"{tmax:7.5f}" + lines[i][7:]
 - Additional genuine ultrafine TMAX **0.03125/0.015625/0.007812/0.003906h** started [workflow](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/.github/workflows/shetran_actual_tmax_ultrafine_20261027.yml); do not claim it passed before results verified.
 
 **판정:** 근본 원인은 **자체 검증 도구의 고정폭 입력 필드 오독**이다. SHETRAN 4m 폐쇄영역의 실제 TMAX 유사총량 응답은 적어도 현행 56–112초 비교에서 수렴 방향을 보임. 기존 "수치적으로 전혀 수렴하지 않아 불합격" 결정은 폐기. **잔존 검증 격자별 공간 차분 안정성, 오픈 아웃렛 및 동일 사면 공간상세(0.5–2m) 수렴, 현장 파라미터 검증은 미완**.
+
+
+## 실제 TMAX 14초까지 원본 8회 + 176셀 순고도 진단: 최종 확인
+
+[진짜 TMAX ultra-native 8회 Actions 40446202523](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446202523). `PMAX=1mm` 고정, `BSOFT=F`, 4m×176셀 0.2816ha 가상 폐쇄사면, 1h 무강우 준비+30mm/h×3h 강우, 원본 물리식 untouched + `SYMAIN` read-only WRITE, `TMAX` 네 번째 값의 실제 7-char decimal `.031250,.015625,.007812,.003906` h. **전부 native exit 0**, 독립 이동유사 수지 <0.1% 통과.
+
+| 실제 TMAX [h] | ON eroded-original solid source [m³] | OFF [m³] | Native sediment substeps ON/OFF |
+|---:|---:|---:|---:|
+| .031250 | .113435866868 | .133321631673 | 383 / 383 |
+| .015625 | .113221217128 | .133445968760 | 767 / 767 |
+| .007812 | .113224761592 | .133243000582 | 1536 / 1536 |
+| .003906 | .112701964494 | .132764020701 | 3072 / 3072 |
+
+0.007812h(약28.1초)와 .003906h(약14.1초) 비교 차이 ON `0.4638758%`, OFF `0.3607754%`. 사상 전체 원토양 박리량이 PMAX 오설정 때보다 안정적이나 **수학적 엄밀한 수렴차수/Richardson asymptotic proof는 아직 없음**. 원본 방식에서 수관조건 차이 부호는 모든 시간간격에서 동일하고 ON이 OFF보다 원토양 박리 공급량 적음.
+
+[실제 TMAX 4단계 원본 native 176셀 순지표고도 진단 Actions 40446161132](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446161132): 각 `SYMAIN` native substep에서 `GNU DTSY`, `DLS`, `FETA`를 original Fortran WRITE로 기록하고 `∆z(x,y)=∆DLS(x,y)-ΣGNU DTSY` (in-event DEM hydraulic feedback 없음).
+
+0.007812h vs .003906h의 같은 176셀 공간 순고도 차이:
+
+| 표본 | ON | OFF |
+|---|---:|---:|
+| 셀별 평균절대 `∆z` 차 [mm] | .0000941996 | .0000871007 |
+| 셀별 RMS `∆z` 차 [mm] | .0002135537 | .0001839420 |
+| 최대절대 `∆z` 차 [mm] | .0010541040 | .0010762598 |
+| `∆z>0.001mm` 순퇴적 셀 수, 28초 / 14초 | 6 / 5 | 4 / 4 |
+| 실제 순퇴적 셀 겹침 | 5 | 4 |
+| 순퇴적 셀 불일치 수 | 1 | 0 |
+
+0.03125h vs .003906h 격자별 RMS `∆z` 차 ON .000433439mm, OFF .000546576mm; 최대 차 ON .00268772mm, OFF .00387238mm. 시간간격 세분화 시 국지 순고도 지도가 비교적 안정되는 신호 확인. 그러나 **입력 종별 LAI/수관특성이 합성이고, 순상승 5셀 등 매우 작은 변화를 실제 관측했다고 주장 불가**. 이 실험은 *폐쇄형 가상사면 기능검증과 시간간격 민감도 시험*만이다.
+
+### 연구 판정 정정
+
+- 원인: 원본 모델 수치오류를 증명한 것이 아니라 **전임 검증 코드가 원본 Fortran FR20 순서의 1번 `PMAX`를 4번 `TMAX`로 오독**. 같은 오류를 반복하지 않도록 소스와 입력 parser에 정확한 인덱스 및 assert를 고정.
+- 올바른 설정에서는 14초까지 유사량 및 국지 순고도 지도 민감도가 확연히 감소했다. 이 가상사면에서 **1% 총원토양 박리량 안정성 기준** 및 **5/6, 4/4 순퇴적 위치 일치** 등은 조건부 기준 충족. 최종 자체 안전도, 공간해상도 수렴, 열려 있는 유출구 검증, 실제 사암 얕은 토심 한계, 억새 포기/참나무 맹아의 canopy 특성 관측과 현장 타당성은 **여전히 불합격 보류 (검증 없음)**.
+- 이전 MASTER와 기존 2026-10-27 [종합 보고서](2026-10-27_SHETRAN_STRICT_NATIVE_SMALL_PLOT_VALIDATION_VERDICT.md)의 TMAX 불합격 표현을 **상기 실제 시험 결과로 치환**할 것. 원본 검증 결과를 헛되이 폐기시키는 오판 반복 금지.
+
