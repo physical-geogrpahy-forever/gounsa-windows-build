@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 7.5.2 원본 소스 및 과거 native 수치검증 교차감사: 기존 NO-GO 유지
+- **[원본 재감사 결정문](decisions/2026-10-27_OPENLISEM_752_SOURCE_NATIVE_REAUDIT_NO_GO.md)**: Classic openLISEM `v7.5.2` 태그와 `main_C` (태그보다 +8 commits)를 직접 비교. 원본 `GetSV`·`SedimentSSContinuous`·수관차단·낙수 함수는 동일 blob; 2D SWE 함수만 차이. 브랜치 최신이라는 이유로 수치 오류 해결 주장은 금지.
+- 기존 Windows Actions [원본 native 12회](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304135775) job success 확인. 5m 2D 1ha, 20mm 강우 조건에서 참나무 SV1 유사배출 외부 Δt=5/10/20초 각각 0.005993 / 123.037727 / 832.588686 kg/ha, 각격자 침식 유한토층 초과 → 원본 고운사 정량엔진 불합격. 전역질량수지 폐합은 수렴 증거 아님.
+- 1/2초 [추가 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304815539) 및 2m [추가 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40303685346)은 **정상 수치 결과가 아니라 TIMEOUT**. 성공으로 기록 금지.
+- 원본 `GetSV(100µm)` 큰 분기 불연속, `DetachMaterial`/detachment 농도상한 비활성화, 최소 CFL timestep 하한, 2D 유사이송 OpenMP 공유 버퍼 += 데이터 경쟁 **가능성(미입증)** 등을 확인. 근본인과는 전부 독립적으로 입증한 게 아님.
+- 따라서 이전 채택 권고 철회. Maggioli(2022) 5cm는 **운동파 LISEM**, freely spreading 2D SWEs와 다름. 전 필수조건 만족 검증된 원본은 미확보; 새 맞춤 coupling/SHETRAN cm 확대를 기존 5cm 선행실증인 양 권고 금지.
+
 ## 2026-10-27 20:53 Maggioli 2022 원논문-실제 당시 OpenLISEM GitHub SHA 교차검증
 - **[엄격 결정문](decisions/2026-10-27_MAGGIOLI_2022_EXACT_CODE_INPUT_PROVENANCE_AND_VALIDATION_AUDIT.md)**, [원 논문 canonical 보강](papers/2022_Maggioli_RodriguezCaballero_LISEM_5cm_TLS_LAI_Interception_Erosion.md), [세션 인계](sessions/2026-10-27_2053_MAGGIOLI_2022_EXACT_CODE_AUDIT_HANDOFF.md): 원문에서 LISEM **실제 5cm 계산과 1초 시간해상도, 식생피복→LAI→수관저류, 강우/침식** 재확인. 단 실제 지표수 이동은 원문에 **kinematic wave routine**으로 명시, 완전 XY 동역학 2D는 사용하지 않음. 1초는 모의 맵 시간해상도로 기술돼 있으며 solver 내부 fixed dt 1초라고 단정 금지.
 - **2001–2022 공개 소스 계보:** 논문 발표일과 같은 **2022-02-11** `vjetten/openlisem` historical commit `3b0264ef557c031fe39fb6d523c3669bf6e1296a` 실제 버전 **6.837 beta**, 당시 `lisInterception.cpp` canopy LAI/drainage, `lisErosion.cpp` direct/leafdrip splash, `lisSWOF2DSediment.cpp` free XY 유사수송, `lisOverlandflow.cpp` kin vs FullSWOF 둘 다 구현됨. **Maggioli에 실제 사용된 SHA/버전이라는 증거 없음, 논문에서는 kin 선택**, 2026 v7.5.2 동일시 금지.
