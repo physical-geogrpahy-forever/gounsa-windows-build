@@ -89,3 +89,12 @@
 ## 단위와 실험자 과실 표기
 - 발표할 때 수치 `m³ solid`를 `m³ erosion of bulk soil`, `sediment yield outside plot`, `tonnes`로 바꾸지 말 것. 변환하려면 건조밀도, 벌크밀도, 공극비 등 물리 단위 확인 및 외부 유출량 separate flux 측정이 필수.
 - 초기 176 셀 기반 Cobres VSS와 강우 grid mask 재생성을 누락했거나 NOCTAB=20을 넘긴 입력 생성 오류는 **원본 SHETRAN 수치불안정과 전혀 다르다**.
+
+
+## 2026-10-27 생성된 실제 native 셀별 지도 17장 (합성지형)
+- [성공한 maps workflow 40450170885](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40450170885) 및 [17 PNG 지도 원본 산출물 artifact](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40450170885/artifacts/12710256837).
+- 전체 original native 35회 outputs 중 아카이브의 `cells.csv` 35개와 `summary_matrix.csv`를 그대로 읽어 제작, **모의계산을 새로 하지 않음**.
+- 강우 10/30/50 mm/h의 나지, 억새, 듬성 참나무, 패치 혼재 4사면 **총 12장의 native 순고도변화 지도**, 패치혼재 canopy ON−OFF **3장 국지 차분 지도**, 혼재 native `NVC` 패치 입력지도 1장, 강우별 원토양 박리 공급량 곡선 1장, 총17장.
+- 단위 mm이며 채색의 범위는 계산된 극단 local depression/accumulation 때문에 10mm/h는 ±2mm, 30/50은 ±10mm로 잘라 표현. 각 그림에 **실제 출력의 최대 최소치를 별도 기재**. 그러므로 색채 상한을 실제 최대치로 오해 금지.
+- 그림들은 georeferenced Gounsa DTM이 아닌 `x,y` synthetic grid indices다. 눈에 띄는 사면 하단 국지 상승은 폐쇄 출구에 의한 인공 유사축적 영향이 있을 수 있으므로 실제 퇴적예측으로 주장 불가.
+- [그림 생성 스크립트](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/experiments/shetran_render_405cell_model_artifact_20261027.py).
