@@ -1,0 +1,49 @@
+name: SHETRAN original rain integration across sediment timestep refinement
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_timestep_forcing_qa_20261027.yml'
+      - 'experiments/shetran_timestep_forcing_probe_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-rain-dt-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - run: python audit/experiments/shetran_canopy_water_instrument_20261027.py original/src/evapotranspiration/ETmod.f90
+      - name: Rebuild upstream Fortran with ET mass diagnostics only
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Compare actual summed storm forcing at 3 smaller TMAX and canopy ON OFF
+        run: |
+          python audit/experiments/shetran_timestep_forcing_probe_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_rain_tmax
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-rain-timestep-forcing
+          path: |
+            /tmp/gounsa_native_rain_tmax/forcing_by_dt.json
+            /tmp/gounsa_native_rain_tmax/*/forcing_probe.json
+            /tmp/gounsa_native_rain_tmax/*/original_ET_diagnostics_stdout.txt
+          retention-days: 30
+          if-no-files-found: warn
