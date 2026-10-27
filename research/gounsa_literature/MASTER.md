@@ -5,6 +5,7 @@
 - **원본 물리식 엔진 35/35 성공, 유사고체체적 native mass ledger 각 0.1% 이내 통과, 순차 35회와 독립 병렬 35회 source 및 ∆z 총계가 소수점까지 완전 동일 재현**. [순차 결과 CSV](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448419992/artifacts/12710245614), [5강우 독립 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448993167).
 - 수관 ON의 원토양 박리 공급 `m³ solid`, 강우10→50: 나지 1.439→28.371, 억새 0.993→27.607, 참나무 드문 패치 1.300→27.920, 억새+참나무혼재 1.053→27.681. **10mm/h 억새 vs 나지 감소31.0%**, 50mm/h 감소2.7%, 가상 파라미터에만 해당.
 - **중대한 현실성 미검증:** 50mm/h의 무유출구 폐쇄 가상사면에서는 최대 국지 순상승 **+406.5mm**가 발생, 20mm/h에서도 +102.3mm. 물/유사 출구가 막힌 조건에서 퇴적량이 과도하게 축적될 수 있으므로 **실제 고운사의 국지 퇴적량 정량 주장 절대 금지**. 원본은 강우 중 진단 ∆z를 수문 DEM으로 재투입하지 않으며 토심재고 한계도 미구현. 실제 고운사 DEM/LAI/수관 적하/강우/토심/토성 및 open-outlet 검증, 2m 이하 dx 민감도 필수.
+- [405격자 실제 SHETRAN 결과로 만든 합성 2D 지도17장](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40450170885/artifacts/12710256837): 10/30/50mm/h×4피복 순고도지도 12장, 혼재수관 ON−OFF 차분3장, 패치맵1장, 강우별 원토양 박리 곡선1장. 폐쇄경계의 극단 퇴적값은 colorbar 제한하고 실제 max를 그림에 따로 표기. **Gounsa 현장지도 아님**.
 - 이전 `PMAX/TMAX` 입력 필드 오독은 [중대 정정문](decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md) 참조. 원본의 시간간격 nonconvergence 이유로 탈락했던 잘못된 판단은 철회 유지. **단일모델 SHETRAN의 식생 수관차단 및 2D 국지 침식퇴적 기능 시험은 통과, 고운사 현장 검증 최종 채택은 보류**.
 
 
