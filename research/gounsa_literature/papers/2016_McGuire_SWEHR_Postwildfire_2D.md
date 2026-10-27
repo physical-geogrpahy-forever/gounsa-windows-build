@@ -82,3 +82,8 @@ vegetation effect가 cover 중심이므로 고운사의 strict quantitative-vege
 **고운사 결정**: 원본 SWEHR 이론에는 두 과정이 들어가 있으나 공개 C에는 둘 다 없음. 기존 공간형 38회 유효강우차감/강우충격 계수는 별도 신규 coupling이지만 원래 Rutter 동적수지 및 수관방울 에너지 구현은 아님. 새 수관 C(t), D(t), SF 기부 공급, 독립 `P_water`와 `P_impact`, 실제 leaf-drip KE 및 강우 종료 후 배수까지 구현 후 물/유사수지 재검증 필요.
 
 참조 [model SWEHR code audit](../models/SWEHR.md), [2026-10-26 결정](../decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md).
+
+## 2026-10-27 2025 개발자 공개자료와 2017 SWEHR1.0 계보 추가대조
+- 2016 published field model의 DEM 관측해상도 **2.5cm**, 실제 2D 모의격자 **37.5cm**. 본문의 수관차단 Rutter 식과 2D Hairsine-Rose 과정은 published, 그러나 실제 산불 직후 Nov/Dec 관측 재현은 수관차단 OFF. 5–10cm canopy ON validated 단일 모델로 제시 불가.
+- 2017 CSDMS GitHub [SWEHR.c](https://github.com/csdms-contrib/swehr/blob/master/SWEHR.c) blob `e8505221a37d245ebb387b3304d8f325addd9ada` 1785행 전체 원본 `canop/intercep/rutter/leaf/lai` 없음 재확인. 정적 기능감사는 이전과 동일하므로 신규 개발 주장 금지.
+- 2025-12-10 개발자 Luke McGuire & Aiza Kabeer HydroShare [프로필](https://hydroshare.cuahsi.org/user/8128/)에서 northern Arizona Pipeline Fire 관련 모델 및 자료 게시 확인. **압축물/UUID/실제 코드 미열람**이어서 2017 source에서 Rutter가 추가됐거나 5–10cm canopy 모델이라고 해석 금지. 상세 [새 단서 판정](../decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md).
