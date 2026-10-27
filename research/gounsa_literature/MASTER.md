@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+## 2026-10-27 17:20 원본 소스 재검증 및 모델스크린 정정
+- [**채팅 길이 제한에 대응한 이번 추가 소스검증 인계**](sessions/2026-10-27_1720_SUB10CM_CANOPY_EROSION_FOLLOWUP_HANDOFF.md): 엄격한 5–10cm LAI canopy+genuine 2D+강우·유수박리와 유사수송/퇴적+동일 공개실행본 PASS는 **여전히 미확인**. 4m SHETRAN 연구용 주모델 판정과 구분함.
+- **TREX 후보성 철회**: [기존 2008 TREX 코드감사](papers/2008_Velleux_England_Julien_TREX_2D.md)에 독립 archived C source `WatershedModels/trex_src_csu/src/Interception-r4.c`가 있으며 고정 차단저류량 차감은 구현, native LAI 동적 저류/배수·leaf drip impact 미입증. 신규 모델로 다시 추천하지 않음.
+- **Wei & Kinouchi (2014)** [논문별 신규기록](papers/2014_Wei_Kinouchi_CASC2D_Forested_Interception.md), DOI 10.2208/jscejhe.70.I_157: Fukushima 산림 CASC2D 수관/지하수/수문 개량과 hydrograph 검증은 실제 있으나 5–10cm canopy+sediment executable source 미확인. 별도 2014년 modified version을 archived TREX origin과 혼동 금지.
+- **SMODERP2D** 본체 `core/vegetation.py` + `processes/rainfall.py` canopy 코드 확인. 그러나 유사퇴적 native mass solver 불확실하고 **공식 권장 격자 2–20m**로 5–10cm 후보에서 배제(https://storm-fsv-cvut.github.io/smoderp2d-manual/requirements.html). **SERGHEI-SE** full SWE+erosion 장점 인정하지만 subcm 실증은 dam-break, canopy-on-rainfall 검증이 아님. **GEOtop-SED** 공개 리포지터리 연구판 전체 퇴적모듈 동일성 미입증, kinematic 경로 제약 유지.
+
 ## 2026-10-27 5–10cm 식생 수관차단+2D 지표유출/유사 단일 공개모델 재탐색
 - [**선행연구 계산격자/식생물수지/완전원본 공개 여부 엄격 판정**](decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md): 5cm LISEM Maggioli2022 canopy/침식 진실이나 kinematic routing; PSEM_2D 5cm true SWE/침식이지만 canopy 없음. **조건 전부 동시 PASS 원본 모델 확인되지 않음**.
 - **Kivva & Zheleznyak (2005)** [새 논문](papers/2005_Kivva_Zheleznyak_2D_Runoff_Interception_Sediment.md), DOI 10.1615/InterJFluidMechRes.v32.i6.50: canopy interception + true 2D SWE + 침식재퇴적까지 논문 초록에 통합모델 명시. 단 mesh size 및 원본코드/LAI 세부 공개 안 됨.
