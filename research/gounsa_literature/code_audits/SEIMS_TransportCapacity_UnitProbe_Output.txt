@@ -1,0 +1,8 @@
+ISOLATED_SOURCE_FORMULA_TEST (NOT A COMPLETE SEIMS SIMULATION)
+Compiler: g++ -std=c++17 -O2 -Wall -Wextra -pedantic
+Input example: velocity_m_s=0.1, depth_mm=5, slope=0.2, K=0.3, eco1=1, eco2=1
+Original q=30; SI depth-corrected q=0.03; ratio=1000
+Original formula branch=HIGH q^2; SI depth-corrected branch=LOW sqrt(q)
+Original TC=1.76504521624; depth-corrected TC=0.339683110243; ratio=5.19615242271
+Local independently compiled probe output: /mnt/data/seims_source_audit/numerical_probe_output.txt
+CAVEAT: This is not a full native SEIMS simulation. Test coefficients are illustrative, not calibrated Gounsa values; TC ratio is not universal.
