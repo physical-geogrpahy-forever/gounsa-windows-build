@@ -20,3 +20,6 @@ GitHub direct connector used to access model C source and repo trees. Web used f
 
 ## Next target (strict)
 Only paper that *actually ran* 5cm or10cm TWO-DIMENSIONAL lateral SWE with dynamic LAI interception/leafdrip energy and local sediment, where matching FULL open original source or binary/exact dataset is available. No unpreceded SHETRAN scale-up or returning assigned OpenLISEM Work code. Avoid filling archive with unrelated generic field obs. Multi-source coupling is NOT a published single model.
+
+## Session handoff correction after more primary article access
+Elsevier publicly indexed Aksoy 2020 Introduction/Section snippets at https://www.sciencedirect.com/science/article/pii/S0022169419311266 reveal model's hydrologic predecessor is derived from 2D control volume **but explicitly solves only longitudinal flow**, and 2020 reduction in dimension is deliberate; therefore do NOT say 2020 published an unconstrained fully XY SWE 2D test. Original experiment flume physical 6.50m×1.36m×0.17m, D50 0.45mm medium sand /0.15mm fine sand. Rain/flow erosion both mentioned, but canopy/actual grid/source not. Canonical paper and latest decision were appended with this strict clarification. At 2026-10-27 record close, no new runnable all-pass solver.
