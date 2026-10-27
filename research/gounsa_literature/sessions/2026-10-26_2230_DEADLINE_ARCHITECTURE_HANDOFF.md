@@ -1,27 +1,9 @@
-# 2026-10-26 야간 고운사 D+1 모델 구조 제출 인계
+# [2026-10-27 범위 정정] 기존 인계서의 장기 모델 중심 해석 폐기
 
-## 사용자의 마감
-2026-10-27 18:00 (Asia/Seoul). 최소 산출물: 모델선정 + 자료별 입력/활용 + 모듈/변수/시간 결합구조. **현재 완성 통합코드나 현장 검증을 주장하지 않는다.**
+원래 이 문서는 사용자의 18:00 마감을 장기 식생-토양-지형 결합으로 잘못 해석했습니다. **실제 과업: 1ha 미만 고운사 단일 사면에 참나무 맹아와 억새가 혼재한 상태의 동일 단일 강우사상, 수관차단 OFF/ON 2개 2D 침식·퇴적 사건 모의를 비교**.
 
-## 이번 세션 신규 결론
-본 연구의 원칙은 원본 SWEHR V1.0을 완성된 식생 모형이라고 주장하지 않으면서, **SWEHR 공개 C 2D 유출/유사 엔진을 수정 기반으로 삼고, published Rutter 수관저류/적하, LAI/roots/litter, LPJ-GUESS, 사상 간 토양-지형갱신을 새 결합으로 구성하는 공개코드 기반 신규 모형을 설계기준안으로 채택**하는 것이다. 기존 Iber+ 선택은 공개 원본 전체 이용 문제와 동적 수관차단 부재로 연구용 개발 플랫폼으로는 보류한다. 원본 all-in-one 검증통과 후보 없음.
+읽어야 할 새 정본: [2026-10-27 단일 강우사상 혼재식생 수관차단 대조 모델 설계 및 자료검증](../decisions/2026-10-27_SINGLE_STORM_MIXED_OAK_MISCANTHUS_CANOPY_ABLATION_PROTOCOL.md).
 
-정밀 설계서: [2026-10-26_DEADLINE_GOUNSA_MODEL_ARCHITECTURE_AND_DATA_PLAN.md](../decisions/2026-10-26_DEADLINE_GOUNSA_MODEL_ARCHITECTURE_AND_DATA_PLAN.md).
+**변경하지 말아야 하는 조건:** 사면 DEM, 사전 식생배치, 뿌리/낙엽/지표조도, 토양 및 암편, 초기수분, 강우. **달라지는 조건:** 시변 LAI 기반 수관저장·직접통과·적하·선택적 수간유하우 및 강우충격 에너지 분배. 구별할 출력은 국지 gross original detachment, redetachment, deposition, net z change 및 ON−OFF raster 차분. 고운사 실제 지형/식생/강우 데이터 확보 및 SWEHR modified+Rutter 결합 실행과 보존/수렴은 아직 미완료.
 
-## 기존 자료 중 반드시 재사용
-- [SWEHR original 2017 untouched](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/main/third_party/SWEHR_original_v1_0_2017)
-- [SWEHR water/sediment QA modified](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/swehr-water-sediment-closure-20261026/experiments/rainfall_10_50)
-- [38-run synthetic spatial fork](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/tree/spatial-vegetation-runoff-erosion-20261026/experiments/rainfall_10_50)
-- [original vs article discrepancy](../decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md)
-- [Oct 26 EUROSEM mass failure](../decisions/2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md)
-- [Oct 26 OpenLISEM 7.5.2 failure](../decisions/2026-10-26_OPENLISEM_752_NATIVE_2D_STABILITY_FAILED.md)
-
-## 최우선 작업
-1. 데이터 인벤토리: 실제 고운사 연구구역 AOI/ground DEM, 억새와 참나무 위치, 토심, Ks, 입도 및 강우사상. 원래 repo의 해당 raster 없는 것으로 보이고 확보 표시 금지.
-2. 원본 SWEHR/수정 포크 대조, 공개 C에 Rutter + canopy shielding + leafdrip energy **신규 구현**. 단순 균일 가상 `QA_WFACTOR`는 절대 dynamic canopy라고 주장 금지. 유지 가능한 소스 commit 고정.
-3. 동적 canopy standalone 물수지 + 2D water/sediment ledger + dx/dt 수렴 + finite soil cap 검증.
-4. 발표용 모델 다이어그램과 입력 자료 및 없을 경우 불확실성 표 제공. '설계됨/원본 검증/수정포크 검증/현장 미검증' 표시.
-5. `CURRENT_MODEL_SPEC.md` 수정 시 이전 확정 부분을 훼손하지 않도록 새 결정문과 근거를 표시하고, 최종 주 엔진으로 표기하기 전 엄격 gate 준수.
-
-## 이 세션에서 한 일
-GitHub 이전 판단 및 원본/포크 수지 검증 기록 직접 재독. McGuire et al 2016 원문 §3.5와 기상청 AWS/ASOS 분자료 제공 확인. **한 개 설계 결정문을 main에 생성함**. 이 채팅에서 통합 C 소스 수정이나 현장 자료 조회 완료로 과장하지 않음.
+과거 잘못된 인계문 원본은 Git 커밋 `563d47451d18a225b1181b54aff3fc781e38f3fc`에 역사 기록으로 보존.
