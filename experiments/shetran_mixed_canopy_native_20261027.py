@@ -226,8 +226,10 @@ def run_one(exe,src,root,label,canopy_on,grid_m):
     (dest/"native_stdout.log").write_text(run.stdout+"\nSTDERR\n"+run.stderr)
     if run.returncode!=0:
         pri=dest/"output_cob_pri.txt"
-        tail=pri.read_text(errors="replace")[-9000:] if pri.is_file() else "NO_PRI"
-        raise RuntimeError(f"{label}: return={run.returncode}; PRI_TAIL={tail}; STDOUT={run.stdout[-2500:]} STDERR={run.stderr[-1000:]}")
+        spr=dest/"output_cob_spr.txt"
+        tail=pri.read_text(errors="replace")[-1200:] if pri.is_file() else "NO_PRI"
+        sediment_errors=spr.read_text(errors="replace")[-9000:] if spr.is_file() else "NO_SPR"
+        raise RuntimeError(f"{label}: return={run.returncode}; SEDIMENT_LOG={sediment_errors}; PRI_TAIL={tail}; STDOUT={run.stdout[-2500:]} STDERR={run.stderr[-1000:]}")
     h=dest/"output_cob_shegraph.h5"
     assert h.is_file(),h
     d=extract(h)
