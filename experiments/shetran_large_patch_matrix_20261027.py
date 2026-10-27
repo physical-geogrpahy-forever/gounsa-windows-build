@@ -9,7 +9,6 @@ from pathlib import Path
 from collections import defaultdict
 import numpy as np
 from shetran_mixed_canopy_native_20261027 import prepare,make_fixed_et_line
-from shetran_plot_native_net_change_20261027 import makegrid
 
 NX,NY=17,29
 DX=4.0
