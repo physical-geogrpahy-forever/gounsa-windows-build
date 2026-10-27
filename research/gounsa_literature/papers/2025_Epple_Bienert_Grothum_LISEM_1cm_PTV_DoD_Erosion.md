@@ -42,3 +42,7 @@ DEM 격자 0.01, .025, .05, .075, .1 m. 1cm에서 raster plot_A 약85×294, plot
 
 # 참고 링크 / DOI
 https://doi.org/10.1002/esp.70127
+
+## 2026-10-27 모델 계보 확인: **신형 LISEM, classic OpenLISEM 7.5.2가 아님**
+논문 전문 https://onlinelibrary.wiley.com/doi/10.1002/esp.70127?af=R §2.2.3은 모델을 `LISEM (L, 2024)`로 표기하고, 이 `L`의 **scripting capability**를 강조한다. 참고문헌의 `LISEM (2024) https://lisemmodel.com/`은 Bastian van den Bout의 **신형 LISEM (Lisem Integrated Spatial Earth Modeller)** 공식 홈이다. 게다가 Acknowledgments에 **Bastian van den Bout의 LISEM 지원**을 명시한다. 개발자 공식 설명 https://lisemmodel.com/docs/home/ 는 LISEM Classic과 신형 LISEM이 서로 다른 소프트웨어임을 분명하게 명시한다.
+**결론:** 논문이 사용하는 모델은 신형 LISEM 계열이라고 판정할 근거가 매우 강하며, 적어도 Victor Jetten의 OpenLISEM v7.5.2 바이너리와 동등하다고 보아서는 안 된다. 정확한 신형 LISEM git tag, SHA, 패치/스크립트 내용은 논문에서 미확인이다. **과거 Gounsa OpenLISEM v7.5.2 native NO-GO를 신형 LISEM에 전가하는 것은 부정확**하며, 1cm 선행연구의 효과를 Classic 7.5.2가 직접 구현·검증했다고 해석하는 것도 부정확함.
