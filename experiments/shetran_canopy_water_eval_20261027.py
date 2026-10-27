@@ -23,8 +23,9 @@ def run(src,exe,dir,on):
         a=line[k:].split()
         assert len(a)==12,a
         _,iel,*vals=a
-        time,dt,r,c0,c1,g,e,root,soil,other=map(float,vals)
-        assert dt>0 and all(math.isfinite(v) for v in vals)
+        num=list(map(float,vals))
+        time,dt,r,c0,c1,g,e,root,soil,other=num
+        assert dt>0 and all(math.isfinite(v) for v in num)
         ie=int(iel);z=summary[ie]
         gross_mm=r*dt*1000
         ground_mm=g*dt*1000
