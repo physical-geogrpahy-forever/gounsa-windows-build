@@ -9,6 +9,35 @@ import argparse
 from pathlib import Path
 from shetran_large_patch_matrix_20261027 import setup,ACTIVE,NX,NY
 
+def clear_impermeable_codes_on_open_perimeter(directory):
+    """A cell may not have both native Type1 and Type5 OC boundary.
+    Replace only the explicit I no-flow codes on ACTIVE cells at the
+    four-edge perimeter. Exterior non-active code rows remain intact.
+    No solver code changed.
+    """
+    p=directory/"input_cob_frd.txt"
+    lines=p.read_text().splitlines(keepends=True)
+    ranges=[
+        ("EAST TO WEST FLOW CODES","NORTH-TO-SOUTH FLOW CODES"),
+        ("NORTH-TO-SOUTH FLOW CODES","GROUND SURFACE ELEVATION")]
+    changed=0
+    for start,end in ranges:
+        i=next(i for i,x in enumerate(lines) if start in x)
+        j=next(i for i,x in enumerate(lines) if end in x)
+        for n in range(i+1,j):
+            fields=lines[n].split()
+            if len(fields)!=2 or not fields[0].isdigit() or len(fields[1])!=NX:continue
+            y=int(fields[0]);code=list(fields[1])
+            for x in range(1,NX+1):
+                if (x,y) in ACTIVE and (x in (2,16) or y in (2,28)):
+                    if code[x-1]=="I":
+                        code[x-1]="."
+                        changed+=1
+            lines[n]=f"{y:7d} "+''.join(code)+"\\n"
+    assert changed>0, "No legacy Type1 conflict markers cleared"
+    p.write_text("".join(lines))
+    return changed
+
 def patch_open_oc(directory,k=50.):
     assert k>0
     p=directory/"input_cob_ocd.txt"
@@ -38,6 +67,7 @@ def patch_open_oc(directory,k=50.):
 
 def setup_open(src,dest,typ,rain,on,dt,k=50.):
     meta=setup(src,dest,typ,rain,on,dt)
+    meta["impermeable_perimeter_codes_removed"]=clear_impermeable_codes_on_open_perimeter(dest)
     meta.update(patch_open_oc(dest,k))
     meta["hydraulic_boundary"]="Native OC type5, perimeter selected on north south east west"
     meta["physical_erosion_solver_changed"]=False
