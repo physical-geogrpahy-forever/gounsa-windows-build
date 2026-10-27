@@ -13,7 +13,7 @@ def run_case(exe,src,out,tmax,on):
     lines[i]=f"{tmax:7.5f}"+lines[i][7:];p.write_text("".join(lines))
     process=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],
                            cwd=out,capture_output=True,text=True,timeout=150)
-    (out/"original_ET_diagnostics_stdout.txt").write_text(process.stdout+"\nSTDERR\n"+process.stderr)
+    (out/"original_ET_diagnostics_stdout.txt").write_text("NATIVE ET DIAGNOSTICS LAST 15000 CHARS ONLY\\n"+process.stdout[-15000:]+"\\nSTDERR\\n"+process.stderr[-2000:])
     if process.returncode:raise RuntimeError(process.stdout[-2000:])
     q=defaultdict(lambda:{"p":0.,"net":0.,"e":0.,"ds":0.,"n":0,"otherET":0.})
     for line in process.stdout.splitlines():
