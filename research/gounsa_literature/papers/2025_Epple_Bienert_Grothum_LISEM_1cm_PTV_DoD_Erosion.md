@@ -46,3 +46,7 @@ https://doi.org/10.1002/esp.70127
 ## 2026-10-27 모델 계보 확인: **신형 LISEM, classic OpenLISEM 7.5.2가 아님**
 논문 전문 https://onlinelibrary.wiley.com/doi/10.1002/esp.70127?af=R §2.2.3은 모델을 `LISEM (L, 2024)`로 표기하고, 이 `L`의 **scripting capability**를 강조한다. 참고문헌의 `LISEM (2024) https://lisemmodel.com/`은 Bastian van den Bout의 **신형 LISEM (Lisem Integrated Spatial Earth Modeller)** 공식 홈이다. 게다가 Acknowledgments에 **Bastian van den Bout의 LISEM 지원**을 명시한다. 개발자 공식 설명 https://lisemmodel.com/docs/home/ 는 LISEM Classic과 신형 LISEM이 서로 다른 소프트웨어임을 분명하게 명시한다.
 **결론:** 논문이 사용하는 모델은 신형 LISEM 계열이라고 판정할 근거가 매우 강하며, 적어도 Victor Jetten의 OpenLISEM v7.5.2 바이너리와 동등하다고 보아서는 안 된다. 정확한 신형 LISEM git tag, SHA, 패치/스크립트 내용은 논문에서 미확인이다. **과거 Gounsa OpenLISEM v7.5.2 native NO-GO를 신형 LISEM에 전가하는 것은 부정확**하며, 1cm 선행연구의 효과를 Classic 7.5.2가 직접 구현·검증했다고 해석하는 것도 부정확함.
+
+## 2026-10-27 실행데이터 공개 여부 및 모델 선정 재판정
+- Wiley 2025 원문 https://doi.org/10.1002/esp.70127 의 data availability는 관련 데이터 저자 요청 제공 조건이며 **정확 LISEM executable SHA/관측별 runfile 및 전체 모의 입력 raster를 즉시 다운로드 가능한 공개 archive로 입증하지 않음**. 논문 내 1cm canopy-ON 수관 물수지 및 leaf-drip splash 검증도 확인되지 않음.
+- 이 문헌은 1cm 지형 및 지표 유속/DoD 선행 연구로 유지하되 **고운사 5–10cm vegetation canopy + 2D sediment 원본 엔진 PASS 근거 아님**. 2017 Classic SWEHR와는 다른 모델임. 기존 판단 [new LISEM branch code audit](../decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md)을 재사용하고 별도 Windows 0.2.4/2024 실사용본을 원본과 동치라고 주장 금지.
