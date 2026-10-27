@@ -1,5 +1,16 @@
 # Gounsa Literature Master
 
+## 2026-10-27 SHETRAN 실제 적용 연구 7편 추가 확인 및 문헌보강
+- **[소규모 사면 강우침식 직접검증](papers/2006_Adams_Elliott_SHETRAN_LargeRainfallSimulator.md)**: 뉴질랜드 약 970m² 인공강우 사면에서 강우충격/유수박리계수 및 유사량 대조. 단일 강우사상 고운사 연구와 가장 근접.
+- **[산림과 벌채 유사배출 및 극한강우](papers/2011_Birkinshaw_Bathurst_Iroume_SHETRAN_ForestCover_Chile.md)**: 칠레 La Reina 35ha 모의 숲 3.6 대 벌채 8.3t/ha/년, 1000년 합성강우에서 고강우 조건 상대 수문효과 감소와 침식저감 지속. 관측된 유사량의 독립 전수 검증은 아님.
+- **[84개 강우사상 피복시나리오](papers/2022_EscobarRuiz_SHETRAN_EventScale_LandCover.md)**: 전체사상 통계효과와 특정 강우사상 식생저감 효과 구분.
+- **[상류/하류 산림 패치 배치](papers/2006_Birkinshaw_Bathurst_SHETRAN_SedimentYield_BasinArea.md)**: 산림 및 작물 피복의 위치, 사면/하안 유사공급 원천에 따라 하류 토사유출 면적 의존성이 역전 가능.
+- **[인도 습윤 산림산지](papers/2022_Sreedevi_Eldho_Jayasankar_SHETRAN_HumidTropical.md)**: 서고츠산맥 유역에서 토지피복/기후/유사량을 동시 모의.
+- **[알프스 산사태 모듈](papers/2005_Bathurst_SHETRAN_Valsassina_Landslides.md)**: SHESED 지표유출 침식과 다른 shallow-landslide 유사공급 별도 연구.
+- **[하안침식 식생 모듈의 연구자 개선형](papers/2017_Janes_SHETRAN_Riverbank_Vegetation.md)**: 원본 4.7.2와 새롭게 수정된 bank erosion 처리를 구분.
+- 기존 1992 Wicks, 1996 Wicks & Bathurst, 2000 Lukey, 2017 Op de Hipt, 2019 Escobar-Ruiz 파일에 2026-10-27 주모델 선정 이후 판정 정정 추가.
+- 이번 문헌의 공통 교훈: SHETRAN은 단일 강우사상 수관/유수 침식 적용 근거가 있으나, **유량검증과 유사량검증, 유역 유사량과 4m 격자 국지 퇴적고 검증을 분리**해야 한다. **141.487mm 국지 퇴적은 물리적으로 불가능하다고 판단할 수 없으며** 각 격자 유사 유입, 유출, 느슨한 퇴적층과 공극률을 검토하는 것이 올바르다.
+
 ## 2026-10-27 결정 확정: 단일 강우사상 유수침식 주모델 SHETRAN 4.7.2 선정
 - **[공식 모델 선정 결정문](decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md)**. 고운사 참나무 맹아 및 억새 혼재 사면의 **수관차단 ON/OFF, 강우사상별 2D 국지 침식 및 퇴적, 네 방향 경계 물과 유사배출** 분석을 위해 **SHETRAN 4.7.2를 단일 유수침식 주모델로 채택**. EUROSEM 및 OpenLISEM 등의 주엔진 재탐색은 중단하고 SHETRAN 자체 검증과 실제 입력자료 구축에 집중한다.
 - 선정 근거: 공개 Fortran 원본의 수관저류/수관적하/직접강우 및 유수박리/4면 유사수송 연계, 합성 0.648ha 사면 **35/35 실제 실행**, 네 방향 Type 5 개방경계의 물과 유사배출 및 최대 상대 이동가능 유사수지 잔차 5.84668e−14.
