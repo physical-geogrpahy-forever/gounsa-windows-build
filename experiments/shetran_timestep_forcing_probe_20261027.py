@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diagnostic native precipitation integration under different SHETRAN TMAX.
+"""Diagnostic native precipitation integration under ACTUAL 4th-column TMAX with fixed PMAX.
 Checks whether prior nonconvergent sediment reflects unequal storm totals.
 """
 from pathlib import Path
