@@ -50,7 +50,7 @@ s=replace_once(s,
                   IF (ICMREF(QA_EL,QA_FACE,2) == 0) THEN
                      DO QA_SED = 1,NSED
                         QA_BOUNDARY = QA_BOUNDARY + &
-                           SIGN(ONE,DBLE(2-QA_FACE))*QSED(QA_EL,QA_SED,QA_FACE)*DTSY
+                           QSED(QA_EL,QA_SED,QA_FACE)*DTSY
                      END DO
                   END IF
                END DO
