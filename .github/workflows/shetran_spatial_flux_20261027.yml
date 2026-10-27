@@ -1,0 +1,57 @@
+name: SHETRAN original 4m actual intercell sediment redistribution spatial QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_spatial_flux_20261027.yml'
+      - 'experiments/shetran_spatial_flux_instrument_20261027.py'
+      - 'experiments/shetran_spatial_flux_eval_20261027.py'
+      - 'experiments/shetran_instrument_sediment_qa_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-spatial-sediment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install inputs and HDF5 parse deps
+        run: python -m pip install fypp numpy h5py
+      - name: Add QA logging only to original SYMAIN source, physical equations untouched
+        run: |
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_spatial_flux_instrument_20261027.py original/src/sediment/SYmod.f90
+      - name: Build diagnostic-print version of original SHETRAN
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+          test -x build/debug/bin/shetran
+      - name: Native original intercell sediment redistribution ON OFF
+        run: |
+          python audit/experiments/shetran_spatial_flux_eval_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_shetran_spatial
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-spatial-sediment-redistribution
+          path: |
+            /tmp/gounsa_shetran_spatial/pair_spatial_summary.json
+            /tmp/gounsa_shetran_spatial/*/qa_spatial_summary.json
+            /tmp/gounsa_shetran_spatial/*/qa_spatial_cells.json
+            /tmp/gounsa_shetran_spatial/*/native_spatial_stdout.txt
+          retention-days: 30
+          if-no-files-found: warn
