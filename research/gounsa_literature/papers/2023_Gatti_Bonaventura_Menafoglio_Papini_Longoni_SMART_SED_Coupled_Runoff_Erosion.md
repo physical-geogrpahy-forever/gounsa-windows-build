@@ -1,0 +1,30 @@
+# Gatti et al. (2023) — SMART-SED: published original C++ coupled XY SWE and soil-erosion model
+## Bibliography
+Gatti, F., Bonaventura, L., Menafoglio, A., Papini, M., & Longoni, L. (2023). A fully coupled superficial runoff and soil erosion basin scale model with efficient time stepping. *Computers & Geosciences, 177*, 105362. https://doi.org/10.1016/j.cageo.2023.105362 . Published online 2023-05-05.
+Published original PDF: https://iris.cnr.it/retrieve/785de7b1-f0ff-492e-ba95-d3b4b301852f/1-s2.0-S0098300423000663-main.pdf
+Author code explicitly advertised at original PDF p.12 Code Availability: https://github.com/federicg/smartsed , under GNU General Public License. The actual C++ main source header copyright Politecnico di Milano and developer Federico Gatti. Repository full source inspected 2026-10-28.
+## Why sought and study type
+Peer-reviewed existing exact manuscript+source coupled event-scale 2D hydrology and sediment in mountain catchments, avoiding source-unavailable tRIBS-FEaST and failed OpenLISEM classic 7.5.2.
+## Spatial architecture and study environment
+- Paper Section2 Eq(1): TRUE bivariate XY de Saint-Venant shallow water vector u, surface depth H, rainfall p, infiltration f, no previously mapped drainage zones required, semi-implicit conservative numerical method and wet-dry positivity.
+- Mountain Caldone and Dragone basin (western Amalfi Coast 9.3km2) case. Caldone original source DTM 5m but numerical cells 20/50/90m for tested models (paper §4.3); Dragone computational Δp=10m (paper §4.4). **NOT 5–10cm actual computational grid**. Fine resolution generic numerical claim not a verified centimeter erosion run.
+- Real storm Dragone historic 2010-09-09 126mm/3h, max 92.2mm/h; study generated 3h 126mm scenarios max100mm/h and baseline42mm/h (§4.4). Simulated erosion source total 1.2223e4 m3 within broad observational 1e4–3e4 m3 range, NOT a high-resolution per-cell experimental validation.
+## Native hydrology, soil erosion, and exact equations
+- Governing §2 Eq(1) surface ∂t H + ∇·(Hu)=(1−μ)p−f and u momentum; μ rain-vs-snow switch (not canopy fraction). Rain as direct ground source. ET Hargreaves, infiltration SCS-CN, no native interception storage.
+- Sediment flux §2 Eq(9) fsd = α |∇b|^β h_sd u, reported α=2.5 and β=1.6, critical shear taken as 0. This is hydraulically advected empirical sediment layer, NOT two independent raindrop-splash and flow-shear detachment terms.
+- Sediment production §2 Eq(10) w from Gavrilović original EPM: w = π (1−μ) p τ_g Z^(3/2) with climate-temperature and landcover/soil coefficients. Authors explicitly recognize annual empirical method being assumed applicable to short events. CODE: `W_Gav[k] = 1.e-3 * M_PI * Z_Gav[k] * sqrt(abs((.1+.1*temp.T_raster[k])*temp.melt_mask[k])) * precipitation.DP_total[k] * dt_sed` (verify version and units source before direct numerical use). Original lack LAI/canopy drip, no interrill vs rill physically separate.
+- CRITICAL ORIGINAL limitation paper §2 Eq(1) prose: `orography profile is not changing in time`, ∂t b = 0 (lines124–129 PDF p.2); Exner / erosion-driven DEM reduction in same storm is **not implemented**, despite finite transported sediment mass. Do NOT describe source production map as changed DEM map.
+## Source file-to-reference exact chain
+- C++ main: https://github.com/federicg/smartsed/blob/main/DeterministicProgram/main_final_H.cpp (2507 lines; includes actual hydrology/2D u,v, h_sd and W_Gav erosion source, sed transport loops lines2059–2418).
+- C++ numerical functions: https://github.com/federicg/smartsed/blob/main/DeterministicProgram/utils_H.cpp (5194 lines), its `compute_dt_sediment` source.
+- Build: https://github.com/federicg/smartsed/blob/main/DeterministicProgram/Makefile (C++11 MPI mpic++, OpenMP, bundled Eigen).
+- Active configuration: https://github.com/federicg/smartsed/blob/main/run/SMARTSED_input_ev contains 9 rain stations, SCS-CN infiltration, true sediment `is_sediment_transport=true`, non-reflecting boundary, 50 steps/h, output; actual input DEM/land cover/rain under `Inputs/` and `run/`.
+- Code source contains `main_final_H.cpp` field arrays `orography`, `u`, `v`, `h_sd`, `W_Gav`, and lines around2059 `if(is_sediment_transport)`, source `W_Gav` and horizontal residual `Res_x,Res_y`, update `h_sd += -(Res_x+Res_y)+W_Gav+additional_source_term`.
+- Source inspection searches/literature for LAI, canopy, throughfall, drop KE failed in model computational code; can't claim physically modeled interception. The `landcover/CN/Gav` parameter dependence is NOT LAI-controlled canopy storage.
+## Parameter units and evidence limitations
+- H [m], u,v [m s-1], p,f [m s-1], sediment layer h_sd [m], W source [m/time-step], dx 10–90m in actual paper studies, dt controlled by time-stepping; sediment source Gav coefficients require site-dependent calibration and dimensional checking.
+- Actual original C++ file can be downloaded and compiled using provided dependencies; however **this research session DID NOT compile or run full original source**. No native 5/10cm, conservation/finite soil stock at bare/Miscanthus/oak, or canopy ablation measured.
+## Gounsa utility and missing coupling
+Existing published and source-available genuine XY hydrodynamics plus explicit finite sediment advection and storm source with alpine test cases is useful as 2D computational reference. To meet Gounsa requires NEW original-code features: Rutter canopy interception and dynamic LAI, leafdrip KE, physically separated rain-impact and runoff shear detachment with finite soil inventory/deposition closure, dynamic DEM feedback, 5–10cm convergence. These are new coupling/implementation and CANNOT be represented as prepublished SMART-SED.
+## Verdict
+**SUPPORTING ENGINE ONLY; NOT accepted as original all-condition Gounsa single published model.** New reproducible original article+code recovered, but canopy LAI interception absent, empirical annual EPM runoff source, bed topography fixed, 5–10cm original test absent. Explicitly differentiate existence of model source from actual successful native validation.
