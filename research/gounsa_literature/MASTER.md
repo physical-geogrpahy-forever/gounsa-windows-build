@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 19:40 GitHub 우선: 산림 수관차단과 2D 유사수송 새 코드 대조
+- [**엄격 원본 기능 판정문**](decisions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_SOURCE_SCREEN.md) 및 [세션 인계서](sessions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_HANDOFF.md): 기존 INDEX/MASTER를 확인한 뒤 새로운 이름 두 종의 공개 코드 및 급경사 산림 2D 연구를 조사. **전 조건 만족 5–10cm 공개 원본 아직 미발견**.
+- **[HydroSed2D 실제 Fortran 소스감사](models/HydroSed2D_Fortran_Original_Source_Audit.md)**: Penn State `psu-efd/HydroSed2D/src/sediment.f90` SHA `7e6be598...`에서 진정한 X/Y 2D SWE + MPM/Grass 기반 bedload + Exner dynamic topography 실제 구현 확인. 그러나 **강우, LAI 수관차단, 침투, 빗방울 박리 부재**. **탈락**.
+- **[WaNuLCAS (v3.01 문헌 + v5.0 배포 계보 구분)](models/WaNuLCAS_Interception_Erosion_Strict_2D_Screen.md)**: LAI × 물막두께로 최대 canopy 저장고, Rose soil loss 실제 존재. 다만 수평 구획(zone)과 일별 처리이지 **genuine 2D SWE 라우팅 아님**. [Onsamrarn et al. (2020)](papers/2020_Onsamrarn_WaNuLCAS_WEPP_Thailand_Erosion.md) 태국 산지 관측 유사량 비교도 동일 한계. **탈락**.
+- **[Ámon et al. (2024)](papers/2024_Amon_HECRAS_Forest_Canopy_Litter_2D_FlashFlood.md)** DOI 10.3390/w16050750: 헝가리 급경사 산림의 수관차단과 낙엽저류 반영 HEC-RAS FVM SWE 2D 강우사상 실제 수문 검증, 계산격자 4–20m. canopy는 별도 유효강우/유사토양층 처리이고 **침식/퇴적은 논문에서 계산하지 않음**. **보조근거**에 그침.
+- 새 후보 SedHydro는 외부 수문 결합을 전제로 하는 framework, EROSION-3D GitHub 공개 R wrapper는 executable solver source가 아님. 이미 탈락 판정 TREX, SMODERP2D, GSSHA, classic/new LISEM, SHETRAN cm-gap 등을 다시 신규모델로 추천 금지.
+
 ## 2026-10-27 GitHub 우선 대조한 10cm 수관차단 및 침식 독립 연구
 - [**이번 엄격 모델 판정 및 소스감사**](decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md), [인계서](sessions/2026-10-27_1800_GITHUB_FIRST_NATIVE_SUB10CM_HANDOFF.md): MASTER/INDEX/SHETRAN/LISEM 분기 및 기각 SHA를 먼저 확인한 뒤 신규 논문/원본을 검색함.
 - **Cuomo (2018)** [새 논문](papers/2018_Cuomo_LISEM_10cm_LAI_Vegetated_Erosion.md), DOI 10.19199/2018.3.0557-1405.31: **실제 LISEM 0.1m 격자**에서 나지 및 35% 초본 피복과 LAI=6 기반 수관저류, runoff/sediment concentration 실험 비교. 약 0.02s 시간간격. 이는 Maggioli(2022) 5cm 외 독립 선행사례지만 동일 자유 XY 2D SWE, 원본 버전 SHA, 격자별 국지 퇴적 DoD, 공개 원본 유사수지/수렴을 입증하지 않아 단일모델 채택 불가.
