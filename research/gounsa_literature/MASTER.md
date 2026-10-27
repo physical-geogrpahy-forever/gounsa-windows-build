@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+
+## 2026-10-27 긴급 LISEM 계보 및 cm격자 연구 정정
+- **[개발 계열 차이](models/OpenLISEM.md)**: 고전 LISEM original(1990s)→ Victor Jetten `OpenLISEM Classic` v7.5.2; 이와 별개인 Bastian van den Bout **신형 LISEM**(`bastianvandenbout/LISEM`). 공식 https://lisemmodel.com/docs/home/ 는 서로 다른 실행 소프트웨어임을 명시.
+- **Epple et al.(2025) 1cm LISEM**은 `LISEM 2024 https://lisemmodel.com/` 인용, Bastian van den Bout 지원 명시, scripting 사용 → **신형 LISEM 계열**로 판정. **우리가 돌렸던 OpenLISEM Classic 7.5.2의 수치문제를 이 1cm 사례 또는 신형 LISEM 프로그램 전체에 전가해서는 안 됨**. 반대로 Epple 1cm 실험에서 canopy active/leafdrip validated라고 단정하면 안 됨.
+- **Maggioli et al.(2022) 5cm LISEM**은 De Roo/Jetten classic LISEM의 kinematic wave 구조를 사용한 것으로 원문 판단, 정확 실행버전 미기재.
+- 신형 LISEM https://lisemmodel.com/docs/hydrology/ 에 **LAI와 clumped grass/broadleaved forest 수관최대저류식** 및 셀별 canopy 입력이 명시되어, 새 계열의 필수식생 기능이 문서상 존재. **추가 필요한 것은 신형 LISEM 동일 executable의 canopy + 1cm 격자 + native sediment balance/2D/DoD 검증**.
 ## 2026-10-27 긴급 정정: 5cm LAI 수관저류+LISEM 침식 및 1cm LISEM 모의 논문 확인
 - [**정정 결정문**](decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md): 과거 '10cm 이하에 수관차단과 침식 동시에 있는 연구가 미확인'이라는 결론은 새 문헌 조사로 **철회**한다.
 - **Maggioli et al. (2022)** [paper](papers/2022_Maggioli_RodriguezCaballero_LISEM_5cm_TLS_LAI_Interception_Erosion.md), [DOI](https://doi.org/10.3389/fevo.2022.765148): 스페인 25×15m 사면, TLS 5cm, LISEM 5cm, 1초, TLS 식생피복으로 LAI 추정해 수관저류 계산, 18개 강우사상 유출-침식, 18개월 누적 지형변화량 비교. 단 유출은 kinematic wave, 실제 전방위 full 2D SWE 및 5cm 국지퇴적 DoD 검증 아님.
