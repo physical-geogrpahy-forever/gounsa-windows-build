@@ -37,12 +37,13 @@
 
 ## B. 실패 또는 필수 미검증 (NO-GO 판정 유지)
 
-### B1. **중대 정정: 진짜 TMAX 시간간격 수렴성은 이전 시험에서 검사되지 않았다**
-- [치명적인 입력 검증오류의 원본 소스 증거와 정정](2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md). 원본 `FRmod.f90:5455`는 `(4F7.0,L7)` 순서로 `PMAX,PALFA,QMAX,TMAX,BSOFT`를 읽는다. **과거 시험 도구는 첫 필드 `PMAX`만 바꾸고 실제 네 번째 필드 `TMAX`는 1h로 남겼다**.
-- 과거 "TMAX에 따른 누적 침식량 4.88877%/5.8% 차이"와 "시간간격 수렴성 불합격" 주장은 정당하지 않으므로 **철회**한다. 정밀도 F7.3→F7.5 수정도 PMAX 필드를 건드리는 오류는 치유하지 못했다.
-- 원본 `TMSTEP`에서 PMAX는 `PTOT>PMAX`이면 실제 `UZNEXT=MIN(UZNEXT,PMAX/PINP)`로 제한하는 **강우 시간분할 매개변수**이다. 그래서 과거 실험의 차이는 `PMAX`를 1mm에서 작은 값으로 낮췄을 때 수문/수관/유사가 민감하다는 것만 보여준다. **그 반응이 원본 부정확성인지 초기시간적 처리 탓인지는 추가 원인 분해 전까지 단정 금지**.
-- 입력 스크립트를 전면 정정해 `TMAX`만 네 번째 7자리 필드에 쓰고 `PMAX=1.0mm`을 원본대로 유지했다. 또한 원본 `BSOFT=T`의 초기 102단계 기반 softstart를 `F`로 꺼서 불필요한 단계수 혼란을 분리하였다. [진정한 TMAX native 실험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445638896) / [강우량 검산 native 실험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445644339). 이 재실행의 수치를 확인하기 전까지 **시간수렴 미검증**.
-- **현재 고운사 최종선정은 여전히 보류**: 고해상도 공간수렴, 실측혼재 canopy/토성/경계, 유한 토심, real site observations 없음. 이것은 별개 문제이고 시간간격 시험이 잘못되었다는 사실로 이 항목들이 해결되지는 않는다.
+### B1. **중대 정정 및 실제 재검증: 총박리량과 국지 고도지도의 시간간격 안정성 개선 확인**
+- **[결정적인 원인 및 전면 정정](2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md)**: 이전 자체 검증 스크립트는 실제 원본 `FRmod.f90`의 `PMAX,PALFA,QMAX,TMAX,BSOFT` 순서를 잘못 읽고 첫 7글자 `PMAX`를 바꾸었다. 네 번째 `TMAX`는 원본 1h 그대로였다. **이전 "TMAX 수렴 불합격" 주장은 철회**; 해당 결과는 `PMAX` 강우 시간분할 민감도였음.
+- 실제 입력을 고쳐 `PMAX=1mm`, `BSOFT=F` 고정, 네 번째 TMAX 필드만 줄이고 **원본 native Fortran 8회**를 실행했다. [실제 TMAX 450→56.25초](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445638896), [실제 TMAX 112.5→14.06초](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446202523). 수관강우 총량은 각 cell 90mm, 기타 증발산 0, 원본 이동가능 유사수지 각 회 통과.
+- 실제 TMAX .03125h → .015625h에서 원토양 박리량 ON **.113435867→.113221217m³** (**.18958% 차이**), OFF **.133321632→.133445969m³** (**.09317% 차이**).
+- 실제 TMAX .007812h→.003906h(약28→14초)에서 원토양 박리량 ON **.113224762→.112701964m³**, 두 계산 차이 **.46388%**, OFF **.133243001→.132764021m³**, **.36078%**. 이는 *엄격한 수학적 수렴차수 증명은 아니지만*, 전임 허위 "시간간격 수렴 실패"와는 전혀 다른 약 0.5% 이내 변화 및 여러 단계의 수렴 징후다.
+- [**셀별 순고도변화 native 176셀 / 실제 TMAX 네 값 비교**](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446161132). 약28초 vs14초에서 `∆z`의 평균절대 셀차 ON **0.0000942mm**, OFF **0.0000871mm**; 최대 절대차 ON **0.0010541mm**, OFF **0.0010763mm**. `∆z>0.001mm` 순퇴적 hotspot 일치 ON 28초 6개와 14초 5개 중 **5개 공통**, OFF **4개 전부 공통**.
+- **새 판정:** 이번 **가상 4m 폐쇄형 0.282ha** 사례의 전체 원토양 박리 및 국지 퇴적지도는 강한 시간간격 불안정으로 인해 원천 탈락해야 한다는 근거가 **사라졌다**. 1% 이하 총량차, 국지 순퇴적 위치 5/6 또는 4/4 공통 등 **예비 수치안정성 검증 진전**. 그러나 진짜 0.5~2m `dx` 공간수렴, open outlet 및 원토양 토심, 실제 식생 LAI/CSTCAP/잎적하 KE 관측치, 현장 DEM/강우/관측 validation 없음. **정량 현장예측 채택 완료는 아직 불가**.
 
 ### B2. 고해상도 공간 수렴성: **미검증**
 - 4m 176 셀 단 한 해상도만 공간 시험. <1ha 규모 억새 포기 및 참나무 맹아의 패치 간 침식/퇴적 위치는 0.5m 또는 그보다 미세한 DTM과 식생관측 필요. 2m, 1m, 0.5m **같은 물리적 영역**에 대한 격자 refinement 전까지 final model이라고 판정 금지. 4m vs 2km는 서로 다른 영역/지형이므로 수렴시험이 아님.
@@ -57,7 +58,7 @@
 
 ## C. 결론
 
-**한 개 완전공개 기존 원본 모델로서 SHETRAN 4.7.2는 동적 수관차단, 직접강우/leafdrip, 2D 유동, 강우박리와 유수박리, 4면 유사 수송 및 국지적 퇴적, 이벤트 말미 순지표고도 후처리를 실제 계산할 수 있다는 점까지 코드 및 native로 검증됐다.** 그러나 현재 중요 output `E(x,y),D(x,y),∆z(x,y)`의 수치적 시간간격 수렴 **미검증**, spatial refinement, open outlet, 토심 상한 및 **실제 고운사 DEM/현장 데이터 검증 미실시**. 엄격한 기준상 **고운사 최종 연구용 model로 선정 완료라고 선언할 수 없다.** 단일모델 검증 통과라고 포장하지 말고, event proof-of-capability with nonconvergence issue로 보고한다.
+**한 개 완전공개 기존 원본 모델로서 SHETRAN 4.7.2는 동적 수관차단, 직접강우/leafdrip, 2D 유동, 강우박리와 유수박리, 4면 유사 수송 및 국지적 퇴적, 이벤트 말미 순지표고도 후처리를 실제 계산할 수 있다는 점까지 코드 및 native로 검증됐다.** 그러나 현재 중요 output `E(x,y),D(x,y),∆z(x,y)`의 수치적 실제 TMAX 수렴 경향 확인, spatial refinement, open outlet, 토심 상한 및 **실제 고운사 DEM/현장 데이터 검증 미실시**. 엄격한 기준상 **고운사 최종 연구용 model로 선정 완료라고 선언할 수 없다.** 단일모델 검증 통과라고 포장하지 말고, event proof-of-capability with nonconvergence issue로 보고한다.
 
 **EUROSEM**은 canopy+rain/flow+rill 내장원본임에도 1D plane 요소를 토대로 하여 mixed oak+tussock를 같은 실제 2D 격자에서 나타낼 수 없고 rill full-ledger fails; 이번 과제의 대체 단일모델 불가. 원본/수정 툴 기록은 [기존 원본 코드 감사](2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md).
 
