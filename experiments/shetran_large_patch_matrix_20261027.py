@@ -165,6 +165,7 @@ def execute(exe,source,root,typ,rain,on,dt):
           text=True,bufsize=1,errors="replace")
     records={}
     budget=[]
+    open_flux_records=[]
     logs=[]
     tail=deque(maxlen=250)
     for raw in proc.stdout:
@@ -183,6 +184,10 @@ def execute(exe,source,root,typ,rain,on,dt):
                 "loose_change_mm":(dls-.01)*1000,
                 "delta_z_mm":(dls-.01-erode)*1000,
                 "mobile_layer_mm_final":dls*1000,"PLS":pls,"cell_area_m2":area}
+        elif "QA_OPEN_EXPORT" in raw:
+            t=raw[raw.index("QA_OPEN_EXPORT"):].split()
+            assert len(t)==4,(name,t)
+            open_flux_records.append(list(map(float,t[1:])))
         elif "QA_SED_MASS" in raw:
             t=raw[raw.index("QA_SED_MASS"):].split()
             assert len(t)==7,(name,t)
@@ -201,9 +206,15 @@ def execute(exe,source,root,typ,rain,on,dt):
                            "; DIAGNOSTICS: "+repr(diag))
     assert len(records)==405,(name,"active cells",len(records))
     assert len(budget)>30,(name,"budget",len(budget))
+    if "hydraulic_boundary" in m:
+        assert len(open_flux_records)==len(budget),(name,"missing open native boundary records",len(open_flux_records),len(budget))
     arr=np.asarray(budget)
     residual=(arr[-1,3]-arr[0,1]-np.sum(arr[:,2])+np.sum(arr[:,4]))
     source_vol=float(np.sum(arr[:,2]))
+    native_border_sediment=float(np.sum(arr[:,4]))
+    native_border_water=float(np.sum(np.asarray(open_flux_records)[:,1])) if open_flux_records else None
+    if open_flux_records:
+        assert abs(float(np.sum(np.asarray(open_flux_records)[:,2]))-native_border_sediment)<1e-8
     relative_mass=abs(residual)/max(source_vol,1e-14)
     assert relative_mass<.001,(name,relative_mass)
     z=np.array([r["delta_z_mm"] for r in records.values()])
@@ -221,7 +232,9 @@ def execute(exe,source,root,typ,rain,on,dt):
         "max_net_deposition_mm":float(z.max()),
         "max_net_erosion_mm":float(z.min()),
         "avg_mobile_layer_mm_final":float(np.mean([r["mobile_layer_mm_final"] for r in records.values()])),
-        "closed_boundary_no_outlet":True,
+        "closed_boundary_no_outlet":"hydraulic_boundary" not in m,
+        "native_sediment_border_net_export_m3_solid":native_border_sediment,
+        "native_water_border_net_export_m3":native_border_water,
         "simulated_true_surface_z_feedback":False,
         "test_completed":True}
     (dest/"summary.json").write_text(json.dumps(output,indent=2))
