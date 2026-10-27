@@ -23,3 +23,15 @@
 4. [40439479287](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439479287): native 2km mixed 성공, 4m 프레임 스크립트가 Path 객체를 루프 list로 shadow하는 버그.
 5. [40439648429](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439648429): 2km native 성공, 4m no-channel 생성 이후 원본 Cobres 영상설정이 no-channel 도메인에 없는 river datasets를 요청하여 init fail.
 6. 2026-10-27 신규 가장 최근 마이크로 축소시험 workflow는 `visualisation_plan`도 no-channel로 맞추어 입력 변경, **결과 별도 업데이트 전까지 합격 선언 금지**.
+
+## 2026-10-27 11:47 KST: 4m 0.282ha mixed 2D original native PASS (new)
+
+[정확한 원본 실행 40440329180](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40440329180). `original` SHETRAN commit `cf9cd540add78ad3accbaf62b4199d2032887f6b` GNU Fortran compiled and run **ON and OFF exit 0** at 4m × 17×29 bounding grid, active land 176 cells = 2816m² = 0.2816ha, bbox 7888m² = 0.7888ha. 30mm/h 3h forcing, 9h nominal dry period, plant type maps are synthetic alternating oak resprout and Miscanthus.
+- ON peak snapshot `s_v_er` **7.5011382103mm/day**, final loose-layer DLS active mean **30.060142387mm**.
+- OFF peak snapshot **8.2980518341mm/day**, final loose-layer DLS active mean **30.070912773mm**.
+- Maximum **co-located/time matched** `abs(s_v_er_ON−s_v_er_OFF)` **2.39127313346mm/day**, `abs(DLS_ON−DLS_OFF)` **0.0820922852mm**.
+- Source unmodified; no combined-model coupling, ET and sediment originally joined. Remaining: PET/PLAI pure canopy off independence unverified, source/transport source and loose/suspended global ledger unverified, gross deposition vs DLS not disentangled, exact GNU DTUZ integral unverified, in-event evolving DEM absent, thin-soil cap absent, 4m not yet 0.5m or 1m convergence. No real Gounsa inputs. Model's outputs therefore **executable synthetic canopy response, not validated Gounsa localized erosion/deposition forecast**.
+- **Boundary caution**: micro no-channel variant removes Cobres river-link network and keeps source no-channel flow-code boundaries. Need audit whether its downslope boundary permits sediment/water export. This run does not demonstrate observed physical outlet hydraulics and may be an effectively closed slope. Gross depositional volume and net surface elevation results not calculated.
+- Earlier micro input misparse was due remaining `SY31/SY32/SY52d` river-only sections with NLF=0; native `SYREAD` skips those cards, leading to wrong section shifted and failure. Input generator now removes these three 2-line groups in no-link mode. **This was harness defect, not evidence of SHETRAN solver divergence.**
+
+This pass **upgrades 'micro input-only execution' from UNVERIFIED to VERIFIED** for this one 4m scenario. It does NOT upgrade full conservation/numerical convergence/observational validation.
