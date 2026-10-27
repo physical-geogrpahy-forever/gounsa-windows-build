@@ -72,6 +72,9 @@ def modify_frd(dest,typ,tmax_hr=.015625):
         for i in (0,10):
             elevation.append(''.join(f"{v:7.2f}" for v in row[i:i+10])+"\n")
     swap_region(l,"GROUND SURFACE ELEVATION","RAINFALL STATIONS",elevation)
+    i=next(i for i,v in enumerate(l) if v.strip()=="RAINFALL STATIONS")
+    l[i+1:i+30]=[f"{y:7d} "+''.join("1" if (x,y) in ACTIVE else "0"
+                          for x in range(1,NX+1))+"\\n" for y in range(NY,0,-1)]
     i=next(i for i,v in enumerate(l) if "VEGETATION GRID FOR NVC PER CELL" in v)
     assert len(l[i+1:i+30])==29
     l[i+1:i+30]=gridrows(typ)
@@ -120,12 +123,26 @@ def modify_syd(dest,typ):
                           for x in range(1,NX+1))+"\n" for y in range(NY,0,-1)]
     p.write_text(''.join(l))
 
+def modify_vsd(dest):
+    # Aquifer soil layer category grid must cover EVERY active cell;
+    # copied Cobres VS08c still covered only old 176 land elements.
+    p=dest/"input_cob_vsd.txt"
+    lines=p.read_text().splitlines(keepends=True)
+    i=next(i for i,row in enumerate(lines) if row.strip().startswith(":VS08c"))
+    rows=[f"{y:7d} "+''.join(
+        ("1" if y>=15 else "2") if (x,y) in ACTIVE else "0"
+        for x in range(1,NX+1))+"\\n" for y in range(NY,0,-1)]
+    assert len(rows)==29
+    lines[i+1:i+30]=rows
+    p.write_text("".join(lines))
+
 def setup(source,dest,typ,rain,on,dt):
     assert typ in VEG_CASES and rain in RAIN_CASES
     prepare(source,dest,canopy_on=on,grid_m=DX,mmh=rain,warmup_hr=1)
     modify_frd(dest,typ,dt)
     modify_etd(dest,on)
     modify_syd(dest,typ)
+    modify_vsd(dest)
     nvc={s:sum(patch_id(x,y,typ)==s for x,y in ACTIVE) for s in (1,2,3)}
     assert sum(nvc.values())==405
     meta={"type":typ,"rain_mm_h":rain,"canopy_on":on,"n":405,
