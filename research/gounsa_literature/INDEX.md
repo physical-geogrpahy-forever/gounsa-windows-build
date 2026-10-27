@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (470)
+## Papers (473)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -186,11 +186,14 @@
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Cohen_mARM.md`
 - `papers/2009_Liang_StemflowThreeDimensionalSoilWater.md`
+- `papers/2009_Long_He_GPU_2D_SWE_Hydraulic_Erosion.md`
+- `papers/2009_Long_He_Rill_Evolution_FVM_Modified_Gash.md`
 - `papers/2009_Moustakas_SavannaPatchDynamics.md`
 - `papers/2009_Scheiter_aDGVM_Africa.md`
 - `papers/2010_Cohen_mARM3D.md`
 - `papers/2010_Gabet_Mudd_RootFractureTreeThrow.md`
 - `papers/2010_Jomaa_HairsineRose_SplashWidth.md`
+- `papers/2010_Long_He_2D_Gash_Rill_Erosion_Morphodynamics.md`
 - `papers/2010_Mao_Coupled_Soil_Erosion_Large_Scale_Hydrology.md`
 - `papers/2010_Schwarz_RootBundleModel.md`
 - `papers/2010_Waldmann_PROMET_Large_Scale_Erosion.md`
@@ -477,7 +480,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (96)
+## Models (97)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -525,6 +528,7 @@
 - `models/LAVESI_FIRE.md`
 - `models/LISEM_Integrated_VanDenBout_Source_Audit.md`
 - `models/LM4_1_PPA.md`
+- `models/Long_He_2D_Gash_Morphodynamics_Code_Audit.md`
 - `models/LPJ_GM.md`
 - `models/LPJ_GUESS_BRANCH_MERGE_AUDIT_2026.md`
 - `models/LPJ_GUESS_GEOMORPH_VARIABLE_INTERFACE.md`
@@ -576,7 +580,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (89)
+## Decisions (90)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -648,6 +652,7 @@
 - `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
 - `decisions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_SOURCE_SCREEN.md`
+- `decisions/2026-10-27_2100_NEW_LONG_HE_2009_2010_2D_GASH_EROSION_SOURCE_VERDICT.md`
 - `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
 - `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md`
