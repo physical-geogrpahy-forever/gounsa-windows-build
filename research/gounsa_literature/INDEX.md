@@ -1,6 +1,6 @@
 # Gounsa Literature Index
 
-업데이트: 2026-10-26
+업데이트: 2026-10-27
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
@@ -112,8 +112,8 @@
 - `papers/1995_Takahashi_KudzuSoilMtRokko.md`
 - `papers/1995_Thiery_BandedVegetationNiger.md`
 - `papers/1995_WEPP_FullPlantGrowth.md`
-- `papers/1996_DeRoo_LISEM_Theory.md`
 - `papers/1996_DeRoo_LISEM.md`
+- `papers/1996_DeRoo_LISEM_Theory.md`
 - `papers/1996_Kirkby_MEDALUS_SlopeCatena.md`
 - `papers/1996_Retta_WEPS_BiomassPartition.md`
 - `papers/1996_Thornes_MEDALUS_Test.md`
@@ -131,8 +131,8 @@
 - `papers/1998_Morgan_EUROSEM.md`
 - `papers/1998_Tucker_Bras_HillslopeDrainageDensity.md`
 - `papers/1998_Vining_FluvialSystemsEvolution.md`
-- `papers/1999_Cammeraat_Imeson_PostfirePatterns.md`
 - `papers/1999_CHILD_UsersGuide.md`
+- `papers/1999_Cammeraat_Imeson_PostfirePatterns.md`
 - `papers/1999_Coulthard_CA_HoloceneCatchment.md`
 - `papers/1999_DeJong_SEMMED.md`
 - `papers/1999_Ludwig_Tongway_Marsden_Patterns.md`
@@ -219,8 +219,8 @@
 - `papers/2015_Cohen_mARM5D.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Mao_ChaMRoots.md`
-- `papers/2015_Tang_LPJ_GUESS_FlowRouting.md`
 - `papers/2015_Tang_LPJG_WHyMe_TFM_CarbonBudget.md`
+- `papers/2015_Tang_LPJ_GUESS_FlowRouting.md`
 - `papers/2015_Yetemen_SolarRadiationLandscapeEvolution.md`
 - `papers/2016_Brazhnik_SIBBORK.md`
 - `papers/2016_Christoffersen_TFS_v1_Hydro.md`
@@ -260,7 +260,6 @@
 - `papers/2019_Zhu_Parallelized_SEIMS_Framework.md`
 - `papers/2020_Argles_RED_v1.md`
 - `papers/2020_Bart_RHESSys_WMFire.md`
-- `papers/2020_deWergifosse_HETEROFOR_Water.md`
 - `papers/2020_Ding_PineLitterTransportCapacity.md`
 - `papers/2020_Hao_FineRootsSoilDetachment.md`
 - `papers/2020_Jonard_HETEROFOR_CarbonGrowth.md`
@@ -276,11 +275,12 @@
 - `papers/2020_Oeser_LPJGUESS_WeatheringProductivity.md`
 - `papers/2020_Sato_SEIB_TOPMODEL.md`
 - `papers/2020_VanDenBout_OpenLISEM_LocalTimeStepping.md`
-- `papers/2020_vanDerMeij_HydroLorica.md`
 - `papers/2020_Weemstra_FineRootMass_SRL_TreeSpecies.md`
 - `papers/2020_Wu_Chen_Modeling_Soil_Erosion_With_Evolving_Rills.md`
 - `papers/2020_Wu_Two_Dimensional_Rainfall_Runoff_Soil_Erosion.md`
 - `papers/2020_Zhu_ForestLitter_InfiltrationRunoff.md`
+- `papers/2020_deWergifosse_HETEROFOR_Water.md`
+- `papers/2020_vanDerMeij_HydroLorica.md`
 - `papers/2021_Buckman_FireSpallingSandstone.md`
 - `papers/2021_Calle_LPJwsl_AgeClasses.md`
 - `papers/2021_Doane_TreeThrowFlux.md`
@@ -299,10 +299,10 @@
 - `papers/2022_Fang_ELM_FATES_ParFlow_HillslopeHydrology.md`
 - `papers/2022_Fang_ELM_ParFlow_FATES_Hillslope.md`
 - `papers/2022_Fang_FATES_ParFlow_Topography.md`
-- `papers/2022_Haga_LANDIS_NECN_UnderstorySasa.md`
-- `papers/2022_Haga_LANDIS_Understory_Sasa.md`
-- `papers/2022_Haga_LANDIS_Understory.md`
 - `papers/2022_Haga_LANDISII_Understory_Sasa.md`
+- `papers/2022_Haga_LANDIS_NECN_UnderstorySasa.md`
+- `papers/2022_Haga_LANDIS_Understory.md`
+- `papers/2022_Haga_LANDIS_Understory_Sasa.md`
 - `papers/2022_Kruse_LAVESI_CryoGrid.md`
 - `papers/2022_Lee_WEPP_Erodibility_Critical_Shear.md`
 - `papers/2022_Li_RockFragmentSizeErosion.md`
@@ -347,9 +347,9 @@
 - `papers/2023_Welivitiya_SSSPAM_Catchment.md`
 - `papers/2023_Xu_FATES_HYDRO.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
-- `papers/2024_Cea_Iber_GPU_Multiclass_Erosion.md`
-- `papers/2024_Cea_IberPlus_Multiclass_Erosion.md`
 - `papers/2024_Cea_IberPlus_MulticlassErosion.md`
+- `papers/2024_Cea_IberPlus_Multiclass_Erosion.md`
+- `papers/2024_Cea_Iber_GPU_Multiclass_Erosion.md`
 - `papers/2024_Chen_RootTraitsPurpleSoil.md`
 - `papers/2024_Cunico_BiomassMorphodynamics.md`
 - `papers/2024_Dahanayake_EcoEvidencePlantsReduceErosion.md`
@@ -369,17 +369,17 @@
 - `papers/2024_Pawlik_GraniteBioweatheringSoilFormation.md`
 - `papers/2024_Pawlik_PitMoundSoilHydrology.md`
 - `papers/2024_Perrini_RunoffOnGrid_DREAM_Iber.md`
-- `papers/2024_Shevliakova_LM4_1_VegetationDemography.md`
 - `papers/2024_Shevliakova_LM4_1.md`
+- `papers/2024_Shevliakova_LM4_1_VegetationDemography.md`
 - `papers/2024_ShmiIovitz_Rainstorm_GrainSize_RockyHillslope.md`
 - `papers/2024_Song_SSEM_NaerinForestStormErosion.md`
-- `papers/2024_vanVerseveld_WflowSBM_LAI_Source.md`
 - `papers/2024_Wang_VED.md`
 - `papers/2024_Wei_VegetationComponentsErosion.md`
 - `papers/2024_Welivitiya_PhysicalWeatheringRate.md`
 - `papers/2024_Zeng_PlantCommunitiesErosionResistance.md`
 - `papers/2024_Zhou_NaturalSuccessionRunoffErosion.md`
 - `papers/2024_Zuo_VegetationErosionWeathering.md`
+- `papers/2024_vanVerseveld_WflowSBM_LAI_Source.md`
 - `papers/2025_BalaguerRomano_MEDFATELAND_SpatialForestDynamics.md`
 - `papers/2025_Billings_DeepRootsRegolith.md`
 - `papers/2025_Chaibva_RootTraitsParentMaterial.md`
@@ -392,13 +392,13 @@
 - `papers/2025_Hong_LM4_SHARC.md`
 - `papers/2025_Ion_ASTERIX_2D_VegetatedFlow.md`
 - `papers/2025_Korean_Forest_FineRootTraits_QuercusMongolica.md`
+- `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md`
 - `papers/2025_Langan_aDGVM2_HydraulicDiversity.md`
 - `papers/2025_Li_Hillslope_GrainSize_LandscapeEvolution.md`
 - `papers/2025_Li_SERGHEI_RE.md`
 - `papers/2025_Lim_LANDISII_PostfireKorea.md`
-- `papers/2025_LPJGUESS_PWeathering_CitationUnrecovered.md`
-- `papers/2025_Marechaux_TROLL4_ModelDescription.md`
 - `papers/2025_Marechaux_TROLL4.md`
+- `papers/2025_Marechaux_TROLL4_ModelDescription.md`
 - `papers/2025_MartinezAranda_SERGHEI_SE.md`
 - `papers/2025_Monsalve_RiverBedDynamics_v1.md`
 - `papers/2025_Opedes_OpenLISEM_MountElgon_Trenches.md`
@@ -407,10 +407,10 @@
 - `papers/2025_REGE_HETEROFOR_SoilCarbon.md`
 - `papers/2025_Rogger_BiomassWeathering.md`
 - `papers/2025_Rouet_PDG_Arena.md`
-- `papers/2025_Sato_Sumida_SEIB_Crown_MixedForest.md`
 - `papers/2025_Sato_Sumida_SEIB_Crown.md`
-- `papers/2025_Verbruggen_LPJ_GUESS_RE.md`
+- `papers/2025_Sato_Sumida_SEIB_Crown_MixedForest.md`
 - `papers/2025_Verbruggen_LPJGUESS_RE.md`
+- `papers/2025_Verbruggen_LPJ_GUESS_RE.md`
 - `papers/2025_Wang_SeasonalRootErosionResistance.md`
 - `papers/2025_Zhou_PnET_CN_Succession.md`
 - `papers/2025_Zhou_SedimentSourceSinkSuccession.md`
@@ -420,7 +420,6 @@
 - `papers/2026_Bruns_FORMIND_mHM.md`
 - `papers/2026_Chen_BiomeE_Succession.md`
 - `papers/2026_Chen_MaizeInRowInterRowErosion.md`
-- `papers/2026_deVries_ForSTEM.md`
 - `papers/2026_DiPrima_TreesControlHillslopeSubsurfaceFlow.md`
 - `papers/2026_Emtehani_LISEMHazard_SedimentDeposition.md`
 - `papers/2026_FinaudGuyot_SW2D_Porosity_ShallowWater.md`
@@ -428,19 +427,19 @@
 - `papers/2026_Ghose_SORTIE_SpatialValidation.md`
 - `papers/2026_Gutierrez_ATYS_VegetationMorphodynamics.md`
 - `papers/2026_Hotta_LANDISII_PostLandslideRecovery.md`
-- `papers/2026_Jia_ParFlow_LPJ_GUESS.md`
-- `papers/2026_Jia_ParFlow_LPJGUESS.md`
 - `papers/2026_Jia_PF_LPJG.md`
+- `papers/2026_Jia_ParFlow_LPJGUESS.md`
+- `papers/2026_Jia_ParFlow_LPJ_GUESS.md`
 - `papers/2026_Jo_Oh_GounsaTempleForestFireDamage.md`
 - `papers/2026_Kantzenbach_GRASSMIND_BODIUM.md`
-- `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
 - `papers/2026_Li_Tian_UnderCanopyKineticEnergy.md`
+- `papers/2026_Li_Tian_UndercanopyKineticEnergy.md`
 - `papers/2026_Pawlik_ForestBiogeomorphicDisturbances.md`
 - `papers/2026_Samoil_BurnSeverityHillslopeRainSimulator.md`
 - `papers/2026_Samonil_TreeMortalityErosion.md`
 - `papers/2026_Song_SlopeDependentRockFragmentErosion.md`
-- `papers/2026_Stoebke_LPJ_GUESS_SEC.md`
 - `papers/2026_Stoebke_LPJGUESS_CanopyStructure.md`
+- `papers/2026_Stoebke_LPJ_GUESS_SEC.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
 - `papers/2026_Wang_DeconstructingSoilDetachment.md`
 - `papers/2026_Yang_LPJGUESS_CSLE.md`
@@ -448,12 +447,12 @@
 - `papers/2026_Zhang_PostfireEcosystemErosion.md`
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
+- `papers/2026_deVries_ForSTEM.md`
 
 ## Models (93)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
-- `models/aDGVM_aDGVM2_2D.md`
 - `models/ARMOUR_mARM_SSSPAM.md`
 - `models/ASTERIX.md`
 - `models/BiomeE_BiomeEP.md`
@@ -471,27 +470,24 @@
 - `models/EDYS_TerreSIM.md`
 - `models/ELM_Erosion.md`
 - `models/EUROSEM.md`
-- `models/FATE_HD.md`
-- `models/FATES_HYDRO_SUPPORT_STATUS.md`
 - `models/FATES.md`
-- `models/FeST.md`
-- `models/FireBGCv2.md`
+- `models/FATES_HYDRO_SUPPORT_STATUS.md`
+- `models/FATE_HD.md`
 - `models/FORECAST_ForWaDy.md`
-- `models/Forest_Disturbance_2004.md`
 - `models/FORHYCS_TreeMig_PREVAH.md`
 - `models/FORMIND_mHM_GRASSMIND.md`
+- `models/FeST.md`
+- `models/FireBGCv2.md`
 - `models/ForSAFE_Veg_2D.md`
+- `models/Forest_Disturbance_2004.md`
 - `models/GOplus.md`
 - `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/HETEROFOR.md`
 - `models/HydroPol2D.md`
 - `models/Iber.md`
-- `models/iLand_LiDAR_Audit.md`
 - `models/JSBACH4_ForestAge.md`
 - `models/JULES_RED.md`
-- `models/LandClim_Understory.md`
 - `models/LANDIS_II_NECN.md`
-- `models/LandscapeDNDC_PSIM.md`
 - `models/LAPSUS.md`
 - `models/LAVESI_FIRE.md`
 - `models/LISEM_Integrated_VanDenBout_Source_Audit.md`
@@ -505,25 +501,27 @@
 - `models/LPJ_GUESS_Weathering.md`
 - `models/LPJ_wsl_2_0.md`
 - `models/LPJmL_FIT.md`
-- `models/McGuire_RillNetwork.md`
-- `models/MEDFATE_medfateland.md`
+- `models/LandClim_Understory.md`
+- `models/LandscapeDNDC_PSIM.md`
 - `models/MEDFATE_MEDFATELAND.md`
 - `models/MEDFATE_SERGHEI_DEEP_AUDIT.md`
-- `models/OpenLISEM_2026.md`
-- `models/OpenLISEM.md`
+- `models/MEDFATE_medfateland.md`
+- `models/McGuire_RillNetwork.md`
 - `models/ORCHIDEE_CAN_NHA.md`
+- `models/OpenLISEM.md`
+- `models/OpenLISEM_2026.md`
 - `models/PHOREAU.md`
 - `models/PICUS.md`
-- `models/Postfire_Dry_Ravel.md`
 - `models/PREBAS.md`
 - `models/PROMET_DANUBIA.md`
 - `models/PSEM_2D.md`
+- `models/Postfire_Dry_Ravel.md`
 - `models/REWTCrunch.md`
 - `models/RHESSYS_WMFIRE.md`
+- `models/RReShar_Regelib.md`
 - `models/RillGrow.md`
 - `models/Rock_Fragment_Armour.md`
 - `models/Root_Reinforcement.md`
-- `models/RReShar_Regelib.md`
 - `models/SCION_FLORA.md`
 - `models/SEIB_DGVM.md`
 - `models/SEIMS.md`
@@ -531,11 +529,10 @@
 - `models/SHETRAN.md`
 - `models/SIBERIA.md`
 - `models/SORTIE_ND.md`
-- `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/SWAT_PLUS_Subdaily_Erosion.md`
 - `models/SWEHR.md`
+- `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/TREX.md`
-- `models/tRIBS_FEaST.md`
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
@@ -544,8 +541,11 @@
 - `models/WiMMed_HEMINGS.md`
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
+- `models/aDGVM_aDGVM2_2D.md`
+- `models/iLand_LiDAR_Audit.md`
+- `models/tRIBS_FEaST.md`
 
-## Decisions (68)
+## Decisions (78)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -575,8 +575,8 @@
 - `decisions/2026-09-23_STRICT_SPATIAL_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_TOP_VEGETATION_LINEAGES_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
-- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
+- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_SOURCE_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_SHORTLIST_DECISION.md`
 - `decisions/2026-09-23_VEGETATION_IMPLEMENTATION_SCOPE.md`
@@ -584,6 +584,7 @@
 - `decisions/2026-09-23_WOODS_LANDS_DYNAFORB_SCREEN.md`
 - `decisions/2026-09-28_SURFACE_GRAIN_SIZE_MODEL_REVIEW.md`
 - `decisions/2026-10-25_CANOPY_STEMFLOW_RUNOFF_EROSION_RESEARCH.md`
+- `decisions/2026-10-26_DEADLINE_GOUNSA_MODEL_ARCHITECTURE_AND_DATA_PLAN.md`
 - `decisions/2026-10-26_DENSE_MISCANTHUS_SPARSE_OAK_SPATIAL_COMPARISON.md`
 - `decisions/2026-10-26_EUROSEM_1998_NATIVE_SEDIMENT_LEDGER_RILL_FAILURE.md`
 - `decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md`
@@ -615,3 +616,12 @@
 - `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
 - `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
+- `decisions/2026-10-27_SHETRAN_0P648HA_FOUR_COVERS_10TO50MMH_EXPERIMENT_PROTOCOL.md`
+- `decisions/2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md`
+- `decisions/2026-10-27_SHETRAN_LARGER_HILLSLOPE_35_NATIVE_RESULTS.md`
+- `decisions/2026-10-27_SHETRAN_NATIVE_MIXED_CANOPY_ON_OFF_REPRO_TEST.md`
+- `decisions/2026-10-27_SHETRAN_OPEN_FOUR_SIDES_0P648HA_35_SCENARIOS_NATIVE.md`
+- `decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md`
+- `decisions/2026-10-27_SHETRAN_STRICT_NATIVE_SMALL_PLOT_VALIDATION_VERDICT.md`
+- `decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md`
+- `decisions/2026-10-27_SINGLE_STORM_MIXED_OAK_MISCANTHUS_CANOPY_ABLATION_PROTOCOL.md`
