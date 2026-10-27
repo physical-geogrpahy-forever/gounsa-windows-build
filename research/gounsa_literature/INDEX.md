@@ -2,9 +2,9 @@
 
 업데이트: 2026-10-28
 
-이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다. `.gitkeep`를 포함하여 계수한다.
+실제 GitHub 파일 트리로 생성한 인덱스다. 개수에는 `.gitkeep`가 포함된다.
 
-## Papers (514)
+## Papers (515)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -389,6 +389,7 @@
 - `papers/2023_Jia_Wells_Momm_Zhang_Bennett_CCHE2D_Raindrop_Rill_Gully_Morphology.md`
 - `papers/2023_Katayama_Nanko_Jeong_Canopy_Drip_Kinetic_Hotspots.md`
 - `papers/2023_KatoNoguchi_KudzuInvasionReview.md`
+- `papers/2023_Kim_Jeong_Kim_Kim_Microtopography_2D_HR_10cm.md`
 - `papers/2023_Kim_tRIBS_FEaST_HairsineRose.md`
 - `papers/2023_Ma_RootDetachmentGrassShrub.md`
 - `papers/2023_Makela_PREBAS_ForestManagement.md`
@@ -641,7 +642,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (116)
+## Decisions (117)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -754,6 +755,7 @@
 - `decisions/2026-10-27_WEI_2017_FOREST_TREX_CANOPY_SPLASH_2D_INTEGRATED_90M_NO_CODE.md`
 - `decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md`
 - `decisions/2026-10-28_HEC_HMS_414_SINGLE_PROGRAM_NATIVE_CANOPY_2D_SEDIMENT_GATE.md`
+- `decisions/2026-10-28_KIM_2023_10CM_TRUE_2D_HR_AND_OUYANG_SOURCE_ACCESS_GATE.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
 - `decisions/2026-10-28_OUYANG_2023_LAI_2D_HR_CODE_DOI_AND_SWEHR_GEOtopSed_RECHECK.md`
 - `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
