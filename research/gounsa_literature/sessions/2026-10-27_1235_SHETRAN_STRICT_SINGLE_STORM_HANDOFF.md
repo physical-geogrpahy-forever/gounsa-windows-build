@@ -34,3 +34,15 @@
 ## 이미 확인된 논쟁점
 - EUROSEM 원본은 1D `PLANE`+rill/interrill이며 Gounsa 국지 2D 자유흐름의 대체 단일모델이 아님. 기존 rilled 12/12 sediment mass budget fail.
 - SHETRAN 원본은 자체 canopy+2D diffusion flow+native SYCOLM 4방향 수송 및 퇴적 기능이 존재, 하지만 rill initiation/DEM feedback 원본 미구현. 0.5m 해상도는 static array capacity 내여도 물리적/수치적 검증과 동의어가 아님.
+
+## 2026-10-27 중대정정 및 재시험: 이전 TMAX 수렴 실패 결론 철회
+
+**이 인계서 상단의 이전 `TMAX` 불합격/비수렴 주장은 폐기했다.** 원본 `FRmod.f90:5455`은 `PMAX,PALFA,QMAX,TMAX,BSOFT` 고정폭 순서인데, 전임 검증 스크립트는 최초 `PMAX`를 변화시켰다. 이는 원본 SHETRAN 결함이 아닌 본 연구 검증 툴의 입력 필드 오독. 원본 `TMSTEP`은 PMAX를 통해 강우 발생시 timestep를 강제 감소시킨다. [근거 및 공식정정](../decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md).
+
+**재검증 결과:** 첫 `PMAX=1mm` 고정, 네 번째 `TMAX`를 정확하게 바꾸고 NSTEP 기반 softstart는 비교통제를 위해 OFF. 4m×176 셀 합성 closed domain에서 TMAX .03125→.015625→.007812→.003906h 원본 Native 실행 전부 성공, moving-sediment native mass closure 모두 통과. 최소 약14초 단계의 gross original soil supply ON .1127019645, OFF .1327640207m³ solid. 약28초 단계와 14초 비교 총원토양 박리량 차 ON .4639%, OFF .3608%. [네이티브 실행](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446202523).
+
+**국지 순고도/퇴적지도 진단:** [실제 `GNU` 및 `DLS` native 기록 176셀 비교](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40446161132). 약 28→14초의 동일 셀 `∆z` RMS 차 ON .00021355mm, OFF .00018394mm. ON 순퇴적 hotspot 6 vs5셀, 5셀 공통. OFF 4 vs4셀 전부 공통. **이 결과로 4m synthetic event에서 일관된 국지 지표 침식/퇴적 및 시간간격 안정성 확인**. 다만 사상 내 ∆z 동적 되먹임은 없으며 gounsa 실측 data가 아니라 시험지형, open outlet, dx 수렴, 잔존토심 제한은 미검증.
+
+[수정한 최종 종합판정](../decisions/2026-10-27_SHETRAN_STRICT_NATIVE_SMALL_PLOT_VALIDATION_VERDICT.md).
+
+**다음 작업:** 시간간격 검증은 이제 결과 재현되었으므로 open outlet 진짜 flow/sediment export mass ledger, 동일 현장 영역 2m→1m→0.5m DX 공간수렴, 억새/참나무 LAI와 `CSTCAP` 현장 측정자료 확보, event 기반 실제 강우 데이터와 지형 DEM 적용 우선. 모델 자체를 불합격이라 기각할 근거는 현재는 없다. 단일모델 SHETRAN candidate 유지.
