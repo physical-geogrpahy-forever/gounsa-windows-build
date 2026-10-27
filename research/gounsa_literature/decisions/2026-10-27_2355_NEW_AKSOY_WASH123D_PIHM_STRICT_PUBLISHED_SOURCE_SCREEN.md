@@ -20,3 +20,7 @@ The user instructs continue finding OTHER published original same-model solution
 
 ## Next strict target
 Seek original **5–10cm forest canopy-on/off sediment with full two-component momentum, same source release**. Don't spend user time promoting software merely because broad CSDMS 'sediment' module or MIT canopy C code exists.
+
+
+## 2026-10-27 더 읽은 Aksoy 원문에서 확인한 2D 용어의 함정
+[2020 Aksoy canonical revised](../papers/2020_Aksoy_Gedikli_Yilmaz_2D_Rill_Interrill_Lab_Validation.md). Elsevier 공개 Introduction (§Introduction) explicitly describes model's 2016 hydrological predecessor as derived from a 2D control volume **but taking only the longitudinal flow direction**; the 2020 erosion paper discusses 2D sediment conservation yet calls reduction of dimensions one of its novelties. Thus nominal "two-dimensional" paper title **does not prove freely spreading X/Y shallow-water momentum solver**. Study actual bare flume geometry 6.50m long x1.36m wide x0.17m deep and sand D50 0.45/0.15mm; no actual computational Δx 5cm demonstrated. Splash and flow erosion source in intro, but no LAI interception. **Downgrade Aksoy from "free XY unknown" to "free XY not demonstrated and hydrologic lineage explicitly longitudinal-only".**
