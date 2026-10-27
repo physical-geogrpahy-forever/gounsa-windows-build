@@ -49,6 +49,14 @@ jobs:
             --workdir /tmp/gounsa_shetran_microscale \
             --grid-m 4.0 \
             --allow-native-failure
+      - name: Native microplot canopy ON OFF with 1h dry sediment warmup
+        run: |
+          python audit/experiments/shetran_mixed_canopy_native_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --workdir /tmp/gounsa_shetran_microscale_warmup \
+            --grid-m 4.0 \
+            --warmup-hr 1
       - name: Apply diagnostic-only source logging after pristine native cases
         run: |
           python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
@@ -77,6 +85,9 @@ jobs:
             /tmp/gounsa_shetran_microscale/failure.json
             /tmp/gounsa_shetran_microscale/*/summary.json
             /tmp/gounsa_shetran_microscale/*/native_stdout.log
+            /tmp/gounsa_shetran_microscale_warmup/comparison.json
+            /tmp/gounsa_shetran_microscale_warmup/*/summary.json
+            /tmp/gounsa_shetran_microscale_warmup/*/native_stdout.log
             /tmp/gounsa_shetran_sediment_ledger/pair_summary.json
             /tmp/gounsa_shetran_sediment_ledger/*/mass_ledger.json
             /tmp/gounsa_shetran_sediment_ledger/*/mass_steps.json
