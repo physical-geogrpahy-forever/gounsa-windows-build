@@ -6,7 +6,7 @@ All vegetation properties are HYPOTHETICAL and must not be presented as field da
 """
 import argparse,sys,math,csv,json,re,subprocess
 from pathlib import Path
-from collections import defaultdict
+from collections import defaultdict,deque
 import numpy as np
 from shetran_mixed_canopy_native_20261027 import prepare,make_fixed_et_line
 
@@ -149,7 +149,9 @@ def execute(exe,source,root,typ,rain,on,dt):
     records={}
     budget=[]
     logs=[]
+    tail=deque(maxlen=250)
     for raw in proc.stdout:
+        tail.append(raw.rstrip()[:260])
         x=raw.find("QA_FINAL_CELL")
         if x>=0:
             a=raw[x:].split()
@@ -171,8 +173,15 @@ def execute(exe,source,root,typ,rain,on,dt):
         elif len(logs)<30 and any(w in raw for w in ["ERROR","Error","FATAL","Warning"]):
             logs.append(raw.strip()[:240])
     rc=proc.wait(timeout=300)
-    (dest/"simulation_diagnostics.txt").write_text("\n".join(logs))
-    assert rc==0,(name,rc,logs)
+    (dest/"simulation_diagnostics.txt").write_text("\n".join(tail))
+    if rc!=0:
+        diag={}
+        for file in ("output_cob_pri.txt","output_cob_spr.txt"):
+            p=dest/file
+            diag[file]=p.read_text(errors="replace")[-5000:] if p.is_file() else "NOT_CREATED"
+        (dest/"native_failure_diagnostics.json").write_text(json.dumps(diag,indent=2))
+        raise RuntimeError(f"{name} exited {rc}; STDOUT_TAIL: "+repr(list(tail)[-30:])+
+                           "; DIAGNOSTICS: "+repr(diag))
     assert len(records)==405,(name,"active cells",len(records))
     assert len(budget)>30,(name,"budget",len(budget))
     arr=np.asarray(budget)
