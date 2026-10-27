@@ -23,7 +23,7 @@ def make_fixed_et_line(plai,storage,clai):
     return (f"{8:7d}{plai:7.3f}{storage:7.3f}{3e-5:7.5f}"
             f"{3.7:7.1f}{20:7d}{clai:7.2f}{0.:7.2f}{0.:7.2f}")
 
-def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
+def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0, warmup_hr=0):
     shutil.copytree(src,dest)
     f=dest/"input_cob_frd.txt"
     l=f.read_text().splitlines(keepends=True)
@@ -166,8 +166,9 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     # 3h rain, 9h recession; only synthetic test storm.
     f=dest/"input_wet_prd.txt";l=f.read_text().splitlines(keepends=True)
     assert len(l)>13 and "rainfall" in l[0].lower()
+    assert 0<=warmup_hr<=8, warmup_hr
     for k in range(1,13):
-        l[k]="".join(f"{(mmh if k<=3 else 0.):10.4f}" for _ in range(5))+"\n"
+        l[k]="".join(f"{(mmh if warmup_hr<k<=warmup_hr+3 else 0.):10.4f}" for _ in range(5))+"\n"
     f.write_text("".join(l))
     # Set measured PET forcing to zero for first 12 h; reduces but does not prove 
     # all transpiration-related effects excluded from native canopy ablation.
@@ -181,7 +182,7 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
                 ll[k]="".join(f"{0.:10.4f}" for _ in q)+"\n";zeroed+=1
         f.write_text("".join(ll))
     meta={"case":"ON" if canopy_on else "OFF","grid_m":grid_m,
-          "requested_extent_m2":17*29*grid_m**2, "event_mm_h":mmh,
+          "requested_extent_m2":17*29*grid_m**2, "event_mm_h":mmh,"storm_start_after_warmup_hr":warmup_hr,
           "species":["synthetic oak resprout","synthetic Miscanthus patch"],
           "NVC_map":grid,"off_note":"PLAI=0 also affects ET, so ON-OFF is not a pure isolated canopy toggle"}
     (dest/"synthetic_metadata.json").write_text(json.dumps(meta,indent=2))
@@ -227,9 +228,9 @@ def extract(path):
                 peak_erosion_mm_day=float(np.max(E[valid])),
                 final_loose_mm_mean=float(np.mean(D[valid][:,-1])))
 
-def run_one(exe,src,root,label,canopy_on,grid_m):
+def run_one(exe,src,root,label,canopy_on,grid_m,warmup_hr=0):
     dest=root/label
-    meta=prepare(src,dest,canopy_on=canopy_on,grid_m=grid_m)
+    meta=prepare(src,dest,canopy_on=canopy_on,grid_m=grid_m,warmup_hr=warmup_hr)
     run=subprocess.run([str(exe),"-f","rundata_cob.txt"],cwd=dest,
                        capture_output=True,text=True,timeout=300)
     (dest/"native_stdout.log").write_text(run.stdout+"\nSTDERR\n"+run.stderr)
@@ -254,14 +255,15 @@ def main():
     a.add_argument("--exe",type=Path,required=True)
     a.add_argument("--workdir",type=Path,required=True)
     a.add_argument("--grid-m",type=float,default=2000.)
+    a.add_argument("--warmup-hr",type=int,default=0)
     a.add_argument("--allow-native-failure",action="store_true")
     args=a.parse_args()
     exe=args.exe.resolve()
     src=args.original_model.resolve()
     args.workdir.mkdir(parents=True,exist_ok=True)
     try:
-        on,sm_on=run_one(exe,src,args.workdir,"on",True,args.grid_m)
-        off,sm_off=run_one(exe,src,args.workdir,"off",False,args.grid_m)
+        on,sm_on=run_one(exe,src,args.workdir,"on",True,args.grid_m,args.warmup_hr)
+        off,sm_off=run_one(exe,src,args.workdir,"off",False,args.grid_m,args.warmup_hr)
         assert np.array_equal(on["mask"],off["mask"])
         good=on["mask"]
         # Spatial sensitivity is a necessary but not sufficient signal of canopy effect.
