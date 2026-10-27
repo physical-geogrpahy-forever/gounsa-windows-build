@@ -46,3 +46,39 @@ https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo
 
 ## 2026-10-27 개발 계보 확인
 원문 https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2022.765148/full 의 `Model Selection` 절은 모델을 `LISEM (Limburg Soil Erosion Model)`로 표기하고 `Jetten and De Roo 2001` 및 초기 LISEM 연구를 인용하며 **kinematic-wave routing**을 설명한다. 따라서 **고전 LISEM / OpenLISEM classic 계열** 사용 가능성이 높다. 하지만 **어떤 classic 실행 버전**(200x LISEM, 201x OpenLISEM 등)인지는 원문 미기재이므로, 실제 `v7.5.2` 또는 신형 `LISEM v0.x`를 썼다고 단정 불가.
+
+
+## 2026-10-27 원문+당시 GitHub 원본 상세 재감사 (이전 결론 보완)
+
+### 실제 원문 방법론 검증
+- Maggioli et al. (2022), Frontiers 본문 §Model Selection: **LISEM은 5cm DTM을 동일한 5cm 계산격자로 사용**, 1초 단위 시사상 유출 및 침식 맵 생성. 유동은 저자가 명시한 **kinematic wave routine**. 따라서 자유로운 X/Y 2D SWEs에서 모의했다는 이전 해석은 원문에 위배.
+- §Vegetation Related Variables: TLS 5cm 픽셀의 식생 classified point 비율을 cover로 산출, Ramírez et al. (2007) 피복 기반 경험식으로 LAI 추정, 수관저류용량에 사용. 실측 LAI가 아니라 **피복 유래 간접추정**. 해당 논문에서 canopy ON/OFF만 바꾸고 Ksat, cohesion, cover/roughness를 동일하게 통제하는 수관차단만의 인과실험은 제시되지 않음.
+- §Calibration: 원시 48개 이벤트 중 유출을 발생시킨 **18개**를 계산, 2014~2015년 사면의 18개월 TLS 변화에 기반한 **총침식량**으로 PSI(건조/습윤 초기조건 90/20cm) 보정. 다음 동일 기간 총량으로 예측 3.55t vs 관측 2.81t 비교, 논문은 'RMSE 17.79%' 보고. **다른 강우사상 독립 holdout validation이나 매 격자 DoD RMSE가 아님**. RMSE 17.79%의 분모·정의는 식/표에서 직접 확인되지 않았으므로 우리가 새로 정확도 계산했다고 주장 금지. `validation`이라는 원문 표현만으로 독립 검증으로 격상하지 않음.
+- §Soil Surface: under-plant D50=5 μm, root extra cohesion 9.48kPa, Ksat vegetation25mm/h vs bare3mm/h (biocrust10mm/h). **식생 시나리오의 침식 차이는 수관차단만의 효과가 아니라 침투, 토양강도, 조도/피복 효과가 중첩**.
+- §Data Availability: 저자들이 요청시 원자료 제공 가능하다고 기술하지만, **논문에 DOI/공개 GitHub/즉시 다운로드하는 5cm runfile, *.map inputs, original executable/commit 링크 없음**. 광범위 public search에서도 matching dataset 발견하지 못함. 이는 존재하지 않는다고 증명한 것은 아님.
+
+### 2022-02-11의 실제 OpenLISEM GitHub 소스 독립검증
+- 같은 **논문 발표일 2022-02-11**의 `vjetten/openlisem` public commit `3b0264ef557c031fe39fb6d523c3669bf6e1296a`: `include/version.h` **6.837 beta** (blob b590659e30e8429ea27b5b69ff75fc00abf3e33f).
+- 역사적 `lisInterception.cpp` blob `571ea19061c4a81f2cf2696594814f1829180bf8`: `CanopyStorage`, `kLAI`, `LeafDrain`, `CStor`, `RainNet`, litter storage 구현.
+- `lisErosion.cpp` blob `ffe013e2bf67ccd816305b5bc1891d6032bb9528`: `cell_SplashDetachment` separates directrain, canopy leaf throughfall, plant height KE; `SwitchKinematic2D==K2D_METHOD_DYN` selects 2D sediment input.
+- `lisSWOF2DSediment.cpp` blob `591054b501f57b2f7ff7517ba25d3371171665ac`: `SWOFSedimentDetNew → SWOFSedimentFlowInterpolation → SWOFSedimentSetConcentration`; `lisOverlandflow.cpp` blob `770b9942f513547885f053c12cf24a7165a16f93` independently shows `K2D_METHOD_KIN` LDD branch **and** `K2D_METHOD_DYN` FullSWOF branch. **소스에서 두 solver 존재**와 **Maggioli 5cm 실험에서 2D solver 사용**은 전혀 다름.
+- **과거 코드에도 settling velocity 분기 문제 후보:** `lisErosion.cpp::GetSV` d<100 μm에서 Stokes, d≥100 μm에서 `double dm=d/1000.0` 계산. 미터 변환 `d/1e6`과 다르고 100μm 경계에서 비정상적 velocity jump 발생할 수 있음. 2026년 7.5.2의 고운사 100μm 오류와 계보상 일치하는 취약점이다. **하지만 Maggioli 원문 D50=5 μm이므로 이 사실만으로 2022 논문 시뮬레이션이 잘못되었다고 결론내리지 않는다.**
+- 공식 공개 `vjetten/openlisem` release의 `openLisemSetup_7.5.2.exe` asset 갱신일은 **2026-10-15**이고 v7.5.2 label 자체는 2026 계열. 발표일의 GPL 소스는 6.837 beta, 고운사 native Windows 7.5.2는 별도 구현시점/실행판. **6.837 또한 Maggioli가 직접 사용한 정확한 SHA라는 증거는 없음**. 재현하려면 저자 당시의 원본 프로그램/설정 및 입력 데이터 확인 필수.
+
+### 추가 확인한 2026년 7.5.2 1초 재검증 작업 상태
+- [GitHub Actions 40304815539](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304815539) 의 1/2/5/10/20초 확장 재시험: GitHub job `121511206049` 은 **20분 timeout, 실패**. 해당 로그에서 일부 10/20초 결과를 복구했으나 `2D_GATE_MISSING` 1초/2초 다수. 그러므로 **1초에서 비수렴이 해결되었다거나 1초에서 실패가 입증되었다고 양쪽 모두 주장 금지**.
+- [2m reference run 40303685346](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40303685346) 도 **30분 timeout 및 `RuntimeError: NO_VALID_SIMULATIONS`**. 이는 2m 비수렴이 성립한다는 판정이 아니라 **완전한 유효 native QA 미확보**를 뜻함.
+
+### 원본 재현 및 주모델 채택에 대한 엄격 결론
+- 5cm+LAI canopy+rain/erosion published example **확인**. 그러나 **운동파 유동, 사상 간 독립검증 없음, 사용자 요구 free 2D 미달, exact version/input archive 없음, 과거 수정판 7.5.2에서 실제 dt nonconvergence**.
+- 고운사 단일 원본모델로 지금 즉시 **채택 불가**. 2022 snapshot 6.837에는 full 2D 코드가 있지만, 저자 사례의 5cm free 2D 검증으로 인용하면 안 됨.
+- 다음 단계는 (1) 해당 연구판 유래 자료가 실제 별도 공개되었는지 특정 또는 (2) 별도 공개된 published genuine 2D+canopy+5cm erosion benchmark 검증이지, 기존 탈락 실행판을 논문 존재만으로 재승인하는 것 아님.
+
+### 확인한 원본 및 근거 URL
+- https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2022.765148/full
+- https://github.com/vjetten/openlisem/commit/3b0264ef557c031fe39fb6d523c3669bf6e1296a
+- https://github.com/vjetten/openlisem/blob/3b0264ef557c031fe39fb6d523c3669bf6e1296a/include/version.h
+- https://github.com/vjetten/openlisem/blob/3b0264ef557c031fe39fb6d523c3669bf6e1296a/lisInterception.cpp
+- https://github.com/vjetten/openlisem/blob/3b0264ef557c031fe39fb6d523c3669bf6e1296a/lisErosion.cpp
+- https://github.com/vjetten/openlisem/blob/3b0264ef557c031fe39fb6d523c3669bf6e1296a/lisSWOF2DSediment.cpp
+- https://github.com/vjetten/openlisem/releases
