@@ -82,3 +82,11 @@ https://doi.org/10.5281/zenodo.7414954
 - [modelruncompile.cpp](https://github.com/bastianvandenbout/LISEM/blob/6a5ef17d87bab4227d48673c95c12c61462114dd/lisem/model/modelruncompile.cpp)
 - [model_flow.cl](https://github.com/bastianvandenbout/LISEM/blob/6a5ef17d87bab4227d48673c95c12c61462114dd/lisem/model/kernels/model_flow.cl)
 - [version.h](https://github.com/bastianvandenbout/LISEM/blob/6a5ef17d87bab4227d48673c95c12c61462114dd/lisem/core/version.h)
+
+
+## 2026-10-27 전수 브랜치 재확인 및 이전 판단의 범위 제한
+- 모든 공개 GitHub 브랜치 `main`, `develop`, `website` 확인. `main` 0.2.3 (2022-08-10), `develop` 0.2.5 (2022-12-12), `website`는 계산 소스 없는 문서 브랜치.
+- 핵심 파일 `model_hydrology.cl`, `model_evapotranspiration.cl`, `model_sediment.cl`, `modelruncompile.cpp`는 **main과 develop Git Blob SHA 완전 동일**. 개발 브랜치에서 `Smaxc` 미사용, `SCANOPYN=0`, `erosion Arg81 rain_m=0` 문제 **계속 유지**.
+- develop `model_flow.cl`의 경계 `qfout` ternary 괄호 수정은 실제 확인. 그러나 `model_sediment.cl`의 `qfsout` 유사 코드에서는 괄호 수정 미적용. `flow.cl` rain 시간격자 배율도 main `dt_hydro/dt`에서 develop `dt/dt_hydro`로 변경. 네이티브 안정성 영향은 미검증.
+- GitHub 공식 Beta 0.2.4 `source` 릴리스 태그가 실제로는 0.2.3 main SHA를 참조함. SourceForge 별도 0.2.4 Windows 실행판 존재, 개발자 0.2.4 강우버그 수정 공지 존재. **별도 0.2.4 실행파일 자체의 수관/강우박리 정상 여부는 미검증**이므로 정적 소스의 NO-GO를 공식 0.2.4 exe에 그대로 적용하지 말 것.
+- [전체 브랜치별 정확 커밋·SHA 및 호출경로 기록](../decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md).
