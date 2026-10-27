@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (449)
+## Papers (454)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -108,6 +108,7 @@
 - `papers/1995_Foster_WEPP_Hillslope_Erosion_Component.md`
 - `papers/1995_Kirkby_Cox_ClimaticErosionIndex.md`
 - `papers/1995_Kirkby_VegetationLandformLinks.md`
+- `papers/1995_Lukey_Sheffield_Bathurst_Vegetation_SHETRAN.md`
 - `papers/1995_Stott_WEPP_Residue_Component.md`
 - `papers/1995_Takahashi_KudzuSoilMtRokko.md`
 - `papers/1995_Thiery_BandedVegetationNiger.md`
@@ -121,6 +122,7 @@
 - `papers/1997_Ascough_WEPP_Watershed.md`
 - `papers/1997_Ghidey_Alberts_Plant_Root_Erodibility.md`
 - `papers/1998_Arnold_SWAT.md`
+- `papers/1998_Bathurst_Lukey_Sheffield_Draix_Gully_SHETRAN.md`
 - `papers/1998_Densmore_LandslideLEM.md`
 - `papers/1998_EUROSEM_GRIDSEM.md`
 - `papers/1998_Evans_SIBERIA_VegetatedMine.md`
@@ -148,8 +150,10 @@
 - `papers/2003_Gabet_BioturbationSedimentTransport.md`
 - `papers/2004_Hanson_Cook_JetErosionTest.md`
 - `papers/2004_Istanbulluoglu_ForestDisturbanceSediment.md`
+- `papers/2004_NorouziBanis_Bathurst_Walling_Shetran_Cs137.md`
 - `papers/2004_Roering_VegetationTransportEfficiency.md`
 - `papers/2004_Schumacher_LandClim.md`
+- `papers/2005_Adams_Parkin_RainfallSimulator_SHETRAN_Hillslope.md`
 - `papers/2005_Bathurst_SHETRAN_Valsassina_Landslides.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
@@ -296,6 +300,7 @@
 - `papers/2021_Parhizkar_ForestTreeSpeciesRill.md`
 - `papers/2021_Parhizkar_NaturalPlantedForests.md`
 - `papers/2021_ShtoberZisu_WildfireRockWeatheringStoniness.md`
+- `papers/2021_Sreedevi_Eldho_SHETRAN_GridSize_Sediment.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part1.md`
 - `papers/2021_Wu_OpenLISEM_Wildfire_Part2.md`
 - `papers/2021_Zanchi_ForSAFE2D.md`
@@ -552,7 +557,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (78)
+## Decisions (79)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -624,6 +629,7 @@
 - `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
 - `decisions/2026-10-27_SHETRAN_0P648HA_FOUR_COVERS_10TO50MMH_EXPERIMENT_PROTOCOL.md`
+- `decisions/2026-10-27_SHETRAN_472_CODE_PAPER_PROVENANCE_AND_APPLICATIONS.md`
 - `decisions/2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md`
 - `decisions/2026-10-27_SHETRAN_LARGER_HILLSLOPE_35_NATIVE_RESULTS.md`
 - `decisions/2026-10-27_SHETRAN_NATIVE_MIXED_CANOPY_ON_OFF_REPRO_TEST.md`
