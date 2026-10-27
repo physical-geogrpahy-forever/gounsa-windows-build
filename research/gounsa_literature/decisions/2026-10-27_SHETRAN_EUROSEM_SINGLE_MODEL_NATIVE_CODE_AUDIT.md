@@ -37,6 +37,11 @@
 - 원본 `ZGRUND`는 `SYMAIN` `INTENT(IN)`; 흐름에 영향을 주는 DEM은 사건 중 새 토사퇴적/박리로 갱신되지 않는다. 1회 계산에서 **event-end local deposition and gross erosion maps는 계산 가능**, 다만 `∆z` 자체는 보존된 `GNU` 시간적산과 `DLS_end-DLS_start`로 후처리 추산해야 하며 **사건 중 자동 rill-incision/굴착 피드백은 없다**.
 - `src/core/sglobal.f90` L119-133: 수평격자 범위 1000x1000, 총 요소 250000, 입경 상한 7종. 예컨대 100x100m, dx=0.5m -> 200x200=40000 grid는 **정적 배열 상한 이내**. 실제 해당 해상도 계산 성능, 안정성 및 자료 지원 여부는 미검증.
 
+### 1.3.1 반드시 구별할 것: 국지 퇴적량과 표층퇴적물 저장량
+- `SYCOLM`의 최종 `DLSE=(1-A1)*VDSUM/AREAE`는 **그 격자에 남아 있는 이동가능한 표층퇴적물의 깊이**이며, 한 강우사상 동안 발생한 **총퇴적량(gross deposition) 자체가 아님**. `VDSUM`에는 기존 DLS, 이전 부유상, 새 원토양 박리 `FETA*GNU*DTSY`, 이웃 유입이 모두 섞여 있음.
+- 따라서 시각별 `DLS` 차이만 보고 '수관차단에 의해 이 격자에 총 몇 kg이 퇴적됐다'라고 말하면 오류. 새 원토양 박리량과 재박리/재퇴적을 풀어 계산하려면 `SYCOLM`의 `A1,VDSUM,VDSED,FDELE,QSED` 및 저장증감, 부유상의 흐름을 **원본 진단만 추가해 분리 적산**해야 함. 이는 새로운 결합모형이 아니라 **같은 SHETRAN 소스 내부의 계측과 후처리**이지만 아직 구현/검증되지 않음.
+- 기초적인 순 고도변화는 물리량 환산을 확인하여 `-∫GNUdt + ΔDLS`로 조건부 계산할 수 있으나, **gross deposition map, gross detachment map, net geomorphic change map을 서로 다른 출력**으로 유지할 것.
+
 ### 1.4 출력을 사용하는 데 필요한 경고
 - **원본 `BALSED`는 빈 SUBROUTINE** (`SYmod.f90` L4668–4669). 따라서 코드의 개별 이송식은 보존형으로 보이지만 **전체 입경별 총유사 질량보존을 실제 확인했다고 하면 안 된다**.
 - 기존 native Cobres `s_v_er` [mm/day]는 시간별 **순침식량이 아닌 원토양 박리 속도**, `s_t_dp` [mm]는 loose-deposit depth, `s_dis` [kg/s]는 sediment face flux. `s_v_er`를 사건 전체 시간에 적산한 `E_orig`와 `s_t_dp(end)-DLS_initial`로 구분. `∆z_approx=-∫GNUdt+(DLS_end-DLS_start)`는 density/state 일치가 확인된 경우에만 사용하고 **순부피의 보존을 별도 증명**.
