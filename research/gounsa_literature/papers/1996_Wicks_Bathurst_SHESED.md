@@ -39,3 +39,8 @@ Default sheet flow no rills, original 1996 field data arable, latest SHETRAN sou
 
 # 링크
 https://eprints.ncl.ac.uk/57743
+
+
+## 2026-10-27 SHETRAN 주모델 선정 이후 판정 정정
+- SHETRAN 4.7.2는 [이번 결정문](../decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md)에 따라 **고운사 단일강우 유수침식 주모델로 선정 완료**. 이 논문의 예전 '최종 모델 채택 보류' 서술은 당시 연구 상황을 기록한 과거 판정이며, 새 결정 이후 모델 미선정의 근거로 사용할 수 없다.
+- 이 논문의 실제 검증범위(실험사면/유역 외부 유사량 또는 격자 내 퇴적, 예전 SHESED 및 당대 SHETRAN 버전)는 유지하고, SHETRAN 4.7.2 고운사 현장 검증 완료라는 주장으로 확대하지 않는다.
