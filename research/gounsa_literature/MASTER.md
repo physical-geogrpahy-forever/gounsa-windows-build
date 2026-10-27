@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+## 2026-10-27 신규 공식 공개 WaTEM/SEDEM 원본: 연평균 순침식·퇴적, 6시간 초고해상도 수관차단 엔진은 불가능
+- [두 신모델 실물소스 비교 판정](decisions/2026-10-27_SMODERP2D_AND_WATEM_SEDEM_PUBLIC_SOURCE_COMPLEMENTARY_GAPS.md), [KU Leuven WaTEM 공식 Pascal 소스](https://github.com/watem-sedem/watem-sedem), [Van Rompaey et al.(2001)](papers/2001_VanRompaey_Verstraeten_VanOost_WaTEM_SEDEM_AnnualSediment.md) DOI10.1002/esp.275, [코드 모델감사](models/WaTEM_SEDEM_2024_Pascal_Native_Annual_RUSLE_Sediment_Audit.md). RUSLE 연평균 E=R·K·LS·C·P, 격자별 수송능력 TC, **하류 1~2 격자**로 유사배분 및 순침식/퇴적량 계산 실제 구현. [2024 Zenodo release](https://doi.org/10.5281/zenodo.10997288) 실행판과 소스 공식 공개.
+- **단일 6시간 강우사상 동적 수관수지, 자유 X/Y SWE, 초단위 강우/유수 토사박리의 동일 실행판은 아님**. 식생 C 보호계수는 LAI 캐노피 저류/수관낙수 KE가 아니며 5~10cm 발표 강우사상도 확인되지 않음. **고운사 주모델 탈락**.
+- SMODERP2D의 공개 프로그램은 반대로 강우사상 중 단순 잎면적 기반 interception과 sheet/rill 유출을 계산하나 진짜 sediment 질량 박리/퇴적 active routine 미확인. 설명서의 'erosion model' 표현을 성능 검증으로 취급하지 않음.
+
+
 ## 2026-10-27 23:45 비LISEM 독립 Wang2023 2D 강우침식 연구 및 Iber+ 2024 실제 논문판 5cm 착시 검증
 - **[엄격 원본 및 실제 격자 판정](decisions/2026-10-27_2345_WANG_2023_SLOPE_EROSION_AND_IBER_EXACT_BENCHMARK_CODE_GATE.md)**, [세션 인계](sessions/2026-10-27_2345_NEW_WANG_2D_EROSION_AND_IBER_EXACT_BINARY_CASE_HANDOFF.md): OpenLISEM은 사용자 요청대로 다른 Work 담당, 비LISEM 선행연구만 조사.
 - [**Wang et al.(2023) CATENA 232 107387**](papers/2023_Wang_Hou_Catena_TwoDimensional_Loess_Slope_Erosion.md), DOI10.1016/j.catena.2023.107387: 황토사면 강우실험에서 유사수송능식을 정량 보정한 독립 2D runoff/erosion 모델, 사면 중하부의 침식기여도 지도 생성. 2022 저자선행 EGU DOI10.5194/egusphere-egu22-1885 reported 유출 NSE0.83, 유사농도 NSE0.66, **2023 최종판 독립검증이라 주장 금지**. 논문 본문 제한으로 정확 2D SWE PDE, 5cm 셀, canopy LAI/throughfall/leaf drip code와 공개 matching executable 미확인. 공동연구자의 공개 HiPIMS-CUDA 수문코드를 이 논문 침식프로그램과 동일시 금지. **주모델 보류**.
