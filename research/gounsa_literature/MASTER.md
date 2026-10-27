@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 긴급 단일모델 코드 심층감사: SHETRAN vs EUROSEM
+- [2026-10-27 원본 코드 감사와 엄격 판정](decisions/2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md): 수관저류 → 직접강우/잎적하 → 2D 흐름 → 강우/유수박리 → 입경별 4면 이송과 퇴적의 **원본 함수**를 실제 GitHub 파일에서 새로 읽어 확인. 새 빌드/모의 실행 없이 기존 2026-10-26 GitHub Actions 원본 실행/질량수지 기록과 대조.
+- **EUROSEM 1998:** `INTERC`는 `COVER,DINT` 누적강우 기반 저장 및 `DRIPD/STEMD/TFALL` 존재, 그러나 원본 LAI 상태 미구현 및 `PLANE`의 1D 연결 사면구조. `KINET`→`DRIPS`의 적하분율 이중 가중, 특정 첫 강우간격 저장량 초과 가능, 세류 유사수지 dt15s 잔차 14.32–21.48% 확인(기존 24-run 실험). **동일 1ha 미만 혼재식생 2D 국지 E/D 지도용으로 구조적 탈락**. 1D 작동 부분은 별도 문헌 참조 가치 있음.
+- **SHETRAN 4.7.2:** `ETSIM→ETIN→ET`는 `CSTORE/CSTCAP/CK/CB/DRAIN/PNETTO/DRAINA`; `SYMAIN→SYWAT→SYOVER→SYCOLM`는 직접강우와 적하, 강우/유수박리, 4방향 유사교환, 국지 `DLS` 갱신; `NVC(IEL)`로 식생유형별 셀 구분 가능. 하지만 `CPLAI=MIN(CLAI,1)*PLAI`의 LAI 포화, 별도 수관저장능 입력, 0 저장능 분기 divide risk, 첫 sediment step 초기화만 수행, `GNU` substep 일정, 퇴적-토심 stock 제한 미구현, `BALSED` 빈 함수, 2D 확산파(완전 운동량 방정식 아님), 사건 내 DEM 변화 유동 반영 안함을 **중대한 검증조건**으로 표시. 기존 원본 Cobres 2km 6회 native 성공은 0.5m 혼재 사면 수렴/보존/현장 검증 근거가 아님.
+- **단일모델 판정:** SHETRAN만 조건부 코드기능 후보로 유지, **최종 선정/고운사 결과 재현은 아직 불합격 보류**. 기존 장기 LPJ/풍화 중심 제출용 설계 및 Rutter+SWEHR 신규 coupling 권고는 이 단일 강우사상·단일모델 목적에 사용하지 않는다.
+
+
 > **2026-10-27 18:00 제출용 범위 정정 (최신):** [동일한 1ha 미만 고운사 혼재식생 사면의 단일 강우사상 수관차단 OFF/ON 국지 침식·퇴적 공간차분 연구](decisions/2026-10-27_SINGLE_STORM_MIXED_OAK_MISCANTHUS_CANOPY_ABLATION_PROTOCOL.md). 대상은 참나무 맹아+억새의 **동일 실측 공간배치**이며 결과는 격자별 원토양 박리, 퇴적, 순 지표고도변화 및 B−A 차분. 2026-10-26의 장기 LPJ/풍화 중심 '마감용 설계'는 사용자가 명시적으로 부정했으며 [해당 초안은 폐기 표시](decisions/2026-10-26_DEADLINE_GOUNSA_MODEL_ARCHITECTURE_AND_DATA_PLAN.md)됨. LPJ-GUESS·장기 풍화/천이는 이 **단일 사건 목적에 필수 아님**. SWEHR 공개 C의 수관차단 미구현 및 현장 검증 부재는 계속 명시.\n\n
 > **2026-10-26 EUROSEM 낮은 식생 민감도 기존 폐기근거 정정:** 개인 Library의 원래 729행 CSV와 원래 `eurosem-single-model-lai-20261025` 실험 코드를 추적한 결과 (1) PLANTH=3cm여서 원본 leaf-drip KE 0, (2) LAI는 원본 변수가 아니라 **새 LAI.PAR 패치**로 넣은 상태량, (3) 원본 `eurseml.for`은 `DRIPD/RAIN`을 kinetic energy와 drip-rate에 각각 곱해 leaf-drip 박리항에 **비율 제곱 오류**, (4) `eusedl.for` 원토양 박리 source와 수송능력 항 간 수량 단위 및 폭 처리 불일치 의심이 확인됨. **원본 기반 20회 추가 native Fortran 시험 및 8회 폭 가설 시험**에서 높이 120cm, EROD 0.1→0.9 및 leaf-drip 비율 수정 시 내부 `RDET`는 ×9 혹은 ×1.5로 바뀌지만 최종 순침식량은 그대로였고, `DTRF*CEX`가 수치상 압도. 이는 **기존 '식생 자체가 무효' 결론이 부당**하다는 뜻이나 원본이 genuine 2D가 되거나 유사수지가 검증됐다는 뜻은 아님. **EUROSEM 1D 산림 수관-침식 보조식 진단모델로 재평가, 고운사 2D 주 엔진 선정 아님.** [새 정밀 감사](decisions/2026-10-26_EUROSEM_729_LOW_VEGETATION_SENSITIVITY_ROOT_CAUSE_REAUDIT.md) / [모델 계보](models/EUROSEM.md).
 
