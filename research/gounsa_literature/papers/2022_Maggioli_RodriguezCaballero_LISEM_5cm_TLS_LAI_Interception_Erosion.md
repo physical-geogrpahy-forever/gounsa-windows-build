@@ -43,3 +43,6 @@ Maggioli(2022)의 버전과 OpenLISEM 7.5.2는 같다고 주장 불가. 기존 7
 # 참고 링크 / DOI
 https://doi.org/10.3389/fevo.2022.765148
 https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2022.765148/full
+
+## 2026-10-27 개발 계보 확인
+원문 https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2022.765148/full 의 `Model Selection` 절은 모델을 `LISEM (Limburg Soil Erosion Model)`로 표기하고 `Jetten and De Roo 2001` 및 초기 LISEM 연구를 인용하며 **kinematic-wave routing**을 설명한다. 따라서 **고전 LISEM / OpenLISEM classic 계열** 사용 가능성이 높다. 하지만 **어떤 classic 실행 버전**(200x LISEM, 201x OpenLISEM 등)인지는 원문 미기재이므로, 실제 `v7.5.2` 또는 신형 `LISEM v0.x`를 썼다고 단정 불가.
