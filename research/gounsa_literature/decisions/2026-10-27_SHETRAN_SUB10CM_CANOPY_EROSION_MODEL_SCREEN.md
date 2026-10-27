@@ -1,3 +1,6 @@
+
+
+> **문헌 판정 수정 (2026-10-27): 이 문서의 '10cm 이하 수관저류 및 침식 선행연구 미확인' 결론은 새 문헌으로 반박됨.** [추가 검증과 정정 결정](2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md)을 우선 읽을 것. Maggioli et al. (2022) 5cm LISEM+LAI 수관저류+유출 및 침식, Epple et al. (2025) 1cm LISEM+PTV/DoD 실제 실행 확인. 원본 OpenLISEM 7.5.2의 고운사 수치 비수렴 NO-GO는 별개로 유지.
 # 2026-10-27 고운사 cm급 단일 침식모형 추가 판정
 
 ## 질문
