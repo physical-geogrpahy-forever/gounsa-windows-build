@@ -1,0 +1,64 @@
+name: SHETRAN original 0.648ha four-edge polynomial outlet smoke validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_open_all_edges_20261027.yml'
+      - 'experiments/shetran_open_all_sides_native_20261027.py'
+      - 'experiments/shetran_open_bc_capacity_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-open-boundary-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        case:
+          - {type: bare, rain: 10}
+          - {type: mixed, rain: 50}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Keep the original equation code but enable larger static BC capacity and native ledger print
+        run: |
+          python audit/experiments/shetran_open_bc_capacity_20261027.py original/src/core/sglobal.f90
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_large_patch_diagnostics_20261027.py original/src/sediment/SYmod.f90
+      - name: Build native SHETRAN process algorithms
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Actual source-native polynomial open-boundary smoke
+        run: |
+          python audit/experiments/shetran_open_all_sides_native_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_4edge_smoke \
+            --rain ${{ matrix.case.rain }} \
+            --cover ${{ matrix.case.type }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-open4edges-${{ matrix.case.type }}-${{ matrix.case.rain }}
+          path: |
+            /tmp/gounsa_4edge_smoke/*/summary.json
+            /tmp/gounsa_4edge_smoke/*/cells.csv
+            /tmp/gounsa_4edge_smoke/*/scenario_metadata.json
+            /tmp/gounsa_4edge_smoke/*/simulation_diagnostics.txt
+            /tmp/gounsa_4edge_smoke/*/native_failure_diagnostics.json
+          retention-days: 30
+          if-no-files-found: warn
