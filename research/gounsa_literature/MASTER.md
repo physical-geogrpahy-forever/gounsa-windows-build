@@ -1,8 +1,15 @@
 # Gounsa Literature Master
 
+## 2026-10-27 긴급 정정: 5cm LAI 수관저류+LISEM 침식 및 1cm LISEM 모의 논문 확인
+- [**정정 결정문**](decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md): 과거 '10cm 이하에 수관차단과 침식 동시에 있는 연구가 미확인'이라는 결론은 새 문헌 조사로 **철회**한다.
+- **Maggioli et al. (2022)** [paper](papers/2022_Maggioli_RodriguezCaballero_LISEM_5cm_TLS_LAI_Interception_Erosion.md), [DOI](https://doi.org/10.3389/fevo.2022.765148): 스페인 25×15m 사면, TLS 5cm, LISEM 5cm, 1초, TLS 식생피복으로 LAI 추정해 수관저류 계산, 18개 강우사상 유출-침식, 18개월 누적 지형변화량 비교. 단 유출은 kinematic wave, 실제 전방위 full 2D SWE 및 5cm 국지퇴적 DoD 검증 아님.
+- **Epple et al. (2025)** [paper](papers/2025_Epple_Bienert_Grothum_LISEM_1cm_PTV_DoD_Erosion.md), [DOI](https://doi.org/10.1002/esp.70127): 독일 3m² 미만 4개 강우모사 실험포, **LISEM 1cm** 격자, 시간별 지형고도 업데이트, PTV 관측 지표유속과 SfM DoD 모델 비교. 해당 실험에서 LAI 수관차단 활성 검증은 없음.
+- **Naranjo et al. (2021)** [paper](papers/2021_Naranjo_OpenLISEM_DTM_1to15m_4m_Sediment_Anomaly.md): OpenLISEM v4.96, 4m 격자에서 유사량 이상치 보고. 다른 버전 7.5.2의 원인과 동일하다고 단정할 수 없으나 수치안정성 위험 독립 근거.
+- 과거 Gounsa OpenLISEM **7.5.2 원본 5m 2D 12회 시뮬레이션 Δt 유사량 비수렴 NO-GO**는 문헌 존재만으로 무효화되지 않음. **정확 실행 소스코드 버전과 구현 수리경로 추적 후 재검토**.
+
 ## 2026-10-27 10cm 이하 수관차단+유수침식 단일모델 엄격 재탐색
 - **[cm급 단일모델 문헌 및 원본 상한 평가](decisions/2026-10-27_SHETRAN_SUB10CM_CANOPY_EROSION_MODEL_SCREEN.md)**: SHETRAN 기존 4m native 통과, `NELEE=250000`으로 0.648ha 전면 10cm(648000 지표셀) 현재 배열상한 초과; 코드 확장 및 cm급 수지/수렴 검증을 하지 않은 상태. 수관/침식 코드 기능 자체는 기존 검증됨.
-- OpenLISEM 개발자 README 1cm(2m²) 시험기록은 있으나 과거 고운사 7.5.2 원본 5m 2D 유사수송 시간격자 비수렴/토양재고 위반 기록으로 NO-GO 유지. PSEM_2D Nord & Esteves(2005)의 **5cm 실증**은 확인됐지만 수관차단 및 식생피복 효과가 원문에서 명시적 미구현이라 탈락. SMODERP2D는 공식 권장 2–20m 격자. **수관저류·수관적하+2D 침식 및 퇴적+10cm 이하 실제 검증 원본 단일모델 확인되지 않음**. 향후 선정모델 SHETRAN의 고해상도 메모리/해상도 수렴 시험 우선.
+- OpenLISEM 개발자 README 1cm(2m²) 시험기록은 있으나 과거 고운사 7.5.2 원본 5m 2D 유사수송 시간격자 비수렴/토양재고 위반 기록으로 NO-GO 유지. PSEM_2D Nord & Esteves(2005)의 **5cm 실증**은 확인됐지만 수관차단 및 식생피복 효과가 원문에서 명시적 미구현이라 탈락. SMODERP2D는 공식 권장 2–20m 격자. **문헌 정정: 5cm LISEM의 LAI 관련 수관저류 및 유출과 침식 통합 계산은 Maggioli et al. (2022)에서 확인했고, 1cm LISEM의 유동·지형변화와 DoD 비교는 Epple et al. (2025)에서 확인했다. 다만 동일 공개 원본에서 수관적하+전방위 2D+유사수지까지 함께 검증한 근거는 부족함. [정정 결론](decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md)**. 기존 SHETRAN 10cm 배열상한 수정은 논문선례 없는 확장으로 우선 권고하지 않으며, LISEM의 2022·2025 논문 실행버전과 수문·유사 안정성 검증을 우선 추적한다.
 - 관련 새 문헌: `papers/2005_Nord_Esteves_PSEM2D_5cm_BareSoil.md`.
 
 ## 2026-10-27 최신 SHETRAN 사용 논문 조사: 2022~2026
