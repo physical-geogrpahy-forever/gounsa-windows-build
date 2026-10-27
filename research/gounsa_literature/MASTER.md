@@ -1,11 +1,15 @@
 # Gounsa Literature Master
 
 
+## 2026-10-27 SHETRAN 원본 수렴시험 입력 결함 발견 및 판정 철회 (현재 최우선)
+- **중요 정정: [원본에서 발견한 PMAX/TMAX 입력 위치 오해](decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md)**. 원본 `FRmod.f90`은 `(4F7.0,L7)` 순서 `PMAX,PALFA,QMAX,TMAX,BSOFT`를 읽는다. 이전 시간간격 실험 도구는 실제로 **첫 필드 PMAX**(강우량 기반 시간간격 제한)만 바꾸고 **넷째 필드 TMAX는 1h 그대로** 유지했으므로 **종전 "SHETRAN TMAX 수렴성 불합격" 판정을 철회한다**. 그 1~6% 차이는 PMAX 민감도이며 원본 TMAX 수렴 실패가 아니다.
+- 현재 수정 실험은 PMAX=1.0mm 유지, 정확한 `TMAX` 네 번째 필드만 수정, `BSOFT=F`로 첫 102-step 수치적 추가 차이 제거. [진짜 TMAX native 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445638896), [동일강우 통제](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445644339). **재시험 검증 전까지 TMAX 수렴 미검증**. 고운사 실제 고해상도 공간수렴, open boundary, 현장 데이터, 유한 토심 미검증으로 모델 현장최종선정은 보류한다.
+
 ## 2026-10-27 SHETRAN 엄격 실제실행 결과 및 모델 선정 보류 (최신)
 - [단일모델 SHETRAN 원본 4m 사면 및 수관차단 ON/OFF 검증 전체 보고서](decisions/2026-10-27_SHETRAN_STRICT_NATIVE_SMALL_PLOT_VALIDATION_VERDICT.md). 연구질문은 **1ha 미만 동일 사면의 참나무 맹아+억새 혼재, 한 강우사상, 수관차단 ON/OFF, 2D 국지 순침식 및 순퇴적**이며 장기 LPJ-GUESS나 다른 침식모형 결합은 제외.
 - 원본 `nclwater/Shetran` 4.7.2 SHA `cf9cd540add78ad3accbaf62b4199d2032887f6b`, 별도 진단용 Fortran `WRITE`만 삽입. 4m×176 셀(2816m²) **가상 사면**에서 NVC 2유형 원본 네이티브 ON/OFF 성공. 수관 물수지 최대 9.77e−15 mm, PET=0 조건 뿌리흡수/토양증발 ON/OFF 교란 0 [Actions 40443924320](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40443924320).
 - 토사수지 ON 0.000406%, OFF 0.001575% [Actions 40441094575](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40441094575). 격자별 유입/유출과 비국지 표층저장 증가 ON 74/OFF 72셀 [Actions 40442738443](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40442738443). 실제 격자 고도 후처리 `∆z=∆DLS−ΣGNU∆t`에서 ON 상승 5, 하강 161개, OFF 상승 4, 하강 166개. ON−OFF 최대 같은 셀 ∆z 차 0.00684mm [Actions 40443359926](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40443359926). **사상 중 유동 DEM 갱신 기능은 없음.**
-- 초기 mobile DLS=0/1/10/30mm native 8/8 실행 통과, 원토양 박리량 등 거의 변화 없음 [Actions 40444030737](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444030737). **그러나** 최초 F7.3 소수기록에 의한 시간간격 반올림 입력오류를 F7.5로 보완해 재검증: nominal TMAX .03125→.015625h 에서 누적 원토양 박리량 **ON 4.8888% 차이**, .0625→.015625h OFF **2.1253% 차이**, 결과 비단조 변동 [Actions 40443456084](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40443456084). 물질수지 합격과 **수치수렴 불합격을 절대 혼동 금지**.
+- 초기 mobile DLS=0/1/10/30mm native 8/8 실행 통과, 원토양 박리량 등 거의 변화 없음 [Actions 40444030737](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444030737). **중요 수정:** 2026-10-27의 소위 TMAX 관련 ON 4.8888%, OFF 2.1253% 차이는 실제 `PMAX` 강우량시간분할 파라미터 변경 결과. **TMAX 비수렴 증거로 사용 금지.** 원본시간간격 실험 재실행 중이며 결과를 확인해 판정한다.
 - 폐쇄형 경계로 유사 배출 0, 동일 영역 2m/1m/0.5m `dx` 수렴 미검증, 원토양 H finite limit 없음, 실제 Gounsa DEM/LAI/강우/토양자료 및 현장 침식검증 없음. **최종 현장 연구용 주모델 채택은 여전히 보류/NO-GO**. 수관 자체 구현과 국지 유사축적 존재는 코드 기능 시험에서 통과했음. EUROSEM은 1D이며 세류수지 실패로 고운사 2D 주모델 제외 유지.
 
 
