@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (464)
+## Papers (466)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -157,6 +157,7 @@
 - `papers/2005_Bathurst_SHETRAN_Valsassina_Landslides.md`
 - `papers/2005_Gyssels_Root_Resistance_Erosion_Review.md`
 - `papers/2005_Istanbulluoglu_Bras_VegetationLandscapeEvolution.md`
+- `papers/2005_Kivva_Zheleznyak_2D_Runoff_Interception_Sediment.md`
 - `papers/2005_Nord_Esteves_PSEM2D_5cm_BareSoil.md`
 - `papers/2005_Nord_Esteves_PSEM_2D.md`
 - `papers/2005_Roering_Gerber_PostfireHillslopeTransport.md`
@@ -204,6 +205,7 @@
 - `papers/2012_Bahmani_QuercusCastaneifolia_Stemflow.md`
 - `papers/2012_Burylo_RootTraitsConcentratedFlow.md`
 - `papers/2012_Constantine_WindthrowFlux.md`
+- `papers/2012_Cooper_Wainwright_MAHLERAN_MiC_30cm_Interception_Drip.md`
 - `papers/2012_Jomaa_RockFragmentHydrologyErosionModel.md`
 - `papers/2012_Sato_Ise_SEIB_Africa_Dispersal.md`
 - `papers/2012_Schwarz_SpatialRootReinforcement.md`
@@ -567,7 +569,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (83)
+## Decisions (84)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -638,6 +640,7 @@
 - `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
 - `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
+- `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
 - `decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md`
 - `decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md`
 - `decisions/2026-10-27_SHETRAN_0P648HA_FOUR_COVERS_10TO50MMH_EXPERIMENT_PROTOCOL.md`
