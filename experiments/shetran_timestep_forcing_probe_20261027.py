@@ -10,7 +10,7 @@ def run_case(exe,src,out,tmax,on):
     prepare(src,out,canopy_on=on,grid_m=4.,warmup_hr=1)
     p=out/"input_cob_frd.txt";lines=p.read_text().splitlines(keepends=True)
     i=next(i for i,s in enumerate(lines) if s.strip()=="BASIC TIMESTEP DATA")+1
-    lines[i]=f"{tmax:7.3f}"+lines[i][7:];p.write_text("".join(lines))
+    lines[i]=f"{tmax:7.5f}"+lines[i][7:];p.write_text("".join(lines))
     process=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],
                            cwd=out,capture_output=True,text=True,timeout=150)
     (out/"original_ET_diagnostics_stdout.txt").write_text(process.stdout+"\nSTDERR\n"+process.stderr)
