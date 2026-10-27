@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (468)
+## Papers (470)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -288,6 +288,7 @@
 - `papers/2020_Nabel_JSBACH4_ForestAge.md`
 - `papers/2020_Naseri_GEM_StonySoilHydraulicConductivity.md`
 - `papers/2020_Oeser_LPJGUESS_WeatheringProductivity.md`
+- `papers/2020_Onsamrarn_WaNuLCAS_WEPP_Thailand_Erosion.md`
 - `papers/2020_Sato_SEIB_TOPMODEL.md`
 - `papers/2020_VanDenBout_OpenLISEM_LocalTimeStepping.md`
 - `papers/2020_vanDerMeij_HydroLorica.md`
@@ -367,6 +368,7 @@
 - `papers/2023_Welivitiya_SSSPAM_Catchment.md`
 - `papers/2023_Xu_FATES_HYDRO.md`
 - `papers/2024_Adams_Johnston_SHETRAN_SRC_Willows_Phosphorus.md`
+- `papers/2024_Amon_HECRAS_Forest_Canopy_Litter_2D_FlashFlood.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
 - `papers/2024_Cea_Iber_GPU_Multiclass_Erosion.md`
 - `papers/2024_Cea_IberPlus_Multiclass_Erosion.md`
@@ -475,7 +477,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (94)
+## Models (96)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -511,6 +513,7 @@
 - `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/HETEROFOR.md`
 - `models/HydroPol2D.md`
+- `models/HydroSed2D_Fortran_Original_Source_Audit.md`
 - `models/Iber.md`
 - `models/iLand_LiDAR_Audit.md`
 - `models/JSBACH4_ForestAge.md`
@@ -566,15 +569,15 @@
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
+- `models/WaNuLCAS_Interception_Erosion_Strict_2D_Screen.md`
 - `models/WEPP.md`
 - `models/Wflow_Sediment.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (85)
+## Decisions (86)
 
-- `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
 - `decisions/2026-09-21_COUPLING_BOUNDARY.md`
@@ -603,8 +606,8 @@
 - `decisions/2026-09-23_STRICT_SPATIAL_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_TOP_VEGETATION_LINEAGES_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
-- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
+- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_SOURCE_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_SHORTLIST_DECISION.md`
 - `decisions/2026-09-23_VEGETATION_IMPLEMENTATION_SCOPE.md`
@@ -644,7 +647,9 @@
 - `decisions/2026-10-26_SWEHR_RUTTER_CANOPY_SHIELDING_SOURCE_AUDIT.md`
 - `decisions/2026-10-26_TIMEOUT_RECOVERY_SWATPLUS_SOURCE_GATE.md`
 - `decisions/2026-10-26_WFLOW_TRIBS_FEST_SSEM_STRICT_SOURCE_GATE.md`
+- `decisions/2026-10-27_1940_GITHUB_FIRST_2D_CANOPY_SEDIMENT_SOURCE_SCREEN.md`
 - `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
+- `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md`
 - `decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md`
 - `decisions/2026-10-27_SHETRAN_0P648HA_FOUR_COVERS_10TO50MMH_EXPERIMENT_PROTOCOL.md`
