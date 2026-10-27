@@ -8,7 +8,7 @@ Maggioli, L., Rodríguez-Caballero, E., Cantón, Y., Rodríguez-Lozano, B., & Ch
 스페인 건조지역 사면 현장 TLS 변화관측(2014-07 및 2015-12) + 이벤트 LISEM 매개변수 보정 및 침식량 비교 + 가상 식생패치/biocrust 분포 시나리오. 원문 전체 HTML 본문을 직접 검토.
 
 # 공간 구조
-25m×15m = 약375m² 실험사면. 현장 TLS 5cm DTM, **LISEM 계산도 5cm 격자**, 강우사상 내부 **1초 시간간격**. 논문 명시: 유출은 **kinematic-wave routing**이며 이것만으로 full 2D SWE/4방향 자유유출 구현을 입증하지 않음. 격자맵의 2D 공간분포와 2D 유체 수치해석을 엄격히 구분.
+25m×15m = 약375m² 실험사면. 현장 TLS 5cm DTM, **LISEM 계산도 5cm 격자**, 강우사상 내부 **1초 출력/모의 시간해상도** (내부 적응 시간스텝 고정 여부는 미확인). 논문 명시: 유출은 **kinematic-wave routing**이며 이것만으로 full 2D SWE/4방향 자유유출 구현을 입증하지 않음. 격자맵의 2D 공간분포와 2D 유체 수치해석을 엄격히 구분.
 
 # 적용 환경
 남부 스페인 알메리아 석회암 채석 훼손사면. 자생식생은 주로 거친 포기 형태의 alpha grass (Macrochloa tenacissima)와 관목; bare soil, vegetation, biocrust 패치. 고운사의 억새(Miscanthus)와 **종이 다르므로 동일 매개변수 직접 전용 불가**.
@@ -23,7 +23,7 @@ TLS 5cm 셀의 식생점/전체점 비율로 식생 피복 파악, LAI는 실제
 LAI vs cover: Ramírez et al. (2007) 계열 경험식 사용; 원문 수식이 HTML에서 이미지 처리되어 정확 계수 전체 미전사, LAI 계산의 명시된 1.99 계수만 확인. Green-Ampt 침투. 흐름은 kinematic wave. 심층 SWEs나 자동 DEM 업데이트가 이 논문 5cm 실험에서 입증된 건 아님.
 
 # 파라미터와 단위
-DTM/input 0.05m, event timestep 1s; 원강우 5분 강우계; 가상 강우강도 15, 55mm/h 각30분; 식생 군집 0.25×0.25m/0.50×0.50m. 초기 토양 3cm biocrust 및 아래 3–30cm 층 설정. 원문 보고 18개 강우사상 총 침식예측 3.55t, 총 침식량 비교 오차 RMSE 17.79%(논문의 성능표현). 정확 DOF/오차식은 본문 표 정의 이상으로 해석하지 않음.
+DTM/input 0.05m, reported event map time resolution 1s (native integration timestep may differ); 원강우 5분 강우계; 가상 강우강도 15, 55mm/h 각30분; 식생 군집 0.25×0.25m/0.50×0.50m. 초기 토양 3cm biocrust 및 아래 3–30cm 층 설정. 원문 보고 18개 강우사상 총 침식예측 3.55t, TLS 관측 2.81t, 총 침식량 비교 오차 RMSE 17.79%(논문의 성능표현, 독립 보류 검증 아님). 정확 DOF/오차식은 본문 표 정의 이상으로 해석하지 않음.
 
 # 원 논문의 구현 범위
 **5cm+수관차단 LAI 추정+침투/유출+침식의 실증 일체는 참**. 실험 결과의 검증은 18개월 전체 침식량에 대한 사후 TLS와 비교이고 5cm 격자별 국지 침식·퇴적 및 18회 각 이벤트 후 DoD 검증은 아님. 5cm 계산 시간간격 수렴/유사질량수지는 본문에서 미확인.
