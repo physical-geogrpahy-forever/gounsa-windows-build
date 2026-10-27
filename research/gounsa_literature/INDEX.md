@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (508)
+## Papers (509)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -487,6 +487,7 @@
 - `papers/2026_Chen_MaizeInRowInterRowErosion.md`
 - `papers/2026_DiPrima_TreesControlHillslopeSubsurfaceFlow.md`
 - `papers/2026_Emtehani_LISEMHazard_SedimentDeposition.md`
+- `papers/2026_Feng_Tan_Xu_Li_Bisht_ELM_TELEMAC_GAIA_Harvey_Sediment.md`
 - `papers/2026_FinaudGuyot_SW2D_Porosity_ShallowWater.md`
 - `papers/2026_FireLands_Preprint.md`
 - `papers/2026_Ghose_SORTIE_SpatialValidation.md`
@@ -629,7 +630,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (109)
+## Decisions (110)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -659,8 +660,8 @@
 - `decisions/2026-09-23_STRICT_SPATIAL_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_TOP_VEGETATION_LINEAGES_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
-- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
+- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_SOURCE_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_SHORTLIST_DECISION.md`
 - `decisions/2026-09-23_VEGETATION_IMPLEMENTATION_SCOPE.md`
@@ -714,6 +715,7 @@
 - `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_INDEPENDENT_NEW_2D_EROSION_AND_CANOPY_PHYSICS_PAPERS.md`
 - `decisions/2026-10-27_JIA_CCHE2D_2023_AND_ADIPRANA_SIMWE_2026_SOURCE_VEGETATION_HIGHRES_SCREEN.md`
+- `decisions/2026-10-27_LAST_CHANCE_2026_FENG_ELM_TELEMAC_GAIA_30M_SOURCE_VS_SINGLE_NATIVE_GATE.md`
 - `decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md`
 - `decisions/2026-10-27_MAGGIOLI_2022_EXACT_CODE_INPUT_PROVENANCE_AND_VALIDATION_AUDIT.md`
 - `decisions/2026-10-27_NEW_CASC2D_SED_SOURCE_ARCHIVE_DEEP_2D_CANOPY_GATE.md`
