@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (496)
+## Papers (497)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -385,6 +385,7 @@
 - `papers/2023_SanchezLopez_SpatialLitterALS.md`
 - `papers/2023_Sato_SEIB_Hokkaido_MixedForest.md`
 - `papers/2023_Wang_GrassShrubDetachment.md`
+- `papers/2023_Wang_Hou_Catena_TwoDimensional_Loess_Slope_Erosion.md`
 - `papers/2023_Welivitiya_SSSPAM_Catchment.md`
 - `papers/2023_Xu_FATES_HYDRO.md`
 - `papers/2024_Adams_Johnston_SHETRAN_SRC_Willows_Phosphorus.md`
@@ -609,7 +610,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (100)
+## Decisions (101)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -685,6 +686,7 @@
 - `decisions/2026-10-27_2200_NONLISEM_AHMS_SED_SOURCE_ACTIVE_CANOPY_KINETIC_NO_GO.md`
 - `decisions/2026-10-27_2200_NONLISEM_FURTHER_RAFF_BRIF_SOURCE_REAL_CELL_SCREEN.md`
 - `decisions/2026-10-27_2330_KOREA_CANOPY_FIELD_AND_WFLOW_EUROSEM_SOURCE_REGRESSION_SCREEN.md`
+- `decisions/2026-10-27_2345_WANG_2023_SLOPE_EROSION_AND_IBER_EXACT_BENCHMARK_CODE_GATE.md`
 - `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
 - `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_INDEPENDENT_NEW_2D_EROSION_AND_CANOPY_PHYSICS_PAPERS.md`
