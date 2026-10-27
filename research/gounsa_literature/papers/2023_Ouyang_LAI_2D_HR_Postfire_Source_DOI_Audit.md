@@ -16,3 +16,8 @@ Publisher Data Availability explicitly says author model source code version 1.1
 
 ## Model application and verdict
 The published integrated model has probably the closest process scope among source-archived mountain studies not already rejected, but exact published code source unverified until Zenodo archive inspected. Original 10m DEM means cannot treat as published 5cm precedent. ASTON canopy empirical storage not canopy-drip drop-size kinetic energy; original erosion model multi-class HR valid at their site only. **Final: highest-priority source DOI lead, experimental adoption HOLD, not fully verified source or fine grid.**
+
+## 2026-10-28 follow-up: numerical scale and source retrieval checked (correction)
+- Publisher §6.1 states simulations used **10m spatial resolution**, not merely a 10m input DEM. This establishes paper's COMPUTATIONAL scale at 10m, not 5cm. Primary https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022JF006846 .
+- DOI https://zenodo.org/api/records/7269322 / `https://zenodo.org/records/7269322` tried via web and container. Web inaccessible, container requests raise DNS resolution error. No original archive bytes opened; source remains paper-declared not retrieved. This access error does NOT prove the archive was deleted.
+- Compared Kim et al.2023 DOI10.1029/2022WR033879 real 0.1m 2D erosion mesh. The latter explicitly uses BARE soil and no canopy or infiltration; one must not treat complementing its 2D grid evidence with Ouyang canopy paper as a single already-tested 10cm forest model.
