@@ -1,3 +1,25 @@
+# 2026-10-27 추가 감사 및 이전 판정 정정
+
+**공개 source에서 찾은 문제를 공식 0.2.4 실행판의 결함으로 곧바로 일반화했던 것은 부정확함.** 새 브랜치를 확인하여 버전별로 분리한다.
+
+1. GitHub main SHA 6a5ef17d87bab4227d48673c95c12c61462114dd (2022-08-10)의 lisem/core/version.h는 **0.2.3**.
+2. 그동안 누락했던 **GitHub develop** SHA 1e55e6c0bfda28d56a9e1d37e1c21c616820c6a1 (2022-12-12)의 version.h는 **0.2.5**. develop의 model_hydrology.cl에도 수관최대저류량 Smaxc 미사용 및 SCANOPYN=0, modelruncompile.cpp:1637 및 modelrun.cpp:541에도 강우박리 인자81=0.0가 존재. 즉 공개 main뿐 아니라 develop에서도 해당 연결 문제 확인.
+3. **공식 SourceForge의 별도 신형 LISEM 0.2.4 Windows 설치판 및 portable ZIP은 실제 공개**(2022-09-07). 버전 0.2.4 바이너리를 가져와 내장 OpenCL 커널과 실제 실행을 분석한 적이 없으므로 **0.2.4 실행판에도 동일 문제가 있다고 단정 불가**.
+4. 공식 개발자 2022-07-09 공개 설명 https://lisemmodel.com/blog/2022/07/09/Release-0.2.4/ 에는 0.2.3의 인터페이스 통합모델 강우 입력 오류를 0.2.4에서 수정했다는 내용 명시. 어떤 코드 변경인지는 아직 식별하지 못했음. 0.2.4에 문제가 해결되지 않았다고 공개 0.2.3 소스로 단정하면 안 됨.
+5. 공식 빌드 설명 https://lisemmodel.com/docs/compiling/ 은 main/develop/website 3개 브랜치 존재를 명시. 이를 초기 조사에서 누락했음.
+6. Epple et al.(2025)의 LISEM (2024) 인용은 해당 해 소프트웨어 버전 릴리스의 증명이 아닐 수 있고, 해당 1cm 실행본의 정확 소스 SHA, 스크립트 내용은 별도 확인 필요.
+7. 공식 SourceForge 신형 LISEM 디렉터리에서 0.2.5 또는 2024 이후 새 공개 바이너리는 확인 못했음. 단 이는 비공개 버전 존재/부재의 증명 아님.
+
+**수정 판정: GitHub 공개 0.2.3(main) 및 0.2.5(develop) 소스 기반 통합모델은 수관차단 및 강우박리 연결의 정적 코드 NO-GO. 0.2.4 별도 공식 바이너리는 판정 보류(미시험). '신형 LISEM 전체 공개판이 작동하지 않는다'는 일반화 철회.**
+
+공식 파일:
+- https://github.com/bastianvandenbout/LISEM/tree/develop
+- https://github.com/bastianvandenbout/LISEM/tree/main
+- https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Installer/
+- https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/
+
+---
+
 # 2026-10-27 신형 LISEM 공개 코드의 현장 연구 단일모델 적합성 판정
 
 ## 질문
