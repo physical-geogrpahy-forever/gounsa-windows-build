@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+## 2026-10-27 2025 SWEHR HydroShare 연구자료의 새로운 출처 단서, 원본 공개코드 문제는 미해결
+- **[2025 HydroShare 실증자료 vs SWEHR1.0 원본 비교 결정문](decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md)**: Luke McGuire / Aiza Kabeer가 2025-12-10 북부 Arizona Pipeline Fire runoff/debris-flow modeling 자료를 [HydroShare 프로필](https://hydroshare.cuahsi.org/user/8128/)에 게시한 사실 새로 확인. 설명에 CSDMS SWEHR generic version 명시. **자료 UUID/파일 목록/코드 내부 미열람**이므로 새로운 Rutter canopy 구현이라는 추론 금지.
+- McGuire et al.(2016)은 Rutter interception + SWEHR/HR 2D + 토사원/퇴적 published architecture지만 실증 **2.5cm TLS→37.5cm 계산**, 실제 산불후 두 사상 canopy OFF. 5–10cm canopy ON 실증 아님. 2017 [공개 SWEHR.c](https://github.com/csdms-contrib/swehr/blob/master/SWEHR.c) 1785행 Git blob `e8505221a37d245ebb387b3304d8f325addd9ada`, canopy/Rutter/LAI 관련 코드 0개로 이전 탈락 판정 재확인. 신규 모델 채택 없음.
+- Epple(2025) LISEM 1cm 농경지 실험에 canopy ON 검증/정확 원본 SHA 공개 근거 없음; 공개 신형 LISEM 0.2.3/0.2.5 GUI water canopy/rain splash 문제 및 별도 0.2.4 실행판 미검증 판정 그대로. 핵심 다음 업무: 새 HydroShare의 실제 자료/코드 동정 또는 사용 실행판 일치 확인, 이미 기각 모델 반복 추천 금지.
+
+
 ## 2026-10-27 21:00 새로운 2D SWE + Gash 수관차단 + 침식/퇴적 + 세류 지형변화 선행연구 발견
 - **[신규 모델 엄격 판정](decisions/2026-10-27_2100_NEW_LONG_HE_2009_2010_2D_GASH_EROSION_SOURCE_VERDICT.md)** 및 [후속 작업 인계](sessions/2026-10-27_2100_NEW_GASH_2D_EROSION_LONG_HE_HANDOFF.md): **Long & He (2009, 2010)** 논문 2편에서 기존 모델 목록에 없던 **2D SWE Godunov FVM + modified Gash 수관차단 + Green–Ampt 침투 + 침식/퇴적 + 지형변화/세류 발달**의 **같은 논문 모델** 물리과정 발표 확인. Maggioli2022 5cm 실증 (운동파)보다 모형기능상 사용자 요구에 가까움.
 - [**2009 JICS FVM 논문**](papers/2009_Long_He_Rill_Evolution_FVM_Modified_Gash.md) (6(6):2349–2356), [**2010 Journal of System Simulation 논문**](papers/2010_Long_He_2D_Gash_Rill_Erosion_Morphodynamics.md) (22(2):348–352), [**2009 GPU 논문**](papers/2009_Long_He_GPU_2D_SWE_Hydraulic_Erosion.md) (IEEE DOI10.1109/ICIECS.2009.5363863) 및 [**원본 공개경로 감사**](models/Long_He_2D_Gash_Morphodynamics_Code_Audit.md) 별도 보존.
