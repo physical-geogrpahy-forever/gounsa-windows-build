@@ -13,8 +13,11 @@ def main():
     a.add_argument("--out",type=Path,required=True)
     z=a.parse_args();z.out.mkdir(parents=True,exist_ok=True)
     all_cases={};summaries=[];mask0=None
-    # FRD 4th field is true TMAX, with first field PMAX held at 1.0.\n    # Soft start disabled so NSTEP-dependent startup does not confound dt.\n    # Time input 7-char decimal is exact as represented: .003906 and .007812 hours.
-    # exact field representation .007812 h / .003906 h (7 characters)\n    values=[.03125,.015625,.007812,.003906]
+    # FRD 4th field is true TMAX, with first field PMAX held at 1.0.
+    # Soft start disabled so NSTEP-dependent startup does not confound dt.
+    # Time input 7-char decimal is exact as represented: .003906 and .007812 hours.
+    # exact field representation .007812 h / .003906 h (7 characters)
+    values=[.03125,.015625,.007812,.003906]
     for t in values:
         for on in [True,False]:
             name=f"tmax_{t:g}_{'on' if on else 'off'}"
