@@ -6,7 +6,7 @@ on:
       - '.github/workflows/gounsa_ouyang2018_massflow_original_solver_source_audit.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   audit-original:
     runs-on: ubuntu-24.04
@@ -17,6 +17,10 @@ jobs:
           repository: anhuicong323/Ouyang_2018
           ref: master
           path: ouyang2018
+      - uses: actions/checkout@v4
+        with:
+          repository: physical-geogrpahy-forever/gounsa-windows-build
+          path: audit_repo
       - name: Inspect original archives without executing untrusted code
         shell: bash
         run: |
@@ -45,6 +49,17 @@ jobs:
               for x in d["matches"][:90]: print("SYMBOL",x)
           print("AUDIT_COMPLETE")
           PY
+      - name: Commit software-source manifest in project (not copyrighted solver contents)
+        if: success()
+        shell: bash
+        run: |
+          mkdir -p audit_repo/research/gounsa_literature/sessions
+          cp source_audit.json audit_repo/research/gounsa_literature/sessions/2026-10-28_OUYANG2018_MASSFLOW_ARCHIVE_MACHINE_MANIFEST.json
+          cd audit_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/gounsa_literature/sessions/2026-10-28_OUYANG2018_MASSFLOW_ARCHIVE_MACHINE_MANIFEST.json
+          git diff --cached --quiet || (git commit -m "Record 2018 Massflow ZIP solver symbol inventory" && git push)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
