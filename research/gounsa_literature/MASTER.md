@@ -1,5 +1,8 @@
 # Gounsa Literature Master
 
+## 2026-10-27 신형 LISEM 버전 대응 오류 정정
+- 앞서 git main 소스의 canopy 및 rain_m=0 문제를 공식 **0.2.4 바이너리에도 적용**한 듯 서술한 것은 부정확함. 실제 main `version.h`는 **0.2.3**(2022-08), 누락했던 develop은 **0.2.5**(2022-12)이며 두 공개 브랜치에서 canopy/rain_m 문제 계속 관찰됨. **공식 SourceForge 0.2.4 바이너리는 미시험**. 개발자는 2022-07-09 0.2.4 공지에서 0.2.3 강우 입력 오류를 수정했다고 주장. **0.2.4의 소스 해시-실행판 연결은 미확인**. 최신 판정 [정정문](decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md).
+
 ## 2026-10-27 신형 LISEM 원본 GitHub 코드를 직접 확인한 NO-GO
 - [**소스 진단 및 최종 판정**](decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md), [상세 코드 감사](models/LISEM_Integrated_VanDenBout_Source_Audit.md).
 - 공식 신형 LISEM 0.2.4 Windows 배포, Github `bastianvandenbout/LISEM` 공개 소스는 **2022년 main SHA 6a5ef17d…**, `version.h`는 0.2.3 표기. 2025 Epple 논문에서 사용한 2024 LISEM 코드와 동일성 없음.
