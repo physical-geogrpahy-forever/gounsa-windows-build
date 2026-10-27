@@ -518,7 +518,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (113)
+## Models (114)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -559,6 +559,7 @@
 - `models/GOplus.md`
 - `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/GSSHA.md`
+- `models/HEC_HMS_2D_Sediment.md`
 - `models/HETEROFOR.md`
 - `models/HydroAS_Govers_2D_Sediment_NonOpen_Canopy_Audit.md`
 - `models/HydroPol2D.md`
@@ -634,7 +635,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (113)
+## Decisions (114)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -746,6 +747,7 @@
 - `decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md`
 - `decisions/2026-10-27_WEI_2017_FOREST_TREX_CANOPY_SPLASH_2D_INTEGRATED_90M_NO_CODE.md`
 - `decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md`
+- `decisions/2026-10-28_HEC_HMS_414_SINGLE_PROGRAM_NATIVE_CANOPY_2D_SEDIMENT_GATE.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
 - `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
 - `decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md`
