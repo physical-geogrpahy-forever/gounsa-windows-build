@@ -1,5 +1,10 @@
 # Gounsa Literature Master
 
+## 2026-10-27 10cm 이하 수관차단+유수침식 단일모델 엄격 재탐색
+- **[cm급 단일모델 문헌 및 원본 상한 평가](decisions/2026-10-27_SHETRAN_SUB10CM_CANOPY_EROSION_MODEL_SCREEN.md)**: SHETRAN 기존 4m native 통과, `NELEE=250000`으로 0.648ha 전면 10cm(648000 지표셀) 현재 배열상한 초과; 코드 확장 및 cm급 수지/수렴 검증을 하지 않은 상태. 수관/침식 코드 기능 자체는 기존 검증됨.
+- OpenLISEM 개발자 README 1cm(2m²) 시험기록은 있으나 과거 고운사 7.5.2 원본 5m 2D 유사수송 시간격자 비수렴/토양재고 위반 기록으로 NO-GO 유지. PSEM_2D Nord & Esteves(2005)의 **5cm 실증**은 확인됐지만 수관차단 및 식생피복 효과가 원문에서 명시적 미구현이라 탈락. SMODERP2D는 공식 권장 2–20m 격자. **수관저류·수관적하+2D 침식 및 퇴적+10cm 이하 실제 검증 원본 단일모델 확인되지 않음**. 향후 선정모델 SHETRAN의 고해상도 메모리/해상도 수렴 시험 우선.
+- 관련 새 문헌: `papers/2005_Nord_Esteves_PSEM2D_5cm_BareSoil.md`.
+
 ## 2026-10-27 최신 SHETRAN 사용 논문 조사: 2022~2026
 - 2026 Tafesse et al. (2025-12-30 online, Geocarto International 2026): GRACE+SHETRAN 5km×5km 지표·지하수 저장량 대조. 침식모듈 검증은 아님.
 - 2025 Sayers et al. (J Flood Risk Management): 영국 전국 산림/홍수관리 SHETRAN 시나리오에서 수관차단수 잠재 증발을 산림 피복비율과 연동. 유사침식 계산 근거 아님.
