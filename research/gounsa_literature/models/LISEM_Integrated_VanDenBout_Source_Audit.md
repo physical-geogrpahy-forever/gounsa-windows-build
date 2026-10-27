@@ -1,3 +1,5 @@
+> **2026-10-27 소스-바이너리 정정:** 위/아래 감사의 코드는 공개 GitHub main 내부 버전 0.2.3에 해당하며, 추가 확인한 develop 내부 버전 0.2.5에서도 동일한 canopy/rain_m 실행 연결 부재가 확인됨. 하지만 별도 SourceForge 0.2.4 바이너리는 실행/커널을 아직 확인하지 않았고 개발자가 0.2.4에서 강우 입력 문제를 수정했다고 공식 설명했으므로 **0.2.4 바이너리 전체 NO-GO 판정은 보류**. 자세한 판정 [수정문](../decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md).
+
 # LISEM Integrated Spatial Earth Modeller: 독립 C++/OpenCL 계보의 실제 수관 및 유사 침식 소스 감사
 
 작성일 2026-10-26. **주의: 이 저장소는 OpenLISEM Classic 7.5.2 `vjetten/openlisem`와 다른 프로젝트**. Classic 7.5.2 실제 Windows 수치비수렴을 이 프로젝트에 그대로 전가하지도 않고, 이 프로젝트의 홈페이지 소개만으로 전자는 복구됐다고 주장하지도 않는다.
