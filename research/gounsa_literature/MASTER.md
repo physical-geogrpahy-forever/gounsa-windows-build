@@ -1,5 +1,13 @@
 # Gounsa Literature Master
 
+## 2026-10-27 Work와 독립적으로 확인한 신규 2D 침식, 물방울 수관차단, 수관 낙수 운동에너지 연구 4편
+- **[4편 개별논문 검증 결정문](decisions/2026-10-27_INDEPENDENT_NEW_2D_EROSION_AND_CANOPY_PHYSICS_PAPERS.md)**: OpenLISEM 수정/재실행은 Work 담당이며 이 조사에서는 시행하지 않음. `INDEX.md` 검토 후 기존 Long & He 2009/2010 2D SWE+Gash 논문은 중복 발견으로 제외.
+- **[Abrantes et al.(2021)](papers/2021_Abrantes_Simoes_2D_TwoDirectional_Slope_Erosion.md)** DOI10.2478/johh-2021-0003: 2×2m x1% y10% 양방향 경사 토양수로 실험으로 **genuine 2D unsteady flow + Horton-SCS 침투 + rill/interrill erosion + deposition**를 논문/현장 검증. x 유사량 과소추정, y 비교적 우수. 그러나 LAI 수관차단과 공개 원본 동일실행판 미확인, 계산 격자 크기 미확인.
+- **[Li & Tian(2025)](papers/2025_Li_Tian_Microphysical_Canopy_Interception_Python.md)** DOI10.1029/2024WR038296: LAI, 피복도, 잎 투영, 물방울 잔류율, 부착률로 **층별 충돌-저류-수관통과** 계산, 강우20/80mm/h 실험. [Zenodo v2](https://doi.org/10.5281/zenodo.15045577)에서 Python `model_runrun_basic.py`/`model_runrun_simplified.py` 및 검증자료 공개 파일목록을 실제 확인. **수관 단독모델로서 오픈 소스 유효, 2D runoff/erosion 없음**. Python 파일 원문 네이티브 재실행은 미실시.
+- **[Senn et al.(2025)](papers/2025_Senn_Schaefer_Hosseini_Seitz_VSF_ULS_Energy.md)** DOI10.1002/esp.70150: UAV LiDAR voxel 0.5m×0.25m canopy gap profile로 VSF를 산출하고 온대림 splash cup TKE 관측 검증. 통계적으로 유의한 관계이나 **운동에너지를 체계적으로 과소예측**. 토사이송 모델 아님, 5cm 실행사례 아님.
+- **[Katayama et al.(2023)](papers/2023_Katayama_Nanko_Jeong_Canopy_Drip_Kinetic_Hotspots.md)** DOI10.5194/esurf-11-1275-2023: 일본 너도밤나무 **단일 집중 낙수점** TKE 일반수관 아래보다15.2배, freefall보다49.7배, throughfall 양도 일반보다11.4배. 수관 저장량 감소가 곧 국지 박리 감소가 아니라는 실측 근거. 이를 전체 참나무 격자의 일괄침식배율로 전용 금지.
+- **결론:** new published research/Zenodo source 발견은 사실이지만, 5–10cm + freely spreading 2D 유출 및 유사+ LAI 수관 물수지 + erosion/deposition + identical runnable public engine을 전부 충족하는 **새 단일모델은 확보하지 못함**. 세부 물리의 새 coupling은 기성 발표 모델이라고 부르지 않는다.
+
 ## 2026-10-27 2025 SWEHR HydroShare 연구자료의 새로운 출처 단서, 원본 공개코드 문제는 미해결
 - **[2025 HydroShare 실증자료 vs SWEHR1.0 원본 비교 결정문](decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md)**: Luke McGuire / Aiza Kabeer가 2025-12-10 북부 Arizona Pipeline Fire runoff/debris-flow modeling 자료를 [HydroShare 프로필](https://hydroshare.cuahsi.org/user/8128/)에 게시한 사실 새로 확인. 설명에 CSDMS SWEHR generic version 명시. **자료 UUID/파일 목록/코드 내부 미열람**이므로 새로운 Rutter canopy 구현이라는 추론 금지.
 - McGuire et al.(2016)은 Rutter interception + SWEHR/HR 2D + 토사원/퇴적 published architecture지만 실증 **2.5cm TLS→37.5cm 계산**, 실제 산불후 두 사상 canopy OFF. 5–10cm canopy ON 실증 아님. 2017 [공개 SWEHR.c](https://github.com/csdms-contrib/swehr/blob/master/SWEHR.c) 1785행 Git blob `e8505221a37d245ebb387b3304d8f325addd9ada`, canopy/Rutter/LAI 관련 코드 0개로 이전 탈락 판정 재확인. 신규 모델 채택 없음.
