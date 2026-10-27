@@ -10,7 +10,14 @@ def run_case(exe,src,out,tmax,on):
     prepare(src,out,canopy_on=on,grid_m=4.,warmup_hr=1)
     p=out/"input_cob_frd.txt";lines=p.read_text().splitlines(keepends=True)
     i=next(i for i,s in enumerate(lines) if s.strip()=="BASIC TIMESTEP DATA")+1
-    lines[i]=f"{tmax:7.5f}"+lines[i][7:];p.write_text("".join(lines))
+    # Only field four is TMAX. PMAX (first) must remain EXACTLY 1.
+    assert abs(float(lines[i][:7])-1.)<1e-8 and abs(float(lines[i][21:28])-1.)<1e-8,lines[i]
+    fmt=f"{tmax:.6f}"[1:]
+    assert len(fmt)==7,fmt
+    lines[i]=lines[i][:21]+fmt+lines[i][28:]
+    assert float(lines[i][:7])==1.0 and abs(float(lines[i][21:28])-tmax)<1e-10
+    lines[i]=lines[i][:28]+"      F"+lines[i][35:]
+    p.write_text("".join(lines))
     process=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],
                            cwd=out,capture_output=True,text=True,timeout=150)
     (out/"original_ET_diagnostics_stdout.txt").write_text("NATIVE ET DIAGNOSTICS LAST 15000 CHARS ONLY\\n"+process.stdout[-15000:]+"\\nSTDERR\\n"+process.stderr[-2000:])
