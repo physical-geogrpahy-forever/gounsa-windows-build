@@ -13,8 +13,7 @@ def main():
     a.add_argument("--out",type=Path,required=True)
     z=a.parse_args();z.out.mkdir(parents=True,exist_ok=True)
     all_cases={};summaries=[];mask0=None
-    # Input is written as F7.5 by imported run_one; old F7.3 precision
-    # rounded 0.015625 to 0.016 h and 0.03125 to 0.031 h.
+    # FRD 4th field is true TMAX, with first field PMAX held at 1.0.\n    # Soft start disabled so NSTEP-dependent startup does not confound dt.\n    # Time input is exact in 7-char syntax .015625 for finest timestep.
     values=[.125,.0625,.03125,.015625]
     for t in values:
         for on in [True,False]:
