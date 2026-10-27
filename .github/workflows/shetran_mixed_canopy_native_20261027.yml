@@ -1,0 +1,66 @@
+name: SHETRAN 4.7.2 single-engine mixed species native canopy ON OFF audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_mixed_canopy_native_20261027.yml'
+      - 'experiments/shetran_mixed_canopy_native_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-mixed-vegetation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install python requirements
+        run: |
+          python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Build untouched original SHETRAN 4.7.2 GNU Fortran
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+          test -x build/debug/bin/shetran
+      - name: Native 2D 2-species Cobres canopy ON OFF, source unchanged
+        run: |
+          python audit/experiments/shetran_mixed_canopy_native_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --workdir /tmp/gounsa_shetran_native_mixed \
+            --grid-m 2000
+      - name: Experimental subhectare grid transform, NOT original Cobres field geometry
+        continue-on-error: true
+        run: |
+          python audit/experiments/shetran_mixed_canopy_native_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --workdir /tmp/gounsa_shetran_microscale \
+            --grid-m 4.0 \
+            --allow-native-failure
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-mixed-on-off-20261027
+          path: |
+            /tmp/gounsa_shetran_native_mixed/comparison.json
+            /tmp/gounsa_shetran_native_mixed/*/summary.json
+            /tmp/gounsa_shetran_native_mixed/*/failure.json
+            /tmp/gounsa_shetran_native_mixed/*/native_stdout.log
+            /tmp/gounsa_shetran_microscale/comparison.json
+            /tmp/gounsa_shetran_microscale/failure.json
+            /tmp/gounsa_shetran_microscale/*/summary.json
+            /tmp/gounsa_shetran_microscale/*/native_stdout.log
+          retention-days: 14
+          if-no-files-found: warn
