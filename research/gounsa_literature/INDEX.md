@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (485)
+## Papers (487)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -258,6 +258,8 @@
 - `papers/2017_Khanal_Fox_RootJET.md`
 - `papers/2017_Langan_aDGVM2_SouthAmerica.md`
 - `papers/2017_OpDeHipt_SHETRAN_Dano_Validation.md`
+- `papers/2017_Wei_Kinouchi_Velleux_Fukushima_TREX_Forest_Interception_2D_Erosion.md`
+- `papers/2017_Wei_Kinouchi_Yoshimura_Velleux_Forested_Cesium_TREX.md`
 - `papers/2018_Baartman_LAPSUSVegetationPatterning.md`
 - `papers/2018_Cuomo_LISEM_10cm_LAI_Vegetated_Erosion.md`
 - `papers/2018_Gregory_MiscanthusSinensis_RootGapTraits.md`
@@ -595,7 +597,7 @@
 - `models/iLand_LiDAR_Audit.md`
 - `models/tRIBS_FEaST.md`
 
-## Decisions (95)
+## Decisions (96)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -691,4 +693,5 @@
 - `decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md`
 - `decisions/2026-10-27_SUB10CM_SHETRAN_CONCRETE_GO_NOGO_EXECUTION_DECISION.md`
 - `decisions/2026-10-27_SWEHR_2025_HYDROSHARE_CODE_PROVENANCE_FOLLOWUP.md`
+- `decisions/2026-10-27_WEI_2017_FOREST_TREX_CANOPY_SPLASH_2D_INTEGRATED_90M_NO_CODE.md`
 - `decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md`
