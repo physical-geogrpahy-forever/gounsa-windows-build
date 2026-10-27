@@ -2,7 +2,7 @@
 
 업데이트: 2026-10-28
 
-실제 GitHub 파일 트리로 생성한 인덱스다. 개수에는 `.gitkeep`가 포함된다.
+실제 GitHub main 파일 목록 기준이며 `.gitkeep` 포함 개수.
 
 ## Papers (515)
 
@@ -642,7 +642,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (117)
+## Decisions (118)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -758,6 +758,7 @@
 - `decisions/2026-10-28_KIM_2023_10CM_TRUE_2D_HR_AND_OUYANG_SOURCE_ACCESS_GATE.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
 - `decisions/2026-10-28_OUYANG_2023_LAI_2D_HR_CODE_DOI_AND_SWEHR_GEOtopSed_RECHECK.md`
+- `decisions/2026-10-28_OUYANG_2023_UPLOADED_FORTRAN_NATIVE_COMPILE_SEDIMENT_SHALLOW_GATE_AND_2018_DLL_MISMATCH.md`
 - `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
 - `decisions/2026-10-28_SMARTSED_ORIGINAL_2023_PAPER_AND_CPP_FOUND_BUT_CANOPY_NO_GO.md`
 - `decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md`
