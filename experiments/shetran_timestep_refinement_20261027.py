@@ -14,8 +14,19 @@ def run_one(source,exe,out,tmax,on):
     loc=[i for i,v in enumerate(lines[:-1]) if v.strip()=="BASIC TIMESTEP DATA"]
     assert len(loc)==1,loc
     i=loc[0]+1
+    # FRmod: READ(FRD,'(4F7.0,L7)') PMAX,PALFA,QMAX,TMAX,BSOFT.
+    # Prior QA was WRONG: modified first field PMAX rather than fourth TMAX.
     assert abs(float(lines[i][:7])-1.0)<1e-6,lines[i]
-    lines[i]=f"{tmax:7.5f}"+lines[i][7:]
+    assert abs(float(lines[i][21:28])-1.0)<1e-6,lines[i]
+    assert lines[i][28:35].strip()=="T",lines[i]
+    fmt=(f"{tmax:.6f}"[1:] if tmax<1.0 else f"{tmax:.5f}")
+    assert len(fmt)<=7,fmt
+    lines[i]=lines[i][:21]+fmt.rjust(7)+lines[i][28:]
+    assert abs(float(lines[i][21:28])-tmax)<1e-10,lines[i]
+    assert abs(float(lines[i][:7])-1.0)<1e-10,lines[i]
+    # Disable the first-102-steps soft-start in convergence QA, so varying
+    # TMAX does not also change warmup due to the NSTEP-indexed BSOFT rule.
+    lines[i]=lines[i][:28]+"      F"+lines[i][35:]
     frd.write_text("".join(lines))
     p=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],cwd=out,
         capture_output=True,text=True,timeout=180)
