@@ -8,7 +8,7 @@ from shetran_mixed_canopy_native_20261027 import prepare
 
 def run(exe,source,root,label,on,grid):
     d=root/label
-    prepare(source,d,on,grid)
+    prepare(source,d,on,grid,warmup_hr=1)
     p=subprocess.run([str(exe.resolve()),"-f","rundata_cob.txt"],cwd=d,
         capture_output=True,text=True,timeout=300)
     (d/"qa_native_stdout.log").write_text(p.stdout+"\nSTDERR\n"+p.stderr)
