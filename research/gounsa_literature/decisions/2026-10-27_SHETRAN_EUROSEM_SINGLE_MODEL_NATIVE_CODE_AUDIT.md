@@ -123,3 +123,7 @@
 - [EUROSEM eplanel.for](https://github.com/TheSoilman/EUROSEM/blob/8652944da6e1e8436495aa0c08765e2399830dd7/eplanel.for).
 - [EUROSEM eusedl.for](https://github.com/TheSoilman/EUROSEM/blob/8652944da6e1e8436495aa0c08765e2399830dd7/eusedl.for).
 - [EUROSEM test.par](https://github.com/TheSoilman/EUROSEM/blob/8652944da6e1e8436495aa0c08765e2399830dd7/test.par).
+
+## 5. 원문으로 교차확인한 공간표현의 한계 (코드 사실을 대체하지 않음)
+- Wicks & Bathurst (1996), *SHESED: a physically based, distributed erosion and sediment yield component for the SHE hydrological modelling system*, *Journal of Hydrology* 175, 213–238, DOI [10.1016/S0022-1694(96)80012-6](https://doi.org/10.1016/S0022-1694(96)80012-6). 초록이 **hillslope rain + leafdrip + sheet overland flow without rilling**를 명시. 발표된 검증은 Iowa의 5.1/6.4 ha 농업유역 유사량과 Wyoming 3.3km 하도; 고운사 1ha 미만 미세 국지 침식/퇴적 0.5m 검증이 아님.
+- Morgan et al. (1998), *The European Soil Erosion Model (EUROSEM): a dynamic approach for predicting sediment transport from fields and small catchments*, *Earth Surface Processes and Landforms* 23, 527–544, DOI [10.1002/(SICI)1096-9837(199806)23:6<527::AID-ESP868>3.0.CO;2-5](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291096-9837%28199806%2923%3A6%3C527%3A%3AAID-ESP868%3E3.0.CO%3B2-5). 원문은 "distributed"라 표현하지만 원본 `PLANE` 1D 요소와 연결망을 가리킴. 분산모델임이 2D 4면 침식수송과 동의어가 아님. 원문도 rill과 interrill 내별 flow 및 dynamic rill profile을 강조.
