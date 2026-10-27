@@ -1,5 +1,14 @@
 # Gounsa Literature Master
 
+## 2026-10-27 5–10cm 식생 수관차단+2D 지표유출/유사 단일 공개모델 재탐색
+- [**선행연구 계산격자/식생물수지/완전원본 공개 여부 엄격 판정**](decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md): 5cm LISEM Maggioli2022 canopy/침식 진실이나 kinematic routing; PSEM_2D 5cm true SWE/침식이지만 canopy 없음. **조건 전부 동시 PASS 원본 모델 확인되지 않음**.
+- **Kivva & Zheleznyak (2005)** [새 논문](papers/2005_Kivva_Zheleznyak_2D_Runoff_Interception_Sediment.md), DOI 10.1615/InterJFluidMechRes.v32.i6.50: canopy interception + true 2D SWE + 침식재퇴적까지 논문 초록에 통합모델 명시. 단 mesh size 및 원본코드/LAI 세부 공개 안 됨.
+- **Cooper et al. (2012)** [새 논문](papers/2012_Cooper_Wainwright_MAHLERAN_MiC_30cm_Interception_Drip.md), DOI 10.1029/2012JF002499: interception loss, throughfall & leaf drip KE 물리 개념, marker-in-cell 퇴적; 13.75×6.5m 시험 **30cm 격자**, **나지** 실험, flow는 steepest-descent 1-way 기저; 저자 연락 필요 source, strict 기각.
+- **Kim et al. (2013) tRIBS-FEaST** 0.005m² (~7cm 상당) 10×1m 삼각메시 유사수송 시험은 **수관/강우 수문모듈 비활성**. 본문 Rutter 및 full 2D HR 일체는 실제 존재하지만 현행 공개 tRIBS v6에서 FEaST sediment source 없음.
+- **Braga et al.(2026) SERGHEI-SE** 5mm 퇴적/bed migration lab 검증이나 rain+canopy 테스트가 아니며 **저자 미래과제로 vegetation coverage 제시**; 엄격 기각.
+- **GSSHA** 원모형 canopy interception+2D runoff+erosion deposition native 아키텍처 공식자료 확인, 그러나 발표 10cm 이하 원본 침식 canopy 사상 실증 미확인.
+- 이전 탈락한 SWEHR/Eurosem/OpenLISEM 7.5.2는 기존 source QA verdict 유지. cm LiDAR 관측 해상도와 계산 격자 따로 평가.
+
 ## 2026-10-27 신형 LISEM 모든 GitHub 브랜치 SHA 대조 완료
 - [**3개 브랜치 전수 및 커널 원본 비교 보고**](decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md): `main` 0.2.3 SHA 6a5ef17d87bab4227d48673c95c12c61462114dd (2022-08-10), `develop` 0.2.5 SHA 1e55e6c0bfda28d56a9e1d37e1c21c616820c6a1 (2022-12-12), `website` docs only SHA 09c9f060324c85cb83ff33e02644816169293d54 (2022-09-22); release tag `source` points **main 0.2.3**, despite name Beta0.2.4.
 - `model_hydrology.cl`, `model_evapotranspiration.cl`, `model_sediment.cl`, `modelruncompile.cpp` have **exact same Git blob SHA on main and develop**. So canopy Smaxc unused and stored SCANOPYN=0, erosion input rain_m=0.0 in integrated GUI are not fixed on develop.
