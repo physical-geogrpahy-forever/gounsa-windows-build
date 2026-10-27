@@ -1,0 +1,52 @@
+name: SHETRAN original canopy water conservation and ET isolation native QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_canopy_mass_20261027.yml'
+      - 'experiments/shetran_canopy_water_eval_20261027.py'
+      - 'experiments/shetran_canopy_water_instrument_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-canopy-budget:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Add diagnostic only logging to original ETIN
+        run: python audit/experiments/shetran_canopy_water_instrument_20261027.py original/src/evapotranspiration/ETmod.f90
+      - name: Build original Fortran hydrology
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Native 4m 0.282ha ET source ON OFF and canopy water storage budget
+        run: |
+          python audit/experiments/shetran_canopy_water_eval_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_shetran_canopy_balance
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-canopy-budget-et-confound
+          path: |
+            /tmp/gounsa_shetran_canopy_balance/pair_qa_canopy.json
+            /tmp/gounsa_shetran_canopy_balance/*/canopy_water_summary.json
+            /tmp/gounsa_shetran_canopy_balance/*/canopy_water_cells.json
+            /tmp/gounsa_shetran_canopy_balance/*/qa_canopy_stdout.txt
+          retention-days: 30
+          if-no-files-found: warn
