@@ -91,6 +91,12 @@ def prepare(src, dest, canopy_on=True, grid_m=2000.0, mmh=30.0):
     l=f.read_text().splitlines(keepends=True)
     i=next(i for i,s in enumerate(l) if s.startswith(":ET7"))
     prefix=l[:i]; block=l[i:]
+    # Native Cobres ETD ends with a whitespace-only record. Strip it BEFORE
+    # duplicating vegetation blocks: otherwise INET reads the blank record
+    # as the second vegetation ET7 heading, and then reads ':ET7' as numeric data.
+    while block and not block[-1].strip():
+        block.pop()
+    block[-1]=block[-1].rstrip("\\n")+"\\n"
     assert block[1].strip().startswith("F")
     block_oak=block.copy()
     block_grass=block.copy()
