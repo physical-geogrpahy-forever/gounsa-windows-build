@@ -1,5 +1,13 @@
 # Gounsa Literature Master
 
+## 2026-10-27 신형 LISEM 원본 GitHub 코드를 직접 확인한 NO-GO
+- [**소스 진단 및 최종 판정**](decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md), [상세 코드 감사](models/LISEM_Integrated_VanDenBout_Source_Audit.md).
+- 공식 신형 LISEM 0.2.4 Windows 배포, Github `bastianvandenbout/LISEM` 공개 소스는 **2022년 main SHA 6a5ef17d…**, `version.h`는 0.2.3 표기. 2025 Epple 논문에서 사용한 2024 LISEM 코드와 동일성 없음.
+- 공개본 `model_hydrology.cl`과 `model_evapotranspiration.cl`: `Smaxc`를 읽지만 수관저류/차단에 사용하지 않음, `SCANOPYN=0`. `model_flow.cl`에는 원강우가 지표로 직접 유입됨. **동적 LAI 기반 canopy water balance 미구현/미연결**.
+- `model_sediment.cl`에 빗방울 충격/유수박리/퇴적식 자체는 있으나 `modelruncompile.cpp` 및 `modelrun.cpp`의 `m_CLProgram_Erosion->PlaceArgument(81,0.0)` 때문에 **GUI 통합사상경로 빗방울 박리 입력 rain_m가 0으로 전달**됨. 독립 `rasterflow.h::AS_SplashErosion`은 이 문제를 자동 해결하지 않음.
+- x/y 2D 지표유동, sediment transport and DEM update present; 하지만 source-level missing native canopy+rain splash이므로 **고운사 단일모델은 공개 2022 신형 LISEM으로는 NO-GO**. 실제 바이너리 컴파일/실행/시간간격 수렴은 수행하지 않았음.
+- 이전 5cm Maggioli(2022) classic LISEM 선례 및 1cm Epple(2025) 신형 LISEM 선례 존재는 유지. 단 2025 논문 사용본 소스/바이너리는 별도 필요.
+
 
 ## 2026-10-27 긴급 LISEM 계보 및 cm격자 연구 정정
 - **[개발 계열 차이](models/OpenLISEM.md)**: 고전 LISEM original(1990s)→ Victor Jetten `OpenLISEM Classic` v7.5.2; 이와 별개인 Bastian van den Bout **신형 LISEM**(`bastianvandenbout/LISEM`). 공식 https://lisemmodel.com/docs/home/ 는 서로 다른 실행 소프트웨어임을 명시.
