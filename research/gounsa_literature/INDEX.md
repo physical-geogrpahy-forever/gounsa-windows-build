@@ -513,15 +513,16 @@
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 - `papers/2026_deVries_ForSTEM.md`
 
-## Models (108)
+## Models (109)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
+- `models/aDGVM_aDGVM2_2D.md`
 - `models/AHMS_SED_2025_NOAHMP_CASC2D_NATIVE_CANOPY_SEDIMENT_AUDIT.md`
 - `models/ARMOUR_mARM_SSSPAM.md`
 - `models/ASTERIX.md`
-- `models/BRIF_HFDM_GPU_2025_LAI_2D_Interception_No_Sediment_Code_Audit.md`
 - `models/BiomeE_BiomeEP.md`
+- `models/BRIF_HFDM_GPU_2025_LAI_2D_Interception_No_Sediment_Code_Audit.md`
 - `models/CABLE_POP.md`
 - `models/CAESAR_Lisflood.md`
 - `models/CASC2D_SED_C_Original_Independent_Code_Audit_2026.md`
@@ -538,16 +539,16 @@
 - `models/EDYS_TerreSIM.md`
 - `models/ELM_Erosion.md`
 - `models/EUROSEM.md`
-- `models/FATES.md`
-- `models/FATES_HYDRO_SUPPORT_STATUS.md`
 - `models/FATE_HD.md`
-- `models/FORECAST_ForWaDy.md`
-- `models/FORHYCS_TreeMig_PREVAH.md`
-- `models/FORMIND_mHM_GRASSMIND.md`
+- `models/FATES_HYDRO_SUPPORT_STATUS.md`
+- `models/FATES.md`
 - `models/FeST.md`
 - `models/FireBGCv2.md`
-- `models/ForSAFE_Veg_2D.md`
+- `models/FORECAST_ForWaDy.md`
 - `models/Forest_Disturbance_2004.md`
+- `models/FORHYCS_TreeMig_PREVAH.md`
+- `models/FORMIND_mHM_GRASSMIND.md`
+- `models/ForSAFE_Veg_2D.md`
 - `models/GOplus.md`
 - `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/HETEROFOR.md`
@@ -555,13 +556,17 @@
 - `models/HydroPol2D.md`
 - `models/HydroSed2D_Fortran_Original_Source_Audit.md`
 - `models/Iber.md`
+- `models/iLand_LiDAR_Audit.md`
 - `models/JSBACH4_ForestAge.md`
 - `models/JULES_RED.md`
+- `models/LandClim_Understory.md`
 - `models/LANDIS_II_NECN.md`
+- `models/LandscapeDNDC_PSIM.md`
 - `models/LAPSUS.md`
 - `models/LAVESI_FIRE.md`
 - `models/LISEM_Integrated_VanDenBout_Source_Audit.md`
 - `models/LM4_1_PPA.md`
+- `models/Long_He_2D_Gash_Morphodynamics_Code_Audit.md`
 - `models/LPJ_GM.md`
 - `models/LPJ_GUESS_BRANCH_MERGE_AUDIT_2026.md`
 - `models/LPJ_GUESS_GEOMORPH_VARIABLE_INTERFACE.md`
@@ -572,31 +577,29 @@
 - `models/LPJ_wsl_2_0.md`
 - `models/LPJmL_FIT.md`
 - `models/LUCIA_SustainSahel_Code_Audit_2026.md`
-- `models/LandClim_Understory.md`
-- `models/LandscapeDNDC_PSIM.md`
-- `models/Long_He_2D_Gash_Morphodynamics_Code_Audit.md`
+- `models/McGuire_RillNetwork.md`
+- `models/MEDFATE_medfateland.md`
 - `models/MEDFATE_MEDFATELAND.md`
 - `models/MEDFATE_SERGHEI_DEEP_AUDIT.md`
-- `models/MEDFATE_medfateland.md`
-- `models/McGuire_RillNetwork.md`
-- `models/ORCHIDEE_CAN_NHA.md`
-- `models/OpenLISEM.md`
 - `models/OpenLISEM_2026.md`
+- `models/OpenLISEM.md`
+- `models/ORCHIDEE_CAN_NHA.md`
 - `models/PHOREAU.md`
 - `models/PICUS.md`
 - `models/PIHM_MM_PIHM_2007_LAI_Canopy_Source_And_PIHMSed_Lineage_Audit.md`
+- `models/Postfire_Dry_Ravel.md`
 - `models/PREBAS.md`
 - `models/PROMET_DANUBIA.md`
 - `models/PSEM_2D.md`
-- `models/Postfire_Dry_Ravel.md`
 - `models/REWTCrunch.md`
 - `models/RHESSYS_WMFIRE.md`
-- `models/RReShar_Regelib.md`
 - `models/RillGrow.md`
 - `models/Rock_Fragment_Armour.md`
 - `models/Root_Reinforcement.md`
+- `models/RReShar_Regelib.md`
 - `models/SCION_FLORA.md`
 - `models/SEIB_DGVM.md`
+- `models/SEIMS_2026_Storm_Source_Callgraph_Canopy_And_Sediment_Unit_Audit.md`
 - `models/SEIMS.md`
 - `models/SERGHEI_SE.md`
 - `models/SHETRAN.md`
@@ -604,27 +607,25 @@
 - `models/SMODERP2D_2019_2026_Native_Interception_Rill_Without_Sediment_Source_Audit.md`
 - `models/SORTIE_ND.md`
 - `models/SPHY_MMF_2018_2026_LAI_Canopy_LeafDrip_Sediment_Original_Code_Audit.md`
+- `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/SWAT_PLUS_Subdaily_Erosion.md`
 - `models/SWEHR.md`
-- `models/Stony_Soil_Hydraulics_GEM.md`
 - `models/TREX.md`
+- `models/tRIBS_FEaST.md`
 - `models/TROLL4.md`
 - `models/VED.md`
 - `models/VIC_WEPP.md`
+- `models/WaNuLCAS_Interception_Erosion_Strict_2D_Screen.md`
 - `models/WASA_SED_2026_Public_Fortran_Canopy_Erosion_Source_Audit.md`
 - `models/WASH123D_1998_2D_Flow_Sediment_Source_Availability_Audit.md`
-- `models/WEPP.md`
-- `models/WaNuLCAS_Interception_Erosion_Strict_2D_Screen.md`
 - `models/WaTEM_SEDEM_2024_Pascal_Native_Annual_RUSLE_Sediment_Audit.md`
+- `models/WEPP.md`
 - `models/Wflow_Sediment.md`
 - `models/WiMMed_HEMINGS.md`
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
-- `models/aDGVM_aDGVM2_2D.md`
-- `models/iLand_LiDAR_Audit.md`
-- `models/tRIBS_FEaST.md`
 
-## Decisions (105)
+## Decisions (106)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -654,8 +655,8 @@
 - `decisions/2026-09-23_STRICT_SPATIAL_COHORT_FIVE_CRITERIA.md`
 - `decisions/2026-09-23_TOP_VEGETATION_LINEAGES_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_COHORT_FIVE_CRITERIA.md`
-- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT_ADDENDUM.md`
+- `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_DEEP_SOURCE_AUDIT.md`
 - `decisions/2026-09-23_VEGETATION_ENGINE_SHORTLIST_DECISION.md`
 - `decisions/2026-09-23_VEGETATION_IMPLEMENTATION_SCOPE.md`
@@ -712,6 +713,7 @@
 - `decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md`
 - `decisions/2026-10-27_NON_LISEM_2D_CANOPY_EROSION_LITERATURE_FOLLOWUP.md`
 - `decisions/2026-10-27_OPENLISEM_752_SOURCE_NATIVE_REAUDIT_NO_GO.md`
+- `decisions/2026-10-27_SEIMS_STORM_SOURCE_BUILDTARGET_LAI_AND_TRANSPORT_Q_UNITS_NOGO.md`
 - `decisions/2026-10-27_SHETRAN_0P648HA_FOUR_COVERS_10TO50MMH_EXPERIMENT_PROTOCOL.md`
 - `decisions/2026-10-27_SHETRAN_472_CODE_PAPER_PROVENANCE_AND_APPLICATIONS.md`
 - `decisions/2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md`
