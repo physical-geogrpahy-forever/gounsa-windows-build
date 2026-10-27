@@ -1,0 +1,50 @@
+name: SHETRAN original finer timestep 4m erosion deposition convergence QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_fine_dt_20261027.yml'
+      - 'experiments/shetran_dt_fine_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-fine-dt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Diagnostic only sediment volume tracking
+        run: python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+      - name: Compile original physics
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Fixed 0.282ha synthetic 4m domain, timestep cap quarter-hour to 56 seconds
+        run: |
+          python audit/experiments/shetran_dt_fine_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_shetran_dt_fine
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-original-fine-timestep-sensitivity
+          path: |
+            /tmp/gounsa_shetran_dt_fine/fine_dt_comparison.json
+            /tmp/gounsa_shetran_dt_fine/*/qa_dt.json
+            /tmp/gounsa_shetran_dt_fine/*/native_log.txt
+          retention-days: 30
+          if-no-files-found: warn
