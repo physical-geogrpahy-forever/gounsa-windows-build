@@ -1,0 +1,73 @@
+name: SHETRAN native 0.648ha four patch cover types rainfall 10-50mmph
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_large_patch_rainfall_matrix_20261027.yml'
+      - 'experiments/shetran_large_patch_matrix_20261027.py'
+      - 'experiments/shetran_large_patch_diagnostics_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-native-larger-hillslope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Instrument original SHETRAN for read-only solid mass and event final GIS grid
+        run: |
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_large_patch_diagnostics_20261027.py original/src/sediment/SYmod.f90
+      - name: Build original physical SHETRAN solver in Debug with diagnostic WRITEs
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+          test -x build/debug/bin/shetran
+      - name: Input smoke test original native bare 10mmph
+        run: |
+          python audit/experiments/shetran_large_patch_matrix_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_large_smoke \
+            --one-case bare 10 on
+      - name: Input smoke test original native patchy mixed 30mmph
+        run: |
+          python audit/experiments/shetran_large_patch_matrix_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_large_smoke \
+            --one-case mixed 30 on
+      - name: Four ground-vegetation landscapes x five rain intensities with canopy ON-OFF
+        run: |
+          python audit/experiments/shetran_large_patch_matrix_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_large_matrix
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-native-0p648ha-10to50-fourcovers-20261027
+          path: |
+            /tmp/gounsa_native_large_smoke/*/scenario_metadata.json
+            /tmp/gounsa_native_large_smoke/*/summary.json
+            /tmp/gounsa_native_large_smoke/*/simulation_diagnostics.txt
+            /tmp/gounsa_native_large_matrix/full_factorial_results.json
+            /tmp/gounsa_native_large_matrix/summary_matrix.csv
+            /tmp/gounsa_native_large_matrix/*/summary.json
+            /tmp/gounsa_native_large_matrix/*/cells.csv
+            /tmp/gounsa_native_large_matrix/*/simulation_diagnostics.txt
+          retention-days: 30
+          if-no-files-found: warn
