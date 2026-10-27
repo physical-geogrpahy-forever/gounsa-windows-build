@@ -1,5 +1,10 @@
 # Gounsa Literature Master
 
+## 2026-10-27 정책 정정: 선행 실증모델 우선, SHETRAN 5cm 임의 확장안 철회
+- **[수정 결정](decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md)**: 선행된 SHETRAN 4m 가상사면 35회 실행은 유지하되 5~10cm 새로운 확대를 우선 추진하자는 계획은 철회. 사용자는 타 연구자가 실제 5~10cm에서 수행한 단일 수관/침식 모델을 우선 원함.
+- **문헌상 5~10cm**: Maggioli et al.(2022) classic LISEM 5cm LAI canopy storage+rain/erosion kinematic routing, Cuomo(2018) LISEM 10cm vegetated splash/runoff. 진정 자유로운 2D SWE 입증 및 exact reproducible code unresolved; 7.5.2 native 2D timestep sediment nonconvergence NO-GO 그대로 유지. Epple2025 1cm new LISEM canopy same-run 미검증.
+- **다음 단계**: 실제 논문의 LISEM exact executable/source, full configs/data provenance 먼저 확인. 원저 연구의 운동파/2D 차원 엄격 분리하고 과거 native QA 실패와 다른 버전임이 입증되기 전까지 SHETRAN 또는 LISEM을 5cm 주모델로 승인하지 않음. 전 조건 동시 만족 공개 원본은 아직 미발견.
+
 ## 2026-10-27 실행 결정: 5~10cm SHETRAN 네이티브 검증으로 전환
 - **[진행 순서와 중단기준](decisions/2026-10-27_SUB10CM_SHETRAN_CONCRETE_GO_NOGO_EXECUTION_DECISION.md)** [인계서](sessions/2026-10-27_1940_SUB10CM_NATIVE_GO_NOGO_ACTION_HANDOFF.md): 신규모델 반복 검색을 중단하고 이미 수관+2D 유사수송 전체 연결 검증된 SHETRAN 4.7.2부터 **동일 20×20m 물리영역 1/0.5/0.2/0.1/0.05m** 단계별 native 실행으로 판정. 소영역 5cm=160000 active, 10cm=40000 active여서 원본 NELEE250000 아래; 0.648ha 전체 10cm=648000, 5cm=2592000은 capacity 확장 필수. 기존 실험 생성기는 NX17 NY29 DX4m, 고정 row length 및 boundary 80개이므로 **숫자만 DX=0.1로 수정 불가**. 같은 연속 경사/패치와 4방향 실제 BC/물-유사 mass/시간·공간수렴/가용토심 확인한 뒤 전체영역 10cm로 확대한다.
 - **중요:** 현 단계는 실행 설계이며 **5cm/10cm 네이티브 계산을 수행했다는 근거가 아직 없음**. SHETRAN 5cm published precedent 없음, 4m 35개 native 결과를 cm 실증으로 과장 금지. 불합격 시 현재 공개 단일모형의 필수해상도 적용 불가를 인정하고, 기각된 LISEM7.5.2 등을 근거 없이 대체채택하지 않음.
