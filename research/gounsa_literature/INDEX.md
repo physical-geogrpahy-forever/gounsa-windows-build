@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (466)
+## Papers (467)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -227,6 +227,7 @@
 - `papers/2014_Liu_VegetationRunoffDetachment.md`
 - `papers/2014_Tang_LPJ_DH_TopographicIndices.md`
 - `papers/2014_Tang_LPJ_DH_Topography.md`
+- `papers/2014_Wei_Kinouchi_CASC2D_Forested_Interception.md`
 - `papers/2015_Cohen_mARM5D.md`
 - `papers/2015_Hwang_RootBiomass_SlopeStability.md`
 - `papers/2015_Mao_ChaMRoots.md`
