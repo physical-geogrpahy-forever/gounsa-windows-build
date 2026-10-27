@@ -1,0 +1,61 @@
+name: SHETRAN 0.648ha rain intensity five parallel original-physics batches
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_large_patch_parallel_rain_20261027.yml'
+      - 'experiments/shetran_large_patch_one_intensity_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-five-rainfall:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        mmh: [10, 20, 30, 40, 50]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Attach only diagnostics and fixed table capacity 80
+        run: |
+          python audit/experiments/shetran_large_patch_capacity_20261027.py original/src/core/sglobal.f90
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_large_patch_diagnostics_20261027.py original/src/sediment/SYmod.f90
+      - name: Build native original physical model
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Actual original SHETRAN 7 cases at specified rain intensity
+        run: |
+          python audit/experiments/shetran_large_patch_one_intensity_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_native_rain_${{ matrix.mmh }} \
+            --rain ${{ matrix.mmh }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-0p648ha-${{ matrix.mmh }}mmh-original-model
+          path: |
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/intensity_summary.json
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/intensity_table.csv
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/*/summary.json
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/*/cells.csv
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/*/native_failure_diagnostics.json
+            /tmp/gounsa_native_rain_${{ matrix.mmh }}/*/simulation_diagnostics.txt
+          retention-days: 30
+          if-no-files-found: warn
