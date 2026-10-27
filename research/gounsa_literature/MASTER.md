@@ -1,5 +1,14 @@
 # Gounsa Literature Master
 
+## 2026-10-27 비-OpenLISEM 독립 CASC2D-SED 원본 C 공개저장소 발굴 및 2000/2008/2014/2025 기능대조
+- [**신규 CASC2D-SED 원본 확보와 엄격 판정**](decisions/2026-10-27_NEW_CASC2D_SED_SOURCE_ARCHIVE_DEEP_2D_CANOPY_GATE.md), [소스 전체 핵심 함수감사](models/CASC2D_SED_C_Original_Independent_Code_Audit_2026.md): CSU 2003 model 자료 복제 GitHub [wy7980/CASC2D-SED](https://github.com/wy7980/CASC2D-SED), `casc2d_sed.c`, `OvrlRout.c`, `RoutSedOvrl.c`, `Fcts_sed.c`, `Settling.c`, `intercept.c` 등 계산 C 및 Makefile 실물 확인. Clone README에서 `rint→wrint` 심볼 수정 명시, CSU 원래 byte-identical release라고 주장 금지, **native build 아직 미실시**.
+- **[Johnson et al.(2000)](papers/2000_Johnson_Julien_Molnar_Watson_CASC2D_SED.md)** DOI10.1111/j.1752-1688.2000.tb04246.x: genuine bidirectional XY **diffusive-wave** overland, Green-Ampt, sand/silt/clay sediment, 현장유량/유사 검증. 경계는 `RoutOutlet.c` **단일 `jout,kout`**, 4개 면 자유출구 안 됨.
+- **결정적 canopy 결함:** `ReadControlFile.c` landuse별 `retention[i]`[mm], `InitializeVars.c`에서 초기값, `intercept.c` 22행에 강우를 그 저장량만큼 순차 차감 후 0. **LAI/C(t)/drainage/leafdrip KE 없음**. `Fcts_sed.c` KR capacity~q^2.035 slope^1.66 and USLE C/K/P, `RoutSedOvrl.c`은 nonzero flow에서만 source; **직접 rainfall splash separate detachment 없음**.
+- **[Rojas et al.(2008)](papers/2008_Rojas_Velleux_Julien_Johnson_CASC2D_SED_GridScale.md)** DOI10.1061/(ASCE)1084-0699(2008)13:9(793): 실제 모델 계산격자 **30–330m**, 5–10cm 실행 실증 없음.
+- 기존 [Wei & Kinouchi(2014) 산림 LAI 개량본](papers/2014_Wei_Kinouchi_CASC2D_Forested_Interception.md)은 이 확보한 옛 C 침식엔진과 동일 원본 실행판이 아님. 논문 두 기능을 임의 합성해 기성 단일모델이라 주장하지 않는다.
+- **[Jiang et al.(2025)](papers/2025_Jiang_Parteli_Shao_AHMS_SED_20km_Original_Code.md)** DOI10.1029/2024MS004593: CASC2D-SED의 후속 현대 AHMS-SED [Zenodo 코드](https://zenodo.org/records/14494932)/[GitHub](https://github.com/JiangCong1990/AHMS-SED) 실제 공개 확인. 다만 **20km 황하 지역모델**로 routing 재구성됨. 5cm 전방향 2D LAI 수관 + 강우/유수박리 선례 아님.
+- **고운사 전체 PASS 원본 여전히 미확보.** Work 수행중인 Classic OpenLISEM 수정과 이번 독립 연구조사는 별개. CASC2D-SED = 역사적 소스 확보 성공, 고운사 주엔진 **탈락**.
+
 ## 2026-10-27 별도 담당 문헌조사: OpenLISEM 제외 2D 수관차단과 침식 모형 재검증
 - **WASA-SED LAI 실제 계산식 재확인:** `src/Hillslope/soilwat.f90` L945, L976, L996에서 `maxintc = lai_act(...) * intcfc(i_ce)` 활성 연산으로 **수관저류 [mm] = LAI × 단위 LAI당 저류계수**가 구현됨. 개발 주석에 0.25mm/LAI 기준을 언급하나 현장보정값이 아님. 저장량 및 증발 포함. **LAI 기반 수관차단 원본 PASS, 자유 2D SWE 및 5–10cm 세류침식 원본 FAIL.**
 - **[독립 문헌조사 판정](decisions/2026-10-27_NON_LISEM_2D_CANOPY_EROSION_LITERATURE_FOLLOWUP.md)** 및 [세션 인계](sessions/2026-10-27_2100_NONLISEM_2D_CANOPY_EROSION_RESEARCH_HANDOFF.md): OpenLISEM 원본 수정/검증은 사용자가 Work에 위임했으므로 **그와 별개로 다른 연구만 조사**. 신규 논문 원문과 실제 코드가 입증하는 범위만 남김.
