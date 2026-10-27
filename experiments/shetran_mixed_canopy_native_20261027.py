@@ -164,7 +164,10 @@ def run_one(exe,src,root,label,canopy_on,grid_m):
     run=subprocess.run([str(exe),"-f","rundata_cob.txt"],cwd=dest,
                        capture_output=True,text=True,timeout=300)
     (dest/"native_stdout.log").write_text(run.stdout+"\nSTDERR\n"+run.stderr)
-    if run.returncode!=0:\n        pri=dest/"output_cob_pri.txt"\n        tail=pri.read_text(errors="replace")[-9000:] if pri.is_file() else "NO_PRI"\n        raise RuntimeError(f"{label}: return={run.returncode}; PRI_TAIL={tail}; STDOUT={run.stdout[-2500:]} STDERR={run.stderr[-1000:]}")
+    if run.returncode!=0:
+        pri=dest/"output_cob_pri.txt"
+        tail=pri.read_text(errors="replace")[-9000:] if pri.is_file() else "NO_PRI"
+        raise RuntimeError(f"{label}: return={run.returncode}; PRI_TAIL={tail}; STDOUT={run.stdout[-2500:]} STDERR={run.stderr[-1000:]}")
     h=dest/"output_cob_shegraph.h5"
     assert h.is_file(),h
     d=extract(h)
