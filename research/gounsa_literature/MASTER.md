@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 신형 LISEM 모든 GitHub 브랜치 SHA 대조 완료
+- [**3개 브랜치 전수 및 커널 원본 비교 보고**](decisions/2026-10-27_LISEM_ALL_PUBLIC_BRANCHES_CODE_AUDIT.md): `main` 0.2.3 SHA 6a5ef17d87bab4227d48673c95c12c61462114dd (2022-08-10), `develop` 0.2.5 SHA 1e55e6c0bfda28d56a9e1d37e1c21c616820c6a1 (2022-12-12), `website` docs only SHA 09c9f060324c85cb83ff33e02644816169293d54 (2022-09-22); release tag `source` points **main 0.2.3**, despite name Beta0.2.4.
+- `model_hydrology.cl`, `model_evapotranspiration.cl`, `model_sediment.cl`, `modelruncompile.cpp` have **exact same Git blob SHA on main and develop**. So canopy Smaxc unused and stored SCANOPYN=0, erosion input rain_m=0.0 in integrated GUI are not fixed on develop.
+- `model_flow.cl` is different: develop fixed x/y edge water outflow `qfout` ternary-parenthesis and changed rainfall timestep factor main `rain*dt_hydro/dt` vs develop `rain*dt/dt_hydro`; exact rainfall conservation implications **not native tested**. **`model_sediment.cl` analogous qfsout precedence bug remains.**
+- SourceForge standalone **0.2.4 Windows installer**, officially described 0.2.3 rain bug fixed in 0.2.4: **not yet binary/embedded OpenCL kernel tested**; cannot generalize failures to this exe. Epple2025 1cm verified run unspecified exact source SHA.
+- **Decision**: public main/develop native integrated canopy+rain splash missing per code, 0.2.4 separate binary and later 2025 paper's actual executable not yet resolved. This corrects earlier categorical statements on entire LISEM software.
+
 ## 2026-10-27 신형 LISEM 버전 대응 오류 정정
 - 앞서 git main 소스의 canopy 및 rain_m=0 문제를 공식 **0.2.4 바이너리에도 적용**한 듯 서술한 것은 부정확함. 실제 main `version.h`는 **0.2.3**(2022-08), 누락했던 develop은 **0.2.5**(2022-12)이며 두 공개 브랜치에서 canopy/rain_m 문제 계속 관찰됨. **공식 SourceForge 0.2.4 바이너리는 미시험**. 개발자는 2022-07-09 0.2.4 공지에서 0.2.3 강우 입력 오류를 수정했다고 주장. **0.2.4의 소스 해시-실행판 연결은 미확인**. 최신 판정 [정정문](decisions/2026-10-27_NEW_LISEM_PUBLIC_SOURCE_NOT_SUITABLE_CANOPY_SPLASH.md).
 
