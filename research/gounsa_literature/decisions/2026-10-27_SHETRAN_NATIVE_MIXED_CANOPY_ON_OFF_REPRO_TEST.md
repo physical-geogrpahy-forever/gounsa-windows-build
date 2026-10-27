@@ -1,0 +1,25 @@
+# 2026-10-27 SHETRAN 4.7.2 기존 단일엔진 혼재식생 수관차단 ON/OFF 실제 실행 검증
+
+기준 시점 2026-10-27 KST, 기록 업데이트 예정. 이 파일은 가상 예제 시험 기록이며 **고운사 측정/예측 결과가 아님**.
+- 단일모델 기준: **SHETRAN 4.7.2.0 원본 Fortran SHA `cf9cd540add78ad3accbaf62b4199d2032887f6b`, Fortran 물리식 변경 없음**.
+- QA script: [`experiments/shetran_mixed_canopy_native_20261027.py`](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/experiments/shetran_mixed_canopy_native_20261027.py), GitHub Actions [native workflow](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/.github/workflows/shetran_mixed_canopy_native_20261027.yml). 원본 Cobres 2km 격자 지형/수문/토양 예제를 입력 복사해 원본 수정 없이 2개의 vegetation type 및 mixed `NVC` 격자 생성, 동일 30mm/h 강우 ×3h, 12h 계산.
+- ON: 지정한 식생유형별 input `CLAI, PLAI, CSTCAP, CK, CB`, `SY24 XDRIP/DRDRIP/FDRIP` 활성화. 시험용 지정값은 **억새/참나무 실측값이 아님**.
+- OFF: 동일 mixed NVC 및 soil/root/FCG/rock/flow grid를 유지하면서 `PLAI=0`으로 직접수관통과 및 차단/수관적하 효과를 비활성화. **주의: PLAI는 ET도 조절**하므로 모형 내 별도 canopy-only switch 존재 확인/검증 전까지 '수관효과만'이라고 엄밀히 말하면 안 됨. 시험 12시간 PET를 zero로 설정해 ET 관련 교란을 줄였지만 별도 상태감사 필요.
+- 원본 업스트림 전체 GNU Fortran 컴파일 성공, 두 원본 exe native runs 성공: [GitHub Actions 40439206263](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439206263).
+- 결과 2km grid, 실제 유효 176 land cells (초기에는 전체 493 shape에 대해 평균내는 분석 오류 있었음, [회복 Actions 40439479287](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439479287)).
+- 30mm/h ×3h, ON 최대 순간 gross original-soil detachment `s_v_er=105.7140579 mm/day`; OFF `107.2687302 mm/day`. **두 최대 위치가 같을 필요 없으므로 차를 단순 산술해 격자 차이라고 하면 안 됨.**
+- ON 최종 `DLS` active 176 격자 평균 34.0945911mm, OFF 평균 34.1766802mm. 초기 native SY51 DLS=30mm. **이는 퇴적량 평균이 아니라 최종 느슨한 표층퇴적물의 상태 평균임**.
+- ON-OFF maximum matching-cell/time snapshot absolute detachment difference = `12.1222172mm/day`, `DLS` difference = `0.8978043mm`. 두 극대값도 반드시 동일 지점/시각 아님. 둘 다 고운사 시뮬레이션 수치 아님.
+- 순지형변화 격자 map `∆z`는 생성되지 않았음. `s_v_er` instantaneous snapshots ≠ native exact `ΣGNU DTUZ`; DLS ≠ gross deposition. 원본 BALSED empty, independent global sediment budget NOT PASSED/NOT TESTED. 0.5–4m native grid converged NOT TESTED.
+- 별도 4m 가상 사면 17×29=7888m² bbox, 유효176×16=2816m². Cobres 원시 2km 채널 단면은 이 크기에 물리적으로 불가능하므로 FRD 하도흐름 R→. 변경, 채널자료 제거, synthetic elevation scales to preserve relative local slopes. **이는 현장 고운사 4m DEM이 아니다.** 첫 소사면 시도 FRD parser input error -> second no-channel visualization still river datasets requested -> both INPUT ISSUES, *numerical model failure not established*. 후속 축소 실행은 현재 진행/검증 필요. GitHub Actions [40439648429](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439648429)에서 비하도 영상요청 오류 확인.
+- 원본 SYCOLM(4face sediment balances) 정의식을 옮겨 셀 단위 총 solid mass 입력=저장+면별 출력의 대수적 항등식을 20,000개 양수 조합으로 검사한 경우 상대잔차 max 8.2544e-16, 절대잔차 max 3.5527e-15m³. 이 계산은 **원본 Fortran native 실행도 아니며 2D intercell face flux conservation 검증도 아니다**, 수식 항등식 감사를 의미할 뿐. 참조 원본 `SYmod.f90:1139–1296`.
+- **연구판정**: SHETRAN 원본 하나에 canopy+2D water+rain/flow detachment+2D sediment+loose-layer state가 통합된 것 SOURCE+2km native RUN으로 확인. 이것은 '고운사 소사면에 적용 가능한 최종 모델'이라는 결론까지 입증하지 않음.
+- **필요조건**: 실제 1ha 미만 유사 해상도에서 원본 ON/OFF run, Δt/Δx 수렴, 정확한 수문·유사 질량수지, local gross erosion vs deposition 분리, 초기토양두께 상한, 원본 canopy OFF ET 분리, 식생입력 LAI clipping effects, field data validation.
+
+## 수정 또는 실패 원인 로그: 연구 코드와 원본 모델을 구별
+1. [40438749155](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40438749155): ETD second vegetation block에 불필요한 blank row 있어 INET parse fail. **시험 생성 오류**.
+2. [40438987806](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40438987806) 및 [40439116925](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439116925): 진단문 변경 중 Python 문자 `\\n`를 실제 새줄 대신 literal로 삽입해 SyntaxError. **시험 도구 오류**, SHETRAN 결함 아님.
+3. [40439206263](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439206263): 원본 Cobres 2km mixed ON/OFF native 성공, micro synthetic FRD parse 오타.
+4. [40439479287](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439479287): native 2km mixed 성공, 4m 프레임 스크립트가 Path 객체를 루프 list로 shadow하는 버그.
+5. [40439648429](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40439648429): 2km native 성공, 4m no-channel 생성 이후 원본 Cobres 영상설정이 no-channel 도메인에 없는 river datasets를 요청하여 init fail.
+6. 2026-10-27 신규 가장 최근 마이크로 축소시험 workflow는 `visualisation_plan`도 no-channel로 맞추어 입력 변경, **결과 별도 업데이트 전까지 합격 선언 금지**.
