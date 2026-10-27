@@ -1,3 +1,9 @@
+# 2026-10-28 탐색전략 변경: 오류 복구 집착 중단, USACE GSSHA 원본 소스·실증 감사
+- [전략변경 결정](decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md): OpenLISEM 원본 7.5.2 주모델 폐기 유지. tRIBS-FEaST 원저자 통합코드 비공개 문제 재반복 금지.
+- 새 검토 [GSSHA 모델 계보](models/GSSHA.md): USACE 8.0 original executable 배포 발표(2024-10-07), 하나의 기존 실행모델에서 경험적 2매개변수 수관차단 + 2D 확산파 사면유출 + 빗방울·유수박리 + 2D 유사이송·국지퇴적 + 원토양/부유사/퇴적층 3저장고가 명시. 2010 원본 기술보고 [Downer et al.](papers/2010_Downer_Ogden_Pradhan_Liu_Byrd_Improved_GSSHA_Erosion.md), peer-review 2015 GSSHA sediment-limit 논문은 기존 오류 사례 증거. 2023 [Garcia et al.](papers/2023_Garcia_GSSHA_Forest_LAI_Interception_Harvest.md) 5m 산림 유역에서 LAI로 GSSHA 수관저류능력을 실제 구동했으나 침식 실험 아님.
+- **명백한 결핍:** GSSHA 8.0 최신 C++ 계산원본의 공개 다운로드 확인 못함; 무료 바이너리≠공개 소스. EarthSim 문서에서는 GSSHA binary를 당시 closed source로 명시. 공인 GitHub GsshaPy는 입출력 래퍼. 5/10cm native 실증 없음, 수관적하 KE 직접 계산 미입증, 사면고도는 사상 간 이월이 명시되며 사상 중 내부 feedback 미입증. Native 빌드/실행 전혀 하지 않았음.
+- 따라서 **현재 모든 조건 PASS 후보는 아직 없음**. 구체적 실행 우선순위는 원본 버전·코드 공개·원 논문과의 일치 확인→수관·침식 활성 같은 네이티브 runfile→실제 10/5cm 수치수렴. OpenLISEM은 복구 성공 증빙 없으면 배제.
+
 # 2026-10-28 OpenLISEM 7.5.2 구조적 수치결함 복구 가능성 재판정
 - [원본 소스/기존 Windows 결과/독립 C++ 단위시험 감사](decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md). 기존 v7.5.2의 5m 네이티브 12회 실험은 실행은 성공했으나 유사량 시간간격 비수렴, 가정한 유한 토사재고 초과. 1/2s 및 2m 추가 실험은 타임아웃이며 수렴성 입증이 아니다.
 - 원본 v7.5.2와 main_C의 lisErosionAux.cpp 및 lisSWOF2DSediment.cpp 동일 Git blob SHA. GetSV 99.9μm=0.0089745239925m/s, 100μm=1.2722617655181m/s 원식 C++17 g++ 단위 재현. DetachMaterial 주석, material depth false, OpenMP scatter race 잠재, CFL 하한 잠재. 단일 수식 버그 수정은 전체 모델 복구 증거가 아니며, 토사저장고/이송/시간수렴까지 다시 검증하면 변경 포크의 새 과학적 검증이 필요하다.
