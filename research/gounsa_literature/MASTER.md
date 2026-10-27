@@ -1,5 +1,11 @@
 # Gounsa Literature Master
 
+## 2026-10-27 GitHub 우선 대조한 10cm 수관차단 및 침식 독립 연구
+- [**이번 엄격 모델 판정 및 소스감사**](decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md), [인계서](sessions/2026-10-27_1800_GITHUB_FIRST_NATIVE_SUB10CM_HANDOFF.md): MASTER/INDEX/SHETRAN/LISEM 분기 및 기각 SHA를 먼저 확인한 뒤 신규 논문/원본을 검색함.
+- **Cuomo (2018)** [새 논문](papers/2018_Cuomo_LISEM_10cm_LAI_Vegetated_Erosion.md), DOI 10.19199/2018.3.0557-1405.31: **실제 LISEM 0.1m 격자**에서 나지 및 35% 초본 피복과 LAI=6 기반 수관저류, runoff/sediment concentration 실험 비교. 약 0.02s 시간간격. 이는 Maggioli(2022) 5cm 외 독립 선행사례지만 동일 자유 XY 2D SWE, 원본 버전 SHA, 격자별 국지 퇴적 DoD, 공개 원본 유사수지/수렴을 입증하지 않아 단일모델 채택 불가.
+- **LUCIA SustainSahel** [최초 공개 원본코드 감사](models/LUCIA_SustainSahel_Code_Audit_2026.md): `src/erodep/erodepModule.py` 실제 free/canopy throughfall splash detachment + 모래/실트/점토별 유사퇴적이 있음. 하지만 `self.LDD` 및 `accufractionflux(self.LDD,...)`로 유출 및 유사이송; genuine 2D SWE가 아니고 공식 재현 격자 6,30,100m라 엄격 탈락.
+- CCHE2D(Jia2023)은 2D raindrop erosion+UAS high-resolution이 있지만 canopy native 미확인, NCCHE 현재 정식 모델은 상용 배포; Feng2026은 ELMv3+TELEMAC-GAIA 이중모델 약30m로 대상 외. 기존 엄격 5–10cm 전체 PASS 공개 모델 **여전히 미확인**. 이전 OpenLISEM Classic7.5.2 sediment nonconvergence, 신형 LISEM 0.2.3/0.2.5 source bugs, SHETRAN 4m native 성적은 그대로 유지.
+
 ## 2026-10-27 17:20 원본 소스 재검증 및 모델스크린 정정
 - [**채팅 길이 제한에 대응한 이번 추가 소스검증 인계**](sessions/2026-10-27_1720_SUB10CM_CANOPY_EROSION_FOLLOWUP_HANDOFF.md): 엄격한 5–10cm LAI canopy+genuine 2D+강우·유수박리와 유사수송/퇴적+동일 공개실행본 PASS는 **여전히 미확인**. 4m SHETRAN 연구용 주모델 판정과 구분함.
 - **TREX 후보성 철회**: [기존 2008 TREX 코드감사](papers/2008_Velleux_England_Julien_TREX_2D.md)에 독립 archived C source `WatershedModels/trex_src_csu/src/Interception-r4.c`가 있으며 고정 차단저류량 차감은 구현, native LAI 동적 저류/배수·leaf drip impact 미입증. 신규 모델로 다시 추천하지 않음.
