@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (454)
+## Papers (460)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -339,6 +339,7 @@
 - `papers/2023_Adams_FireCWD_SedimentStorage.md`
 - `papers/2023_Argles_JULES_RED_Harwood.md`
 - `papers/2023_Argles_JULES_RED_Sitka.md`
+- `papers/2023_Barnes_Bathurst_Afforestation_LeakyDams_SHETRAN.md`
 - `papers/2023_Crompton_PatchHillslope_2DConnectivity.md`
 - `papers/2023_DeCaceres_MEDFATE.md`
 - `papers/2023_Doane_HillslopeRoughnessExtremeWinds.md`
@@ -358,6 +359,7 @@
 - `papers/2023_Wang_GrassShrubDetachment.md`
 - `papers/2023_Welivitiya_SSSPAM_Catchment.md`
 - `papers/2023_Xu_FATES_HYDRO.md`
+- `papers/2024_Adams_Johnston_SHETRAN_SRC_Willows_Phosphorus.md`
 - `papers/2024_Bower_VegetationRecoveryLEM.md`
 - `papers/2024_Cea_IberPlus_MulticlassErosion.md`
 - `papers/2024_Cea_IberPlus_Multiclass_Erosion.md`
@@ -384,6 +386,7 @@
 - `papers/2024_Shevliakova_LM4_1.md`
 - `papers/2024_Shevliakova_LM4_1_VegetationDemography.md`
 - `papers/2024_ShmiIovitz_Rainstorm_GrainSize_RockyHillslope.md`
+- `papers/2024_Smith_Birkinshaw_UK_698_SHETRAN_Climate.md`
 - `papers/2024_Song_SSEM_NaerinForestStormErosion.md`
 - `papers/2024_Wang_VED.md`
 - `papers/2024_Wei_VegetationComponentsErosion.md`
@@ -415,12 +418,14 @@
 - `papers/2025_Monsalve_RiverBedDynamics_v1.md`
 - `papers/2025_Opedes_OpenLISEM_MountElgon_Trenches.md`
 - `papers/2025_OsorioLeon_DeepRootsSilicateWeathering.md`
+- `papers/2025_Oyarmoi_Papyrus_SHETRAN_Flow_Regime.md`
 - `papers/2025_Pala_ThermalSpallingPostfireDebrisFlow.md`
 - `papers/2025_REGE_HETEROFOR_SoilCarbon.md`
 - `papers/2025_Rogger_BiomassWeathering.md`
 - `papers/2025_Rouet_PDG_Arena.md`
 - `papers/2025_Sato_Sumida_SEIB_Crown.md`
 - `papers/2025_Sato_Sumida_SEIB_Crown_MixedForest.md`
+- `papers/2025_Sayers_National_NFM_SHETRAN_Woodland.md`
 - `papers/2025_Verbruggen_LPJGUESS_RE.md`
 - `papers/2025_Verbruggen_LPJ_GUESS_RE.md`
 - `papers/2025_Wang_SeasonalRootErosionResistance.md`
@@ -452,6 +457,7 @@
 - `papers/2026_Song_SlopeDependentRockFragmentErosion.md`
 - `papers/2026_Stoebke_LPJGUESS_CanopyStructure.md`
 - `papers/2026_Stoebke_LPJ_GUESS_SEC.md`
+- `papers/2026_Tafesse_GRACE_SHETRAN_Ethiopia_WaterStorage.md`
 - `papers/2026_Wang_ComprehensiveRootParameter.md`
 - `papers/2026_Wang_DeconstructingSoilDetachment.md`
 - `papers/2026_Yang_LPJGUESS_CSLE.md`
