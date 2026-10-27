@@ -41,3 +41,13 @@ Adding LAI interception, leafdrip energy or bespoke 5cm numerical solver is **ne
 https://doi.org/10.1016/j.jhydrol.2019.124391
 https://www.sciencedirect.com/science/article/pii/S0022169419311266
 https://research.itu.edu.tr/en/publications/soil-erosion-model-tested-on-experimental-data-of-a-laboratory-fl-2/
+
+
+## 2026-10-27 추가 원본 'Introduction/Section snippets' 중요 정정 (같은 DOI, 별도 논문 중복 없음)
+ScienceDirect 원문 공개 Introduction https://www.sciencedirect.com/science/article/pii/S0022169419311266 직접 열람:
+- 논문 자체는 'two-dimensional continuity equation of sediment'이라고 기술하나 **2016년에 기반한 수문부는 2D control volume에서 유도되었음에도 실제 'only the longitudinal direction of flow is taken into account'**라고 저자 본문에 적음. 이어 이번 모형을 reduced number of dimensions로 기술. 따라서 **free X/Y full SWE dynamic 2D overland solver가 이 2020 출판 모형에서 검증되었다고 주장하면 안 됨**.
+- 실험수로의 **실제 물리 크기 6.50m×1.36m×깊이0.17m**, 조절 가능한 종·횡방향 경사5–20%, 사전 형성 세류. 모래 D50 **0.45mm / 0.15mm**. 수로 물리 폭을 numerical `dy`에 대응시키거나 5cm 격자 실증이라고 주장 금지.
+- 해당 연구는 2D 미세지형(세류 및 세류간 구역)과 2D sediment continuity라고 소개되지만, **수문 유동 차원이 감소된 formulation**이란 점에서 고운사의 진정한 각 방향 2D 관성모멘텀 수송 요구 미달. Exact underlying PDE and discrete sediment direction needs full paper equation; 현재 증거만으로 '100% 순수 1D entire sediment model'이라고도 단정하지 않는다.
+- 저자는 rainfall-driven / runoff-driven erosion 둘 다 고려한다고 Introduction에서 명시. Canopy model activation 여전히 확인 안 됨.
+- Elsevier indexed **section snippets** indicate two parameter beta/epsilon constants unity and other calibration/validation from flume, but quantitative NSE not confirmed. Avoid conflating validation language with independent field/vegetation holdout.
+**Updated stricter verdict:** not a demonstrated free X/Y two-component SWE hydrodynamic published model. Only published rill/interrill process benchmark.
