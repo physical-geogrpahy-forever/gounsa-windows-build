@@ -85,3 +85,10 @@ Strict quantitative vegetation coupling fails in current implementation.
 ## 2026-10-26 Windows 원본 2D 신규 12회 시험 결과: NO-GO
 
 이전 2026-10-23 원본 결과를 인용만 한 것이 아니라 공식 OpenLISEM 7.5.2 Windows 바이너리를 이용해 5m 해상도 1ha 가상 사면에서 실제 12개 2D 전체 계산을 다시 실행했다. Advanced Options=1, 2D 유역경계 개방, 총강우 20mm, 원본 개발진 기본 SettlingVelocity=1과 대체 SettlingVelocity=3을 식생별 시간간격 5/10/20초에 교차 적용했다. 모든 실행 정상 종료, 경계 물 배출 >0, 원본 출력의 물/유사수지는 폐합. **유사유출량 시간간격 수렴 실패**: Oak 기본식 0.005993→123.037727→832.588686kg/ha, 원본 대체식도 0.030954→28.707586→268.530307kg/ha. Miscanthus 원본 대체식 0.018893→0.044177→88.121322kg/ha. Oak 기본식 20초 최대 한 격자 순침식 5982.9t/ha > 초기 25cm 가상토심 질량 3375t/ha. **원본 7.5.2 고운사 유수침식 엔진 채택 최종 NO-GO**, 수정 포크는 원본 통과로 보지 않는다. 자세한 실험 원자료, runfile/시나리오, 12개 원본 totals.csv 및 soilloss.map [검증 보고](../decisions/2026-10-26_OPENLISEM_752_NATIVE_2D_STABILITY_FAILED.md), [Actions run 40304135775](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40304135775). 기존 기능 선례로 이 판정을 되돌리지 않는다.
+
+
+## 2026-10-27 신규 5cm 및 1cm 공개 학술 선례 확인과 7.5.2 구분
+- **Maggioli et al. (2022)** https://doi.org/10.3389/fevo.2022.765148 : TLS 기반 5cm DEM·식생 높이/피복→LAI 추정→수관저류량 입력, 스페인 375m² 건조사면, LISEM 5cm 격자와 1초 시간간격, 18개 강우사상의 침투·지표유출·침식. 공간 routing은 논문상 **kinematic-wave**. 5cm 격자별 침식/퇴적 DoD 관측과 검증은 입증 안 됨. 정확한 LISEM 실행버전 식별 안 됨.
+- **Epple et al. (2025)** https://doi.org/10.1002/esp.70127 : 실제 LISEM 1cm 격자에서 rain-simulator 실험포 수문·침식, 시간별 DEM 지형고도 갱신, 비디오 기반 PTV 유속/SfM DoD와 비교. 논문에는 LAI 수관저류를 이 1cm 시나리오에서 활성화했다는 증거가 없음. 정확 코드 태그도 없음.
+- **Naranjo et al. (2021)** https://doi.org/10.5194/hess-25-5561-2021 : OpenLISEM v4.96에서 격자별 유사배출 이상치(4m 440.9Mg vs 2m 128.4Mg 등) 학술 지적.
+- **판정 변경:** 초고해상도+수관저류+침식 논문이 아예 없다는 과거 선별 결론은 **명시적으로 철회**한다. 그러나 선행연구의 LISEM 버전이 v7.5.2와 같은 원본인지 미확인이며 Gounsa 7.5.2 native 유사수송 수치 QA 탈락은 그대로 유지. 새로운 코드 재채택은 소스-원문 동일성/강우시간간격 및 침식 수렴/전방위 2D 확인을 전제로만 한다. 문헌 [정정 기록](../decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md).
