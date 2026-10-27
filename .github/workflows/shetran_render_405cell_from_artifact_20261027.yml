@@ -1,0 +1,46 @@
+name: Render SHETRAN actual native 0.648ha four-cover spatial maps
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_render_405cell_from_artifact_20261027.yml'
+      - 'experiments/shetran_render_405cell_model_artifact_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  render-native-cellwise:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install graph dependencies
+        run: python -m pip install --disable-pip-version-check numpy matplotlib
+      - name: Download completed 35-case native SHETRAN spatial model outputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/gounsa_native_inputs
+          gh run download 40448419992 --repo "${{ github.repository }}" \
+            --name shetran-native-0p648ha-10to50-fourcovers-20261027 \
+            --dir /tmp/gounsa_native_inputs
+          find /tmp/gounsa_native_inputs -name cells.csv | wc -l
+          test "$(find /tmp/gounsa_native_inputs -name cells.csv | wc -l)" -eq 35
+      - name: Render actual modeled native sediment/elevation cell grids
+        run: |
+          python experiments/shetran_render_405cell_model_artifact_20261027.py \
+            --input /tmp/gounsa_native_inputs \
+            --output /tmp/gounsa_native_maps
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shetran-original-0p648ha-17-spatial-maps
+          path: |
+            /tmp/gounsa_native_maps/*.png
+            /tmp/gounsa_native_maps/README_rendered_maps.json
+          retention-days: 30
+          if-no-files-found: warn
