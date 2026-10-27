@@ -19,6 +19,7 @@ def run(exe,source,root,label,on,grid):
     entries=[]
     for line in p.stdout.splitlines():
         if "QA_SED_MASS" not in line:continue
+        line=line[line.index("QA_SED_MASS"):]
         ss=line.split()
         assert ss[0]=="QA_SED_MASS" and len(ss)==7,line
         _,*parts=ss
