@@ -45,3 +45,9 @@
 - 같은 물리영역 2m, 1m 등 grid-spacing 민감도, DEM의 국지 곡률 및 실제 산지 경사 재현.
 - 실측 억새와 참나무 맹아의 LAI, 주기적 leaf-off, 수관저류, 잎적하, 관측 토심 및 실강우 확보.
 - 고운사 실측 격자와 토양 속성, 암편, 사면 출구 조건 적용 및 DEM/퇴적량 관측으로 정량 평가.
+
+## 2026-10-27 원본 입출력 초기화 검증 추가 기록
+- `40447553464`: 확장시 원본 `OCmod` 자동 경계조건 NOCBC=54이 원본 `sglobal.f90`의 정적 용량 `NOCTAB=20`을 초과해 `OCREAD`에서 오류 1050. **지표유출 수치계산 실패 아님**. `experiments/shetran_large_patch_capacity_20261027.py`로 정적 배열 최대치만 `NOCTAB 20→80` 컴파일 시 변경. 이것은 원본 물리식 변경은 아니나 **무수정 original executable이라 주장 불가**, capacity-only variant라 표시.
+- `40448108702`: 자동 지표경계 초기화 후 `VSREAD`에서 오류 1032, 확대 활성이 405셀인데 Cobres `:VS08c` 토양분포 범주 격자는 과거 176셀만 채움. 시험 생성 코드가 `VS08c` 전체 405셀 매핑과 `FRD RAINFALL STATIONS` 각 활성셀 강우관측소 분포(스테이션1)를 재생성하도록 정정. 둘 다 **입력 격자 일치오류, 원본 방정식 수치발산 아님**.
+- [`40448419992`](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448419992)에서 bare 10mm/h 및 mixed30mm/h 원본 native smoke 둘 다 **통과** 확인, 이어서 전체 35개 조합 배치 실행.
+- 시간 독립적인 [5개 강우강도 병렬 7케이스씩](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448993167)도 별도 시작. 사례별 성공 완료 및 최종 요약 수치는 로그 확인 후 갱신할 것.
