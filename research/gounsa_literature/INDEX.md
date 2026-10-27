@@ -2,9 +2,9 @@
 
 업데이트: 2026-10-28
 
-실제 GitHub 파일 트리 기준으로 생성한 인덱스다. 포함 개수에는 `.gitkeep`가 포함된다.
+이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다. `.gitkeep`를 포함하여 계수한다.
 
-## Papers (512)
+## Papers (514)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -262,6 +262,7 @@
 - `papers/2016_Thompson_Davis_Oliphant_Oak_Eucalyptus_Litter_Soil_Erosion_Field.md`
 - `papers/2016_Zhang_LEPIHM.md`
 - `papers/2016_Zhang_RockFragmentsHydrologicalProcessesReview.md`
+- `papers/2016_Zi_GEOtopSed_CoupledErosion.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
 - `papers/2017_Janes_SHETRAN_Riverbank_Vegetation.md`
 - `papers/2017_Khaleghpanah_EUROSEM_StonySteepLands.md`
@@ -393,6 +394,7 @@
 - `papers/2023_Makela_PREBAS_ForestManagement.md`
 - `papers/2023_Naseri_RockFragments_WaterRetentionConductivity.md`
 - `papers/2023_Ninomiya_SEIB_DGVM_NSC.md`
+- `papers/2023_Ouyang_LAI_2D_HR_Postfire_Source_DOI_Audit.md`
 - `papers/2023_Pawlik_SandstoneRootsSoilProduction.md`
 - `papers/2023_Rumohr_LandS.md`
 - `papers/2023_SanchezLopez_SpatialLitterALS.md`
@@ -519,7 +521,7 @@
 - `papers/2026_Zhang_RootArchitectureRunoffInfiltrationErosion.md`
 - `papers/2026_Zuo_QuercusVariabilis_CanopyInterception.md`
 
-## Models (115)
+## Models (117)
 
 - `models/.gitkeep`
 - `models/4C_FORESEE.md`
@@ -557,6 +559,7 @@
 - `models/FORMIND_mHM_GRASSMIND.md`
 - `models/ForSAFE_Veg_2D.md`
 - `models/FullSWOF_2D_2015_Le_HairsineRose_CodeLineage_And_Numerical_Gates.md`
+- `models/GEOtopSed.md`
 - `models/GOplus.md`
 - `models/GRASS_SIMWE_RSimTerrain.md`
 - `models/GSSHA.md`
@@ -594,6 +597,7 @@
 - `models/OpenLISEM_2026.md`
 - `models/OpenLISEM.md`
 - `models/ORCHIDEE_CAN_NHA.md`
+- `models/Ouyang_2023_Postfire_LAI_2D_HR.md`
 - `models/PHOREAU.md`
 - `models/PICUS.md`
 - `models/PIHM_MM_PIHM_2007_LAI_Canopy_Source_And_PIHMSed_Lineage_Audit.md`
@@ -637,7 +641,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (115)
+## Decisions (116)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -751,6 +755,7 @@
 - `decisions/2026-10-27_WITHDRAW_UNPRECEDENTED_SHETRAN_SUB10CM_PREFER_PUBLISHED_LISEM_LINEAGE.md`
 - `decisions/2026-10-28_HEC_HMS_414_SINGLE_PROGRAM_NATIVE_CANOPY_2D_SEDIMENT_GATE.md`
 - `decisions/2026-10-28_OPENLISEM_752_RECOVERY_FEASIBILITY_NO_GO.md`
+- `decisions/2026-10-28_OUYANG_2023_LAI_2D_HR_CODE_DOI_AND_SWEHR_GEOtopSed_RECHECK.md`
 - `decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md`
 - `decisions/2026-10-28_SMARTSED_ORIGINAL_2023_PAPER_AND_CPP_FOUND_BUT_CANOPY_NO_GO.md`
 - `decisions/2026-10-28_STOP_RESCUE_OPENLISEM_SWITCH_SOURCE_FIRST_GSSHA_GATE.md`
