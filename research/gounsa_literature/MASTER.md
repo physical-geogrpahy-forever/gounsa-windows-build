@@ -1,5 +1,13 @@
 # Gounsa Literature Master
 
+## 2026-10-27 완료: SHETRAN 0.648ha 참나무 맹아 및 억새 4피복 × 강우10–50mm/h 네이티브 35시나리오
+- **[최종 35회 결과 및 한계](decisions/2026-10-27_SHETRAN_LARGER_HILLSLOPE_35_NATIVE_RESULTS.md)**. 한 모델 SHETRAN 4.7.2 원본 물리식, static `NOCTAB 20→80` 배열상한 확장/진단출력 추가만 실행. 405개 육상4m 셀=0.648ha, 17×29 격자 경계 포함0.7888ha, 10/20/30/40/50mm/h×3h; 나지, 억새 전면, 참나무 맹아102/나지303, 참나무102+억새228+나지75 패치; canopy ON/OFF 별도 35 조합.
+- **원본 물리식 엔진 35/35 성공, 유사고체체적 native mass ledger 각 0.1% 이내 통과, 순차 35회와 독립 병렬 35회 source 및 ∆z 총계가 소수점까지 완전 동일 재현**. [순차 결과 CSV](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448419992/artifacts/12710245614), [5강우 독립 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40448993167).
+- 수관 ON의 원토양 박리 공급 `m³ solid`, 강우10→50: 나지 1.439→28.371, 억새 0.993→27.607, 참나무 드문 패치 1.300→27.920, 억새+참나무혼재 1.053→27.681. **10mm/h 억새 vs 나지 감소31.0%**, 50mm/h 감소2.7%, 가상 파라미터에만 해당.
+- **중대한 현실성 미검증:** 50mm/h의 무유출구 폐쇄 가상사면에서는 최대 국지 순상승 **+406.5mm**가 발생, 20mm/h에서도 +102.3mm. 물/유사 출구가 막힌 조건에서 퇴적량이 과도하게 축적될 수 있으므로 **실제 고운사의 국지 퇴적량 정량 주장 절대 금지**. 원본은 강우 중 진단 ∆z를 수문 DEM으로 재투입하지 않으며 토심재고 한계도 미구현. 실제 고운사 DEM/LAI/수관 적하/강우/토심/토성 및 open-outlet 검증, 2m 이하 dx 민감도 필수.
+- 이전 `PMAX/TMAX` 입력 필드 오독은 [중대 정정문](decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md) 참조. 원본의 시간간격 nonconvergence 이유로 탈락했던 잘못된 판단은 철회 유지. **단일모델 SHETRAN의 식생 수관차단 및 2D 국지 침식퇴적 기능 시험은 통과, 고운사 현장 검증 최종 채택은 보류**.
+
+
 
 ## 2026-10-27 SHETRAN 실제 시간격자 14초까지 재검증 완료: 총량과 국지 퇴적위치 안정성 개선 (최신)
 - **중요 정정: [원본에서 발견한 PMAX/TMAX 입력 위치 오해](decisions/2026-10-27_SHETRAN_TIMESTEP_ROOT_CAUSE_CRITICAL_CORRECTION.md)**. 원본 `FRmod.f90`은 `(4F7.0,L7)` 순서 `PMAX,PALFA,QMAX,TMAX,BSOFT`를 읽는다. 이전 시간간격 실험 도구는 실제로 **첫 필드 PMAX**(강우량 기반 시간간격 제한)만 바꾸고 **넷째 필드 TMAX는 1h 그대로** 유지했으므로 **종전 "SHETRAN TMAX 수렴성 불합격" 판정을 철회한다**. 그 1~6% 차이는 PMAX 민감도이며 원본 TMAX 수렴 실패가 아니다.
