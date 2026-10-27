@@ -86,3 +86,10 @@ SHETRAN official https://research.ncl.ac.uk/shetran/
 - HDF5 근사 순지표고 변화 Δz 범위: 20mm/h [-1.3540,+0.02479] mm(174개 하강/2개 상승), 40mm/h [-4.82008,+4.04589] mm(173개 하강/3개 상승); 물리적 DEM을 native 모형에 재주입한 결과는 아님.
 - 40 mm/h 시나리오 FR6 48h 종료시각 초과 51.73분 확인. native 정확 GNU 시간 적산, 유사질량수지, 사상별 sediment-hotstart+토층 및 지형 재입력은 미완료.
 - 정밀 수치와 한계: [Native rainfall QA](../decisions/2026-10-26_SHETRAN_472_NATIVE_COBRES_RAIN_QA.md).
+
+
+## 2026-10-27 주모델 최종 선정 반영
+- **고운사 단일 강우사상 유수침식 엔진으로 SHETRAN 4.7.2 채택**. [정식 의사결정](../decisions/2026-10-27_SHETRAN_SELECTED_AS_GOUNSA_SINGLE_STORM_EROSION_ENGINE.md).
+- 네 방향 80개 Type 5 개방경계, 0.648ha 합성사면, 10~50mm/h 및 네 피복의 canopy ON/OFF를 포함한 35개 원본 물리식 실행 모두 통과. 수관차단-유수박리-유사배출 연계 native 35/35 검증. 상세 [개방경계 검증](../decisions/2026-10-27_SHETRAN_OPEN_FOUR_SIDES_0P648HA_35_SCENARIOS_NATIVE.md).
+- **판정 분리:** 연구용 단일 주모델 선정은 완료, 실제 고운사 정량 현장 검증은 미완료. 원본이 2D 확산파 근사이며 사상 내 DEM 갱신과 자동 세류 절개가 없음. 단일 수문강우사상 연구에서 모형을 임의로 확장한 것으로 보고해서는 안 됨.
+- 우선 과제: 유출계수 민감도, 4방향별 물/유사 흐름, 141.487mm 국지 퇴적의 현실성, 토양 재고와 1~2m 격자 공간수렴, 실제 현장 LAI/식생배치/토층/침식저항 매개변수 구축.
