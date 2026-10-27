@@ -1,0 +1,14 @@
+# Session handoff 2026-10-28 — actual 10cm 2D HR vs Ouyang 10m fully integrated canopy+sediment
+## High-confidence primary publication result
+Kim, S., Jeong, M., Kim, J. and Kim, D.-H. (2023) WRR DOI10.1029/2022WR033879 §2.2.6 **true 2D** 10×21m basin, 41380 triangles, 21000 vertices 0.1m spacing, 2D shallow-water dynamic momentum + Hairsine-Rose multiple sizes rainfall+runoff sediment detachment, transport, deposition with real microtopography; §2.2.5 explicit bare soil without any vegetation, impervious (infiltration excluded), gentle mean slope3%, 3 walls and 1 outlet. Separate 0.01m simulation effectively 1D, so NEVER claim 1cm 2D. Their version of tRIBS-FEaST actual integrated published engine unavailable on current tRIBS repo.
+## Source-claim audit
+Ouyang et al. (2023) JGR ES DOI10.1029/2022JF006846 §4.5 actual single-publication LAI informed Aston canopy+GreenAmpt infiltration+bidirectional 2D shallow-water MacCormackTVD+5-grain HR raindrop and overland detachment and settling/bed evolution. §6.1 **true 10m numerical spatial resolution** (not only DEM pixel), steep postfire catchment. Data Availability officially cites code version1.1 at DOI10.5281/zenodo.7269322 and input dataset DOI10.5281/zenodo.7269648, References cite v1.0.0 at same DOI. Zenodo official API and record page not accessible with web (tool internal inaccessible) or local Python (DNS failure). Source bytes and manifest not obtained, not compiled/run, no code implementation verified. Failure to retrieve from runtime NOT proof repo removed.
+## Already-failed model traps
+McGuire SWEHR original code was tested in project 2026-10-26, no actual Rutter canopy in released source and original0.25m example is zero rainfall. Do not promote as new. New GitHub result Daishubinghydraulic Shallow-water-equations-with-Hairsine-Rose-soil-erosion-equations contains only README and code.xls, not genuine validated free computational C or Fortran source. Do not use it as substitute.
+## New files and archive
+papers/2023_Kim_Jeong_Kim_Kim_Microtopography_2D_HR_10cm.md
+decisions/2026-10-28_KIM_2023_10CM_TRUE_2D_HR_AND_OUYANG_SOURCE_ACCESS_GATE.md
+papers/2023_Ouyang_LAI_2D_HR_Postfire_Source_DOI_Audit.md updated actual10m compute-scale and DOI access blocker
+MASTER.md updated; INDEX.md generated from actual main tree with 515 papers entries,117 models,117 decisions (includes .gitkeep)
+## Exact operational plan/gates
+Priority 1 retrieve exact Ouyang source DOI Zenodo and checksum, inspect LAI canopy and HR code paths and run native example. Native actual 0.05m/0.1m acceptance requires source+reproduction and canopy water/splash distinct flux, dt/mesh convergence, finite soil mass, all-boundary flux. No existing full acceptance yet. Published Kim 0.1m numerical evidence doesn't permit calling Ouyang 0.1m canopy.
