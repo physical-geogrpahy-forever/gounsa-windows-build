@@ -37,13 +37,13 @@
 
 ## B. 실패 또는 필수 미검증 (NO-GO 판정 유지)
 
-### B1. 시간간격 수렴성: **불합격/수렴 입증 실패**
-- [기존 1,0.5,0.25,0.125시간 native TMAX 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40441585117): 누적 박리량과 셀별 `DLS`가 수렴하는 일정 경향이 아님.
-- [추가 .125,.0625,.03125,.015625시간 fine native 시험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40443456084). 동일 4m×176 셀, canopy ON/OFF, 각 TMAX별 원본 질량수지 체크.
-- 가장 작은 0.015625h(56.25초)를 기준으로, ON의 0.03125h(112.5초) 누적 침식 공급량은 **0.113491923 vs 0.120500717m³ solid** → **5.8164% 차이**. OFF의 동일 차이는 0.04295%이지만 ON은 비수렴. ON 비교 .0625h vs .015625h 1.8505%; .125h vs .015625h 1.10365%; **단조 감소 아님**.
-- OFF 비교 .0625h vs .015625h **5.35993% 차이**, .125h vs .015625h 4.52442%. 일부 셀 최종 `DLS` 절댓값 차이는 **0.15118mm**(.0625 OFF)로, 해당 시뮬레이션 평균 `DLS` 변화량 약 0.068mm보다 큼. 출력의 검증 핵심인 **침식/퇴적 공간분포가 시간간격에 민감**할 수 있다. 
-- 모든 시간간격의 **유사질량수지 보존 통과**는 **정확도/수렴성 통과와 별개**.
-- 잔차 원인이 강우 시간적 적산 차이인지 hydraulic/canopy numerical coupling인지 확인 중: [원본 ET 강우적산 점검 실험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/.github/workflows/shetran_timestep_forcing_qa_20261027.yml), 결과 미반영 시 원인 확정 금지.
+### B1. 시간간격 수렴성: **수렴 불합격**, fixed-width 입력정밀도 재시험으로 확정
+- 초기 TMAX 분할 실험은 Fortran 정수/실수 fixed-width `F7`의 소수 셋째 자리 출력이라는 실험자 입력오차가 있었다. 가령 0.03125h 요청이 실제 `0.031`, 0.015625h 요청이 실제 `0.016`으로 들어가므로 그 실험(40443456084)의 시간 수치를 **정확한 시각 입력 검증값으로 인용하지 않는다**.
+- 전처리 `BASIC TIMESTEP DATA`의 7자리 필드를 `F7.5`로 바꿔 원본 physical engine을 재시험. [.125, .0625, .03125, .015625h nominal 원본 네이티브 8회 실행 40444641155](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444641155). `0.015625`는 F7.5에서 0.01562h(56.232초)로 출력되며 원 요청 대비 0.032% 오차, 나머지는 입력정밀도상 정확. 네 조건 각각 네이티브 유사 수지는 0.1% 이내 통과.
+- **정밀 재시험 ON**: TMAX 0.03125h의 누적 원토양 박리 공급량 **0.11403214655m³ solid**, TMAX 0.01562h에서는 **0.11989345937m³ solid** → 작은 TMAX 기준 **4.88877% 차이**. TMAX .0625h **0.11895227630**, .125h **0.11917081143**. 감소할수록 단조 수렴 아님.
+- **정밀 재시험 OFF**: .0625h **0.14245823635m³**, .01562h **0.13949357453m³**로 **2.12530% 차이**. .03125h 0.13792426535, .125h 0.13924959580으로 역시 비단조.
+- 셀별 최종 이동퇴적층 `DLS`는 ON .125h와 .01562h간 동일 격자 최대 **0.10493mm** 차이, OFF .0625h와 .01562h간 최대 **0.10335mm** 차이. 이는 계산된 사건평균 DLS 순증가 약 0.058–0.071mm보다 큼. 단일 셀 국지 퇴적-침식 contrast를 신뢰하기 어렵다는 **명시적 수치 수렴 NO-GO**.
+- 모든 분할에서 원본 유사수지는 보존될 수 있지만, 국지 침식/퇴적 출력은 시간간격 민감성이 높다. 기상누락/강우량 차이가 원인인지 보려면 [시간분할별 원본 강우 직접 적산 40444177959](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444177959)을 참고: 각각 176개 격자 gross rain **90.0000000mm**, 수관 물수지 잔차 근접 0, 기타 ET 0. 소수 다섯자리로 재확인 [40444623808](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444623808). 이는 총강우가 다른 탓이 아님. **물리모형 자체가 잘못됐다는 최종 원인 규명과는 별개로, 현재 설정에 대해 결과가 수렴했다고 주장할 수는 없다**.
 
 ### B2. 고해상도 공간 수렴성: **미검증**
 - 4m 176 셀 단 한 해상도만 공간 시험. <1ha 규모 억새 포기 및 참나무 맹아의 패치 간 침식/퇴적 위치는 0.5m 또는 그보다 미세한 DTM과 식생관측 필요. 2m, 1m, 0.5m **같은 물리적 영역**에 대한 격자 refinement 전까지 final model이라고 판정 금지. 4m vs 2km는 서로 다른 영역/지형이므로 수렴시험이 아님.
@@ -61,6 +61,9 @@
 **한 개 완전공개 기존 원본 모델로서 SHETRAN 4.7.2는 동적 수관차단, 직접강우/leafdrip, 2D 유동, 강우박리와 유수박리, 4면 유사 수송 및 국지적 퇴적, 이벤트 말미 순지표고도 후처리를 실제 계산할 수 있다는 점까지 코드 및 native로 검증됐다.** 그러나 현재 중요 output `E(x,y),D(x,y),∆z(x,y)`의 수치적 시간간격 수렴 **NO-GO**, spatial refinement, open outlet, 토심 상한 및 **실제 고운사 DEM/현장 데이터 검증 미실시**. 엄격한 기준상 **고운사 최종 연구용 model로 선정 완료라고 선언할 수 없다.** 단일모델 검증 통과라고 포장하지 말고, event proof-of-capability with nonconvergence issue로 보고한다.
 
 **EUROSEM**은 canopy+rain/flow+rill 내장원본임에도 1D plane 요소를 토대로 하여 mixed oak+tussock를 같은 실제 2D 격자에서 나타낼 수 없고 rill full-ledger fails; 이번 과제의 대체 단일모델 불가. 원본/수정 툴 기록은 [기존 원본 코드 감사](2026-10-27_SHETRAN_EUROSEM_SINGLE_MODEL_NATIVE_CODE_AUDIT.md).
+
+### A7. 가상사면 격자별 침식-퇴적 지도 및 수치표 출력
+- [동일 4m 가상사면 원본 GNU 적산 후 3개 PNG 및 셀별 CSV](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40444819384/artifacts/12706579843). 수관차단 ON, OFF, ON−OFF 각 순지표고도 변화 지도, 원토양 박리량과 퇴적층 증감량 및 순∆z의 176개 셀 CSV. 이미지와 CSV에는 실제 Gounsa 공간좌표/현장자료가 없으므로 현장 DEM 변화도라고 부르지 않는다.
 
 ## 관련 실행 코드
 - [원본 native 전처리와 동일 격자 ON/OFF 실험](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/experiments/shetran_mixed_canopy_native_20261027.py).
