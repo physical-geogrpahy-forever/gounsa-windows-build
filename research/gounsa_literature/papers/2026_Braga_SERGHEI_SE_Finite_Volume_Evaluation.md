@@ -53,3 +53,7 @@ strict quantitative vegetation-state 조건을 만족하지 않는다.
 
 # 참고 링크 / DOI
 10.3390/w18151870
+
+
+## 2026-10-27 확인된 정확한 공간해상도와 식생 기능 경계
+원문 https://www.mdpi.com/2073-4441/18/15/1870 Section4에는 토양침식 실험실 dam-break case의 균일 격자 **0.005m(5mm)**가 있다. 반면 hillslope runoff test와 V-catchment runoff test는 **1m 격자**이며, 5mm 케이스는 **dam-break erodible bed**이지 인공강우+수관차단의 5mm 실증이 아님. 저자 결론에서 **vegetation coverage / mixtures with multiple sediment sizes / actual larger watersheds should be addressed in future work**라고 명시하므로 native vegetation canopy interception은 미구현이다. DOI https://doi.org/10.3390/w18151870. 5mm라는 수치만 보고 strict canopy+rainfall+2D erosion gate를 PASS라고 하면 안 됨. 
