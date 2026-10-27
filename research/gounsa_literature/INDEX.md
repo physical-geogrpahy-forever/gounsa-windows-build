@@ -4,7 +4,7 @@
 
 이 파일은 `research/gounsa_literature/` 아래 실제 GitHub 파일 목록을 기준으로 생성한 인덱스다.
 
-## Papers (494)
+## Papers (496)
 
 - `papers/.gitkeep`
 - `papers/1960_Culling_AnalyticalTheoryErosion.md`
@@ -189,6 +189,7 @@
 - `papers/2009_Cho_DANSAT_Model_Application.md`
 - `papers/2009_Cho_DANSAT_Model_Development.md`
 - `papers/2009_Cohen_mARM.md`
+- `papers/2009_Kim_Yang_Kim_Onda_Korean_Forest_Canopy_Interrill_Erosion.md`
 - `papers/2009_Liang_StemflowThreeDimensionalSoilWater.md`
 - `papers/2009_Long_He_GPU_2D_SWE_Hydraulic_Erosion.md`
 - `papers/2009_Long_He_Rill_Evolution_FVM_Modified_Gash.md`
@@ -252,6 +253,7 @@
 - `papers/2016_Pelak_BistablePlantSoil.md`
 - `papers/2016_Sun_LitterFlowResistance.md`
 - `papers/2016_Sun_LitterTemporalResistance.md`
+- `papers/2016_Thompson_Davis_Oliphant_Oak_Eucalyptus_Litter_Soil_Erosion_Field.md`
 - `papers/2016_Zhang_LEPIHM.md`
 - `papers/2016_Zhang_RockFragmentsHydrologicalProcessesReview.md`
 - `papers/2017_Bai_Vertical_Root_Distribution_ET.md`
@@ -607,7 +609,7 @@
 - `models/WoodS_LandS.md`
 - `models/Wu_2D.md`
 
-## Decisions (99)
+## Decisions (100)
 
 - `decisions/.gitkeep`
 - `decisions/2026-09-21_COPLAS_MUSLE_EXCLUSION.md`
@@ -682,6 +684,7 @@
 - `decisions/2026-10-27_2100_NEW_LONG_HE_2009_2010_2D_GASH_EROSION_SOURCE_VERDICT.md`
 - `decisions/2026-10-27_2200_NONLISEM_AHMS_SED_SOURCE_ACTIVE_CANOPY_KINETIC_NO_GO.md`
 - `decisions/2026-10-27_2200_NONLISEM_FURTHER_RAFF_BRIF_SOURCE_REAL_CELL_SCREEN.md`
+- `decisions/2026-10-27_2330_KOREA_CANOPY_FIELD_AND_WFLOW_EUROSEM_SOURCE_REGRESSION_SCREEN.md`
 - `decisions/2026-10-27_5CM_10CM_CANOPY_2D_EROSION_NATIVE_MODEL_SCREEN.md`
 - `decisions/2026-10-27_GITHUB_FIRST_SUB10CM_NATIVE_MODEL_FOLLOWUP.md`
 - `decisions/2026-10-27_INDEPENDENT_NEW_2D_EROSION_AND_CANOPY_PHYSICS_PAPERS.md`
