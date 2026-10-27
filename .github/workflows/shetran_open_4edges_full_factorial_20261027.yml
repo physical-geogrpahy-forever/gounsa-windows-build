@@ -1,0 +1,64 @@
+name: SHETRAN native 0.648ha ALL FOUR open-edge 35-case 10-50 mmph matrix
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shetran_open_4edges_full_factorial_20261027.yml'
+      - 'experiments/shetran_open_one_rain_matrix_20261027.py'
+      - 'experiments/shetran_open_boundary_native_water_audit_20261027.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-all-directions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        mmh: [10,20,30,40,50]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nclwater/Shetran
+          ref: cf9cd540add78ad3accbaf62b4199d2032887f6b
+          path: original
+      - uses: actions/checkout@v4
+        with:
+          path: audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check fypp numpy h5py
+      - name: Native only BC array capacity, original physics plus diagnostic read-only records
+        run: |
+          python audit/experiments/shetran_open_bc_capacity_20261027.py original/src/core/sglobal.f90
+          python audit/experiments/shetran_instrument_sediment_qa_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_open_boundary_native_water_audit_20261027.py original/src/sediment/SYmod.f90
+          python audit/experiments/shetran_large_patch_diagnostics_20261027.py original/src/sediment/SYmod.f90
+      - name: Build upstream SHETRAN water interception and erosion algorithms
+        working-directory: original
+        run: |
+          export FFLAGS="-ffree-line-length-none"
+          ./build.sh -c gfortran -t Debug -j 2
+      - name: Seven 0.648ha original-physics scenarios with open north south west east border
+        run: |
+          python audit/experiments/shetran_open_one_rain_matrix_20261027.py \
+            --original-model original/examples/Cobres/model \
+            --exe original/build/debug/bin/shetran \
+            --out /tmp/gounsa_four_open_native \
+            --rain ${{ matrix.mmh }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-SHETRAN-open-four-edges-${{ matrix.mmh }}mmh
+          path: |
+            /tmp/gounsa_four_open_native/open_intensity_results.json
+            /tmp/gounsa_four_open_native/open_intensity_summary.csv
+            /tmp/gounsa_four_open_native/*/summary.json
+            /tmp/gounsa_four_open_native/*/cells.csv
+            /tmp/gounsa_four_open_native/*/scenario_metadata.json
+            /tmp/gounsa_four_open_native/*/native_failure_diagnostics.json
+            /tmp/gounsa_four_open_native/*/simulation_diagnostics.txt
+          retention-days: 30
+          if-no-files-found: warn
