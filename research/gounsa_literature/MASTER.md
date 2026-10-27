@@ -1,5 +1,12 @@
 # Gounsa Literature Master
 
+## 2026-10-27 독립 신규 공개 원본: SMODERP2D 실질 구현범위 검증 (강우사상 세류 모의는 PASS, 토사량 자체는 미구현)
+- **[원본 소스 기능 판정](decisions/2026-10-27_SMODERP2D_ACTUAL_SOURCE_RILL_RUNOFF_NOT_SEDIMENT_NATIVE_NO_GO.md)**, [소스 blob 및 함수 감사](models/SMODERP2D_2019_2026_Native_Interception_Rill_Without_Sediment_Source_Audit.md). Czech Technical University 공개 [SMODERP2D GitHub](https://github.com/storm-fsv-cvut/smoderp2d) GPL. 연구 **[Landa et al.(2019)](papers/2019_Landa_Jerabek_Pesek_Kavka_SMODERP2D_OpenSource_Parallel.md)** DOI10.5194/isprs-archives-XLII-4-W14-143-2019, **[Kavka et al.(2022)](papers/2022_Kavka_Jerabek_Landa_SMODERP2D_SheetRill_ThreeScaleValidation.md)** DOI10.3390/w14030327.
+- `processes/rainfall.py::current_rain` 실제 `interc=ppl*rainfall` + 최대 차단 `pi` [mm]로 순강우 산정. 식생 잎면적 계열 비율은 있으나 Rutter/Gash canopy storage drain, LAI dynamic C(t), 낙수충격 KE **없음**.
+- `core/kinematic_diffuse.py`는 `Mfda if Globals.mfda else D8` 형태, 2D raster에서 유동 방향 분산/변경하지만 **full 2D SWE 운동량·자유 유사 플럭스 아님**. `time_step.py` 전체 629행은 sheet/rill runoff/infiltration/rill width 계산, sediment detachment/concentration/transport/deposition **활성함수 검색 없음**. 2019 논문 제시된 Eqs 1–6은 water/manning rill 뿐임.
+- 2022 논문 actual spatial mesh **5m×5m** field 36.6ha; 2×8m rainfall60mm/h plot과 약50m² monitored hydrograph, 5m field grid 세류 분포 비교. **세류 발생 위치 관측을 유사박리·퇴적 질량 검증으로 착각하지 말 것**. [**Neumann(2022) 박사학위논문**](papers/2022_Neumann_SMODERP_Sediment_Transport_PhD_Experimental_Evaluation.md)은 450회 이상 4~34°/40~160mm/h 실험으로 Kilinc–Richardson류 토사이송 추가식 연구; 이 연구가 2026 현재 공개 프로그램의 작동하는 유사루틴이라고 주장할 수 없음.
+- **고운사 현재 결론:** native event runoff/rill open source **YES**, dynamic LAI canopy KE and highres freely XY rain+flow erosion/dep **NO**. 원본 한정 고운사 단일 유수침식 주모델 탈락, 참고 수문세류 모델 보존. OpenLISEM 코딩/수치검증은 사용자 지정 Work가 별도 담당.
+
 ## 2026-10-27 23:30 국내 산림 수관차단 침식 실측과 Wflow 2026 EUROSEM 원본 단위오류 공식 수정
 - **[검증 결정문](decisions/2026-10-27_2330_KOREA_CANOPY_FIELD_AND_WFLOW_EUROSEM_SOURCE_REGRESSION_SCREEN.md)** [세션 인계](sessions/2026-10-27_2330_KOREA_FOREST_CANOPY_WFLOW_NATIVE_FIX_HANDOFF.md): 비LISEM 독립문헌 조사. 전체 PASS 5–10cm canopy+freeXY+direct/flow erosion+deposition 동종 원본은 계속 미발견; 그러나 고운사 실측 검증에 직접 기여할 기존 연구와 수정된 실제 공개 소스 찾음.
 - **[Kim et al.(2009) 한국 안성 산림](papers/2009_Kim_Yang_Kim_Onda_Korean_Forest_Canopy_Interrill_Erosion.md)** DOI10.3178/hrl.3.36: 자연강우, 수관아래/나지 0.45×0.40m **실제 6개 침식 관측구**, 경사 10/20/30°, 수관아래 interrill soil loss 더 낮고 3h 강우강도 및 수관통과우 구간 변동과 관련. 원 표토 실트점토4%, 모래76%, 자갈20%, 편마암. **수치격자 5cm 모델이 아니라 관측논문**.
