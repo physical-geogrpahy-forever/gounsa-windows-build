@@ -33,7 +33,7 @@ def clear_impermeable_codes_on_open_perimeter(directory):
                     if code[x-1]=="I":
                         code[x-1]="."
                         changed+=1
-            lines[n]=f"{y:7d} "+''.join(code)+"\\n"
+            lines[n]=f"{y:7d} "+''.join(code)+"\n"
     assert changed>0, "No legacy Type1 conflict markers cleared"
     p.write_text("".join(lines))
     return changed
