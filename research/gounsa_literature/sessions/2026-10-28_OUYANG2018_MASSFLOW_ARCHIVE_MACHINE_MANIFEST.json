@@ -1,0 +1,350 @@
+{
+  "body_force_dll.zip": {
+    "zip_name": "body_force_dll.zip",
+    "sha256": "34d9eb472a2af4a169a0b8e865616e357c0befc4a60af01216a99a4cebffe64d",
+    "size": 28255,
+    "entries": [
+      {
+        "path": "ApiIds.h",
+        "size": 1456
+      },
+      {
+        "path": "ApiTypes.h",
+        "size": 6478
+      },
+      {
+        "path": "CFieldQuery.cpp",
+        "size": 8892
+      },
+      {
+        "path": "CFieldQuery.h",
+        "size": 6230
+      },
+      {
+        "path": "FieldQuery.cpp",
+        "size": 672
+      },
+      {
+        "path": "field_query_prefs.txt",
+        "size": 11
+      },
+      {
+        "path": "Helpers.h",
+        "size": 30049
+      },
+      {
+        "path": "IApi.h",
+        "size": 3197
+      },
+      {
+        "path": "IApiManager_1_0.h",
+        "size": 2437
+      },
+      {
+        "path": "ICustomPropertyDataApi_1_0.h",
+        "size": 6100
+      },
+      {
+        "path": "ICustomPropertyManagerApi_1_0.h",
+        "size": 4633
+      },
+      {
+        "path": "IFieldApi_1_0.h",
+        "size": 4351
+      },
+      {
+        "path": "IFieldManagerApi_1_0.h",
+        "size": 3172
+      },
+      {
+        "path": "IGeometryManagerApi_1_0.h",
+        "size": 1262
+      },
+      {
+        "path": "IParticleManagerApi_1_0.h",
+        "size": 3879
+      },
+      {
+        "path": "IPluginParticleBodyForce.h",
+        "size": 1046
+      },
+      {
+        "path": "IPluginParticleBodyForceV2_2_0.h",
+        "size": 20328
+      },
+      {
+        "path": "ISimulationManagerApi_1_0.h",
+        "size": 1630
+      },
+      {
+        "path": "PluginConstants.h",
+        "size": 993
+      },
+      {
+        "path": "PluginParticleBodyForceCore.h",
+        "size": 1861
+      }
+    ],
+    "matches": []
+  },
+  "example.zip": {
+    "zip_name": "example.zip",
+    "sha256": "f912174074b113507b999cf9bd601448b11b9f487615fbbfe56097e5e6ed30ce",
+    "size": 709464,
+    "entries": [
+      {
+        "path": "1.txt",
+        "size": 20
+      },
+      {
+        "path": "body_force.dll",
+        "size": 27648
+      },
+      {
+        "path": "edem.txt",
+        "size": 0
+      },
+      {
+        "path": "field_query_prefs.txt",
+        "size": 11
+      },
+      {
+        "path": "input.txt",
+        "size": 702
+      },
+      {
+        "path": "massflow.exe",
+        "size": 1027584
+      },
+      {
+        "path": "particle_parameter.txt",
+        "size": 40
+      },
+      {
+        "path": "shared_dll.dll",
+        "size": 37376
+      },
+      {
+        "path": "single_particle.dem",
+        "size": 2888
+      },
+      {
+        "path": "single_particle.dfg",
+        "size": 197076
+      },
+      {
+        "path": "single_particle.ess",
+        "size": 236
+      },
+      {
+        "path": "single_particle.ptf",
+        "size": 56
+      },
+      {
+        "path": "single_particle_data/0.h5",
+        "size": 74280
+      },
+      {
+        "path": "solver.dll",
+        "size": 622592
+      }
+    ],
+    "matches": []
+  },
+  "massflow.zip": {
+    "zip_name": "massflow.zip",
+    "sha256": "9bfa2fa759e8433b8a333c96f6b0616abc120ee7032291b5bf8d6c706be28ff2",
+    "size": 298981,
+    "entries": [
+      {
+        "path": "cmd_domain_scan.f90",
+        "size": 17019
+      },
+      {
+        "path": "cmd_interpret.f90",
+        "size": 25528
+      },
+      {
+        "path": "comp_central_difference.f90",
+        "size": 5293
+      },
+      {
+        "path": "comp_cycle.f90",
+        "size": 4120
+      },
+      {
+        "path": "comp_erosion_deposition_rate.f90",
+        "size": 12167
+      },
+      {
+        "path": "comp_fluid_fraction.f90",
+        "size": 14763
+      },
+      {
+        "path": "comp_limiter_factor.f90",
+        "size": 1832
+      },
+      {
+        "path": "comp_time_step.f90",
+        "size": 915
+      },
+      {
+        "path": "comp_w.f90",
+        "size": 3012
+      },
+      {
+        "path": "coupling_module.f90",
+        "size": 20025
+      },
+      {
+        "path": "geo_bound_custom.f90",
+        "size": 1189
+      },
+      {
+        "path": "geo_depth_custom.f90",
+        "size": 1236
+      },
+      {
+        "path": "geo_surface_custom.f90",
+        "size": 1214
+      },
+      {
+        "path": "geo_surface_gui.f90",
+        "size": 3839
+      },
+      {
+        "path": "geo_topo_custom.f90",
+        "size": 1155
+      },
+      {
+        "path": "geo_topo_gui.f90",
+        "size": 3775
+      },
+      {
+        "path": "geo_uv_custom.f90",
+        "size": 1230
+      },
+      {
+        "path": "global_variables.f90",
+        "size": 5699
+      },
+      {
+        "path": "Gridmapping_Euler_to_Lagrangian.f90",
+        "size": 4854
+      },
+      {
+        "path": "main.f90",
+        "size": 1615
+      },
+      {
+        "path": "material_parameter.f90",
+        "size": 1549
+      },
+      {
+        "path": "model_deposition_JHE.f90",
+        "size": 1049
+      },
+      {
+        "path": "model_earth_press.f90",
+        "size": 4763
+      },
+      {
+        "path": "model_erosion_JHE.f90",
+        "size": 968
+      },
+      {
+        "path": "model_extra_term_5vars_x_JHE.f90",
+        "size": 1874
+      },
+      {
+        "path": "model_extra_term_5vars_y_JHE.f90",
+        "size": 1687
+      },
+      {
+        "path": "model_friction_criterion.f90",
+        "size": 4256
+      },
+      {
+        "path": "model_vectored_equations_x.f90",
+        "size": 12163
+      },
+      {
+        "path": "model_vectored_equations_y.f90",
+        "size": 10644
+      },
+      {
+        "path": "output_dyna.f90",
+        "size": 5983
+      },
+      {
+        "path": "output_outcome.f90",
+        "size": 7805
+      },
+      {
+        "path": "output_topo_dem.f90",
+        "size": 1801
+      },
+      {
+        "path": "output_topo_tecplot.f90",
+        "size": 10838
+      },
+      {
+        "path": "post_comp.f90",
+        "size": 935
+      },
+      {
+        "path": "pre_comp.f90",
+        "size": 1609
+      },
+      {
+        "path": "pre_dir_filename.f90",
+        "size": 1815
+      },
+      {
+        "path": "pre_init_h_dry.f90",
+        "size": 1564
+      },
+      {
+        "path": "pre_init_region.f90",
+        "size": 1053
+      },
+      {
+        "path": "pre_init_variables.f90",
+        "size": 970
+      },
+      {
+        "path": "read_data_dem.f90",
+        "size": 3533
+      },
+      {
+        "path": "read_data_grid.f90",
+        "size": 978
+      },
+      {
+        "path": "solver.dll",
+        "size": 622592
+      },
+      {
+        "path": "solver.lib",
+        "size": 3204
+      }
+    ],
+    "matches": [
+      "comp_cycle.f90:57: \t\t\t\tcall comp_one_region_para(k,region(k)%q, region(k)%q1_flag, &",
+      "comp_cycle.f90:70: \t\t\t\tcall comp_one_region(k,region(k)%q, region(k)%q1_flag, &",
+      "output_outcome.f90:27:                     call mpi_data_merge(k,region(k)%q, region(k)%q1_flag, &"
+    ]
+  },
+  "share_dll.zip": {
+    "zip_name": "share_dll.zip",
+    "sha256": "e97c6412fce2fcd4e36a21f04d6d714b4c5f9f1167cce753de29b76a01cd6d83",
+    "size": 890,
+    "entries": [
+      {
+        "path": "main.cpp",
+        "size": 3488
+      }
+    ],
+    "matches": []
+  }
+}
