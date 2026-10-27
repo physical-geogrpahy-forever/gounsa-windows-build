@@ -74,7 +74,7 @@ def modify_frd(dest,typ,tmax_hr=.015625):
     swap_region(l,"GROUND SURFACE ELEVATION","RAINFALL STATIONS",elevation)
     i=next(i for i,v in enumerate(l) if v.strip()=="RAINFALL STATIONS")
     l[i+1:i+30]=[f"{y:7d} "+''.join("1" if (x,y) in ACTIVE else "0"
-                          for x in range(1,NX+1))+"\\n" for y in range(NY,0,-1)]
+                          for x in range(1,NX+1))+"\n" for y in range(NY,0,-1)]
     i=next(i for i,v in enumerate(l) if "VEGETATION GRID FOR NVC PER CELL" in v)
     assert len(l[i+1:i+30])==29
     l[i+1:i+30]=gridrows(typ)
@@ -131,7 +131,7 @@ def modify_vsd(dest):
     i=next(i for i,row in enumerate(lines) if row.strip().startswith(":VS08c"))
     rows=[f"{y:7d} "+''.join(
         ("1" if y>=15 else "2") if (x,y) in ACTIVE else "0"
-        for x in range(1,NX+1))+"\\n" for y in range(NY,0,-1)]
+        for x in range(1,NX+1))+"\n" for y in range(NY,0,-1)]
     assert len(rows)==29
     lines[i+1:i+30]=rows
     p.write_text("".join(lines))
