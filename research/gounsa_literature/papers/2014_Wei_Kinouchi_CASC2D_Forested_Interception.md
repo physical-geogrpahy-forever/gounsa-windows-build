@@ -48,3 +48,9 @@ LAI 연동 canopy storage의 문헌상 대안이라는 학술 참고근거. 고�
 - 후속 산림유역 침식 연구: https://www.sciencedirect.com/science/article/abs/pii/S157064431630065X
 - 공개 고전 TREX C 소스 별도: https://github.com/WatershedModels/trex_src_csu
 - 관련 기존 정리: ../papers/2008_Velleux_England_Julien_TREX_2D.md
+
+## 2026-10-27 CASC2D-SED 실제 공개 C 원본과 산림 개량판의 차이 확정
+- [CASC2D-SED 보존 공개 C](https://github.com/wy7980/CASC2D-SED): CSU 유산 source를 `rint->wrint` 컴파일명 수정해 보존한 GitHub repository. 상세 [독립 원본 감사](../models/CASC2D_SED_C_Original_Independent_Code_Audit_2026.md).
+- `ReadControlFile.c`는 landuse별 `retention[i]` mm, `InitializeVars.c`는 `ret=retention/1000`, `intercept.c`는 강우에서 남은 초기 저장량을 우선적으로 완전히 차감하는 22행 함수. **LAI 또는 가변 수관저류, 수관낙수 배수 계산은 없음.**
+- 따라서 본 논문이 제시한 `Smax=0.935+0.498LAI-0.00575LAI²`은 당시 저자 산림 개량판의 수문 계산 기여이지, 지금 확보한 CASC2D-SED C 원본 소스의 내장 계산이라고 주장할 수 없음.
+- 공개 C에는 흐름수송능력 기반 2D sediment module 자체는 있고 단일 `jout,kout` exit, independent raindrop splash 없음. 논문의 forest canopy hydrology + 2003 sediment code를 사후에 **임의로 합치면 새로운 coupling**. 동일 실행판의 forest canopy/rill sediment/5cm 성공 근거는 현재 없음.
