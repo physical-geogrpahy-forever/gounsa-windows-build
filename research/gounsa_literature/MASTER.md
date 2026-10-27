@@ -1,3 +1,11 @@
+# 2026-10-28 단일 레퍼런스 4대 모델 원문·현재 소스 깊이 재검증
+- [4대 후보 정밀 감사 및 RDycore 코드 비교](decisions/2026-10-28_SINGLE_REFERENCE_4_CORE_MODELS_PRIMARY_PAPER_NATIVE_SOURCE_REAUDIT.md). Kim2013 tRIBS-FEaST는 한 논문의 실제 3-engine coupled 2D Roe-SWE-Hairsine–Rose+Rutter interception; 작은 0.005m² 삼각격자 두 시험에서 hydrology OFF, full basin smallest triangle ~5.56m², hydrology3.75min/erosion0.01s, 908셀 3시간 사상 264min wall. Table5 실제 canopy water store/throughfall coefficient 있음, 그러나 §4.3.5의 vegetation contrast는 Ksat/Manning 바꾼 실험이지 canopy-only ablation 아님. 현대 공식 tRIBS 원본은 Rutter 있으나 FEaST sediment source 미발견.
+- Maggioli2022 LISEM 실제 5cm+LAI→canopy storage는 원문 §Model Selection 확인; 동일 테스트 kinematic wave 명시, 특성별 Ksat와 roughness/cohesion도 함께 달라져 canopy-only causal result 불명. vjetten main_C에는 interception, leafdrip rain KE, 2D runoff+sediment native code 있으나 논문 정확 빌드 미확인, 기존 7.5.2 네이티브 5m 12시도 dt/soil stock NO-GO 유지.
+- Long&He2010 원초록은 modified Gash+Green–Ampt+true2D shallow-water+erosion/deposition+microtopography 동시 프레임워크이고 원본 cm 실행판/소스 못 찾음; 2017 same-author GPU-CA는 별개. Wei2017 forest TREX 실제90m, 2D diffusive-wave with qx,qy and splash/flow sediment; 과거 generic TREX 공개 소스가 modified2017 exact source라는 증거 없음.
+- Feng2026 한 레퍼런스의 ELM+TELEMAC+GAIA 3-engine 통합으로 재포함. 8.2GB author modified source Zenodo 메타 확인, 실제 최소30m, GAIA Exner 산하 river/floodplain만; original hillslope erosion 지형변화는 계산하지 않는다고 논문에 명시.
+- [신규 RDycore native vs docs](models/RDycore.md): 2D Hairsine–Rose 전체 이론식은 문서에 있으나 native tracer C/PETSc/CEED는 단순 shear erosion-deposition과 advection, canopy/rain splash/loose-bed Exner 구현은 확인 안 됨. 우선 모델 아님.
+- 본 감사에서는 모형 원본 코드 컴파일/5~10cm 실행을 수행하지 않았으며 모든 필수 조건을 통과했다고 인정된 공개 원본 없음. OpenLISEM 별도 Work QA 통과 전 채택 금지.
+
 # 2026-10-27 단일 레퍼런스 기준 정정 — 다중엔진 통합도 허용
 - [상세 재분류 결정](decisions/2026-10-27_SINGLE_REFERENCE_MULTI_ENGINE_FULL_RECLASSIFICATION.md): 하나의 발표 논문에서 tRIBS+OFM+Hairsine–Rose 또는 ELM+TELEMAC+GAIA처럼 3엔진을 실제로 결합한 통합 모델은 단일 레퍼런스 조건을 충족한다. 엔진 개수만으로 제외한 이전 판단을 철회한다.
 - 연구/논문상 물리과정 우선 후보: (1) Kim et al.(2013) tRIBS–OFM–HR, (2) Maggioli et al.(2022) classic LISEM 실제 5cm, (3) Long & He(2009/2010) modified Gash 2D rill, (4) Wei et al.(2017) forest TREX. 공개 통합 원본/실제 cm 격자 동시 실행여부는 별도 게이트.
