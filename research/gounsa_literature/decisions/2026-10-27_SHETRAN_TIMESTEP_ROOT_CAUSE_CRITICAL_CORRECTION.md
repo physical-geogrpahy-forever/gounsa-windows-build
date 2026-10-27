@@ -56,3 +56,23 @@ lines[i] = f"{tmax:7.5f}" + lines[i][7:]
 | 고운사 소사면 실제 관측 검증, 공간수렴, open boundary | 미완 | 미완 그대로 |
 
 **연구자의 요청에 응하는 원칙:** 잘못된 시험 설정을 그대로 두고 SHETRAN 탈락 선언 금지. 원본 `TMAX`로 실제 시간간격 수렴부터 재실행하며 이후 canopy/flow/erosion component별 원인 분해. 단일모델 유지. 
+
+
+## 실제 TMAX 필드 수정 후 원본 네이티브 1차 수렴시험: 2026-10-27 확인
+
+[Actions 40445638896](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445638896): `PMAX=1mm`, `PALFA=0.05`, `QMAX=9999`, **네 번째 7자리 필드 TMAX** 가변, `BSOFT=F` 동일. 원본 SHETRAN upstream `cf9cd540` physical equations 변경 없이 `SYMAIN` native mass `WRITE`만 넣어 두 식생/수관 상태 각 4회(합계 8 native). 강우사상 3h×30mm/h, 1h 무강우 준비기간, 0.2816ha 가상 closed-slope/4m 격자.
+
+| 진짜 TMAX [h] | ON 박리 공급 [m³ solid] | OFF 박리 공급 [m³ solid] | ON 최종 평균 DLS [mm] | OFF 평균 DLS [mm] |
+|---|---:|---:|---:|---:|
+| 0.125 | 0.11405925712 | 0.13483329434 | 30.05786282 | 30.06840158 |
+| 0.0625 | 0.11365943477 | 0.13396121344 | 30.05766001 | 30.06795923 |
+| 0.03125 | 0.11343586687 | 0.13332163167 | 30.05754666 | 30.06763475 |
+| 0.015625 | 0.11322121713 | 0.13344596876 | 30.05743773 | 30.06769786 |
+
+- ON erosion source monotonic decreases toward finer TMAX, at 0.03125 vs 0.015625 reference **0.18958%** difference. OFF analogous **0.09317%**. Improvement drastically different from false prior `PMAX` sweep (4.89% and 2.13%). Full Richardson/asymptotic convergence proven? **No:** only 4 levels, concentration, local DLS spatial outputs separate.
+- ON max same-cell DLS 0.03125 vs 0.015625 **0.0259552mm** RMS 0.00327465mm; OFF max **0.02267265mm** RMS 0.00294186mm. This amount can be material compared with signal strength, so spatial hotspot robustness not yet verified. Compare actual **DLS changes** rather than raw DLS offset 30mm; HDF snapshot is f32 so use native doubles for rigorous cellwise rates.
+- ON/OFF native sediment solid-volume mass conservation for all timecaps excellent, final finest `residual/source` around 1e−12 (from global Fortran `WRITE`), **but** this is not a guarantee of erosion location accuracy.
+- [Native ET stepwise forcing check 40445644339](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/40445644339): all compared TMAX 0.125/.03125/.015625 integrate exact **90mm precipitation per cell** (numerical deviation <1e−13mm); noncanopy ET zero, native canopy stock water budget near exact.
+- Additional genuine ultrafine TMAX **0.03125/0.015625/0.007812/0.003906h** started [workflow](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/blob/main/.github/workflows/shetran_actual_tmax_ultrafine_20261027.yml); do not claim it passed before results verified.
+
+**판정:** 근본 원인은 **자체 검증 도구의 고정폭 입력 필드 오독**이다. SHETRAN 4m 폐쇄영역의 실제 TMAX 유사총량 응답은 적어도 현행 56–112초 비교에서 수렴 방향을 보임. 기존 "수치적으로 전혀 수렴하지 않아 불합격" 결정은 폐기. **잔존 검증 격자별 공간 차분 안정성, 오픈 아웃렛 및 동일 사면 공간상세(0.5–2m) 수렴, 현장 파라미터 검증은 미완**.
