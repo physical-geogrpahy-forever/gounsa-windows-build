@@ -92,3 +92,9 @@ Strict quantitative vegetation coupling fails in current implementation.
 - **Epple et al. (2025)** https://doi.org/10.1002/esp.70127 : 실제 LISEM 1cm 격자에서 rain-simulator 실험포 수문·침식, 시간별 DEM 지형고도 갱신, 비디오 기반 PTV 유속/SfM DoD와 비교. 논문에는 LAI 수관저류를 이 1cm 시나리오에서 활성화했다는 증거가 없음. 정확 코드 태그도 없음.
 - **Naranjo et al. (2021)** https://doi.org/10.5194/hess-25-5561-2021 : OpenLISEM v4.96에서 격자별 유사배출 이상치(4m 440.9Mg vs 2m 128.4Mg 등) 학술 지적.
 - **판정 변경:** 초고해상도+수관저류+침식 논문이 아예 없다는 과거 선별 결론은 **명시적으로 철회**한다. 그러나 선행연구의 LISEM 버전이 v7.5.2와 같은 원본인지 미확인이며 Gounsa 7.5.2 native 유사수송 수치 QA 탈락은 그대로 유지. 새로운 코드 재채택은 소스-원문 동일성/강우시간간격 및 침식 수렴/전방위 2D 확인을 전제로만 한다. 문헌 [정정 기록](../decisions/2026-10-27_SUB10CM_LISEM_NEW_PUBLISHED_EVIDENCE_REVERSAL.md).
+
+## 2026-10-27 핵심 계보 정정
+개발진은 **세 가지를 구분**: 1990년대 LISEM original (De Roo 등의 LDD/1D 운동파), Victor Jetten의 **OpenLISEM Classic**(`vjetten/openlisem`, 2026-10에 v7.5.2), Bastian van den Bout의 **신형 LISEM / Lisem Integrated Spatial Earth Modeller**(`bastianvandenbout/LISEM`, 별도 소프트웨어, 알파 버전, 스크립트 및 지형모의). LISEM Hazard는 이 신형 계열의 기원/관련 모델. 공식 https://lisemmodel.com/docs/home/ / https://lisemmodel.com/docs/about/ / https://lisemmodel.com/docs/downloads/.
+**Epple et al.(2025)** 1cm 실험 논문은 공식 `https://lisemmodel.com/`을 `LISEM (2024)`로 인용하고 Bastian van den Bout에게 연구지원 감사, LISEM scripting 사용을 명시하여 신형 계열로 강하게 판정. 동일 소스태그는 미확인. 따라서 **Gounsa OpenLISEM Classic 7.5.2 수치 불안정성 검증은 신형 LISEM에 대한 검증이 전혀 아니다.**
+**Maggioli et al.(2022)** 5cm + LAI 수관저류 + erosion은 원 LISEM과 Jetten/De Roo 2001을 인용하고 운동파 사용을 명시하여 Classic 계열 적용 논문으로 추정. v7.5.2 적용 단정 불가.
+공식 신형 LISEM hydrology https://lisemmodel.com/docs/hydrology/ 의 입력은 `vegetation cover`, `vegetation height`, `SMax Canopy`, LAI, 예를 들어 `Smax Broadleaved Forest=0.2856 LAI`, `Smax Clumped Grass=0.59 LAI^0.88`. **식생 및 수관저류가 새로운 LISEM 계열에도 명시적으로 존재**하는 독립 개발자 근거. 다만 1cm Epple 시나리오에서 interception을 활성화한 것은 아님.
