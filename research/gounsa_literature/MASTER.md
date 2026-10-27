@@ -1,3 +1,9 @@
+# 2026-10-27 단일 레퍼런스 기준 정정 — 다중엔진 통합도 허용
+- [상세 재분류 결정](decisions/2026-10-27_SINGLE_REFERENCE_MULTI_ENGINE_FULL_RECLASSIFICATION.md): 하나의 발표 논문에서 tRIBS+OFM+Hairsine–Rose 또는 ELM+TELEMAC+GAIA처럼 3엔진을 실제로 결합한 통합 모델은 단일 레퍼런스 조건을 충족한다. 엔진 개수만으로 제외한 이전 판단을 철회한다.
+- 연구/논문상 물리과정 우선 후보: (1) Kim et al.(2013) tRIBS–OFM–HR, (2) Maggioli et al.(2022) classic LISEM 실제 5cm, (3) Long & He(2009/2010) modified Gash 2D rill, (4) Wei et al.(2017) forest TREX. 공개 통합 원본/실제 cm 격자 동시 실행여부는 별도 게이트.
+- 실제 연결 코드 또는 저자배포 실행본 자료가 강한 Feng2026, Jiang2025, Iber+2024도 후보로 재분류하되 각각 hillslope bed feedback/해상도, 20km 원본 및 라우팅, canopy 미연결 문제를 분리한다.
+- **중요 정정**: Kim2013 0.005m² 삼각요소(정사각 변7.07cm)는 hydrology OFF인 사실상 1D 두 시험의 크기이며, 실제 2D 유역 canopy+hillslope erosion을 7cm에서 시험한 것이 아니다. Feng2026은 GAIA 하천/범람원 bed feedback은 있으나 ELM hillslope soil erosion의 지형고도 변화는 포함하지 않는다.
+
 # Gounsa Literature Master
 
 ## 2026-10-27 최종 독립검증: Feng et al.(2026) 원본 수정 TELEMAC/GAIA Zenodo 8.2GB 발견, 실제 수치격자30m·3중 결합으로 고운사 조건 탈락
