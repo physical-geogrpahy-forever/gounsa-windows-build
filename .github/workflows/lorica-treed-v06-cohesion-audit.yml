@@ -3,6 +3,7 @@ name: LORICA-TREED v0.6 cohesion audit
 on:
   push:
     branches:
+      - main
       - lorica-treed-v0.6-cohesion-audit
     paths:
       - 'lorica_treed/v0.6/**'
