@@ -53,8 +53,7 @@ jobs:
         shell: bash
         working-directory: work/TREED
         run: |
-          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
-          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          JULIA_PKG_PRECOMPILE_AUTO=0 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
       - name: Load modified TREED module
         shell: bash
