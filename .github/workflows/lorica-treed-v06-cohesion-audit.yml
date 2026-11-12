@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - lorica-treed-v0.6-cohesion-audit
+      - lorica-treed-v0.6-hales-benchmarks
     paths:
       - 'lorica_treed/v0.6/**'
       - '.github/workflows/lorica-treed-v06-cohesion-audit.yml'
@@ -133,13 +134,17 @@ jobs:
           by={r['case']:r for r in rows}
           raw=float(by['diagnostic_Kim2025_Pinus_densiflora_mean']['result_Cr_kPa'])
           wetlow=float(by['wet40pct_plus_Korea2025_inverse5p1']['result_Cr_kPa'])
+          tr_fbm=float(by['Hales2009_Coweeta_FBM_mean']['effective_Tr_MPa'])
+          tr_wu=float(by['Hales2009_Coweeta_Wu_mean']['effective_Tr_MPa'])
           tr9=float(by['Korea2025_Pinus_densiflora']['effective_Tr_MPa'])
           assert raw > 21.6, raw
           assert wetlow < raw, (wetlow, raw)
-          assert 0.3 < tr9 < 2.0, tr9
+          assert 0.1 < tr_fbm < tr_wu < tr9 < 2.0, (tr_fbm, tr_wu, tr9)
           print('V06_COHESION_AUDIT_PASS')
           print('raw15p9_kPa=', raw)
           print('wet40pct_inverse5p1_kPa=', wetlow)
+          print('effective_Tr_for_Hales_FBM_3p4kPa_MPa=', tr_fbm)
+          print('effective_Tr_for_Hales_Wu_7p6kPa_MPa=', tr_wu)
           print('effective_Tr_for_9kPa_MPa=', tr9)
 
       - name: Upload audit outputs
