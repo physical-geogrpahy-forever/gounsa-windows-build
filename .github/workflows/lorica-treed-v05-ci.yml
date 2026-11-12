@@ -1,0 +1,247 @@
+name: LORICA-TREED v0.5 CI\n# roundtrip harness uses C# 5 syntax for Framework csc compatibility
+
+on:
+  push:
+    branches:
+      - lorica-treed-v0.5-ci
+    paths:
+      - 'lorica_treed/v0.5/**'
+      - '.github/workflows/lorica-treed-v05-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: lorica-treed-v05-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  treed-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Extract LORICA-TREED v0.5 source
+        shell: bash
+        run: |
+          mkdir -p work
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          find work -maxdepth 2 -type d | sort | head -50
+
+      - name: Prepare local-coupling TREED entrypoint
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          # CI-only import slimming: local raster coupling does not use GDAL/image IO.
+          # No TREED scientific function or equation is changed.
+          sed -i 's/using Rasters, ArchGDAL, NCDatasets/using Rasters, NCDatasets/' TREED/src/TREED.jl
+          sed -i '/^using Images$/d' TREED/src/TREED.jl
+          echo 'TREED local CI imports:'
+          head -20 TREED/src/TREED.jl
+
+      - name: Run v0.5 Python verification suite
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          for t in $(find tests -maxdepth 1 -name 'test_*.py' | sort); do
+            echo "=== $(basename "$t") ==="
+            python "$t"
+          done
+
+      - name: Instantiate TREED Julia environment
+        shell: bash
+        working-directory: work/TREED
+        run: |
+          JULIA_PKG_PRECOMPILE_AUTO=0 julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Load modified TREED module
+        shell: bash
+        working-directory: work/TREED
+        run: |
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+
+      - name: Prepare 2x2 local-grid smoke exchange
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          cp coupling/scenarios/01_original_treed_control.cfg coupling/TREED_coupling.cfg
+          mkdir -p coupling/1/input
+          cat > coupling/1/input/dtm.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          100 99
+          98 97
+          EOF
+          cat > coupling/1/input/soildepth.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          1.0 1.0
+          1.0 1.0
+          EOF
+          cat > coupling/1/input/paw_mm.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          150 150
+          150 150
+          EOF
+          cat > coupling/1/input/treed_climate_monthly.csv <<'EOF'
+          month,tair_C,precip_mm_month,clt_fraction,rsds_W_m2
+          1,5,60,0.50,120
+          2,7,60,0.50,140
+          3,10,70,0.50,170
+          4,14,80,0.50,190
+          5,18,100,0.50,210
+          6,21,140,0.50,220
+          7,24,250,0.55,210
+          8,24,220,0.55,200
+          9,20,140,0.50,180
+          10,15,80,0.50,160
+          11,10,60,0.50,130
+          12,6,60,0.50,110
+          EOF
+          sed -i 's/^          //' coupling/1/input/*.asc coupling/1/input/*.csv
+
+      - name: Run 2x2 TREED local-grid coupling step
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          julia --project=TREED coupling/treed_lorica_driver.jl coupling/1 TREED
+          test -f coupling/1/output/treed_rootC_areanorm_gC_m2.asc
+          test -f coupling/1/output/treed_r_s_r.asc
+          echo TREED_2X2_SMOKE_OK
+          echo "--- r_s_r ---"
+          cat coupling/1/output/treed_r_s_r.asc
+          echo "--- rootC area normalized ---"
+          cat coupling/1/output/treed_rootC_areanorm_gC_m2.asc
+
+      - name: Upload TREED smoke outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v05-treed-smoke-${{ github.run_number }}
+          path: |
+            work/coupling/1/output/**
+            work/coupling/traits/**
+          if-no-files-found: warn
+
+  lorica-build:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Extract LORICA-TREED v0.5 source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          Get-ChildItem work
+
+      - name: Prepare local-coupling TREED entrypoint
+        shell: pwsh
+        run: |
+          $p = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $s = [System.IO.File]::ReadAllText($p)
+          $s = $s.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $s = [System.Text.RegularExpressions.Regex]::Replace($s, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($p, $s, (New-Object System.Text.UTF8Encoding($false)))
+
+      - name: Instantiate TREED Julia environment for C# roundtrip
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Restore LORICA NuGet dependency
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+
+      - name: Compile modified LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
+          Write-Host 'LORICA_BUILD_OK'
+
+      - name: Prepare fixed-original roundtrip configuration
+        shell: pwsh
+        run: |
+          Copy-Item work/coupling/scenarios/01_original_treed_control.cfg work/coupling/TREED_coupling.cfg -Force
+          New-Item -ItemType Directory -Force -Path work/roundtrip | Out-Null
+
+      - name: Compile C# roundtrip harness
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedRoundtripSmoke.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v0.5\ci\LoricaTreedRoundtripSmoke.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LoricaTreedRoundtripSmoke.exe)) { throw 'Roundtrip harness not produced' }
+
+      - name: Run LORICA C# -> TREED Julia -> LORICA C# roundtrip
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $coupling = (Resolve-Path ../../../coupling).Path
+          $smoke = (Resolve-Path ../../../roundtrip).Path
+          & .\LoricaTreedRoundtripSmoke.exe $coupling $smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $marker = Join-Path $smoke 'LORICA_TREED_ROUNDTRIP_OK.txt'
+          if (-not (Test-Path $marker)) { throw 'Roundtrip marker missing' }
+          Get-Content $marker
+          Write-Host 'LORICA_TREED_CSHARP_JULIA_ROUNDTRIP_OK'
+
+      - name: Upload LORICA binary and roundtrip outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v05-lorica-roundtrip-${{ github.run_number }}
+          path: |
+            work/LORICA/bin/Release/**
+            work/roundtrip/**
+          if-no-files-found: warn
