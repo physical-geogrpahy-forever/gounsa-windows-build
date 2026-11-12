@@ -152,7 +152,6 @@ jobs:
           if-no-files-found: warn
 
   lorica-build:
-    needs: treed-smoke
     runs-on: windows-latest
     timeout-minutes: 45
 
