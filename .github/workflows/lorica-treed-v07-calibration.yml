@@ -1,0 +1,117 @@
+name: LORICA-TREED v0.7 event cohesion calibration
+
+on:
+  push:
+    branches:
+      - main
+      - lorica-treed-v0.7-event-calibration
+    paths:
+      - 'lorica_treed/v0.7/**'
+      - '.github/workflows/lorica-treed-v07-calibration.yml'
+  workflow_dispatch:
+
+jobs:
+  calibration-tool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract validated v0.5 configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          test -f work/coupling/TREED_coupling.cfg
+
+      - name: Create deterministic baseline root-C fixture
+        shell: bash
+        run: |
+          cat > baseline_rootc.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          1000 1500
+          2000 2500
+          EOF
+          sed -i 's/^          //' baseline_rootc.asc
+
+      - name: Generate calibration configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p calibration_outputs
+          for p in \
+            hales2009_fbm_mean \
+            hales2009_wu_mean \
+            korea2025_larix_kaempferi \
+            korea2025_pinus_densiflora \
+            korea2025_pinus_koraiensis \
+            korea2025_quercus_mongolica
+          do
+            python lorica_treed/v0.7/calibrate_event_cohesion.py \
+              baseline_rootc.asc \
+              work/coupling/TREED_coupling.cfg \
+              "$p" \
+              "calibration_outputs/$p.cfg" \
+              "calibration_outputs/$p.json"
+          done
+
+      - name: Validate generated profiles
+        shell: python
+        run: |
+          import json, pathlib
+          expected = {
+              'hales2009_fbm_mean':3.4,
+              'hales2009_wu_mean':7.6,
+              'korea2025_larix_kaempferi':4.3,
+              'korea2025_pinus_densiflora':9.0,
+              'korea2025_pinus_koraiensis':9.1,
+              'korea2025_quercus_mongolica':12.9,
+          }
+          tr = {}
+          for p,target in expected.items():
+              d=json.load(open(f'calibration_outputs/{p}.json', encoding='utf-8'))
+              assert abs(d['reconstructed_mean_root_cohesion_kPa']-target) < 1e-9, d
+              assert d['profile']==p
+              cfg=pathlib.Path(f'calibration_outputs/{p}.cfg').read_text(encoding='utf-8')
+              assert 'hwang_root_tensile_profile=manual' in cfg
+              assert 'hwang_root_cohesion_reduction_factor=1.0' in cfg
+              assert 'Reuse this fixed Tr_eff across scenarios' in cfg
+              tr[p]=d['effective_event_Tr_MPa']
+          assert tr['hales2009_fbm_mean'] < tr['hales2009_wu_mean'] < tr['korea2025_pinus_densiflora']
+          print('V07_EVENT_CALIBRATION_PASS')
+          for k,v in tr.items():
+              print(k, v)
+
+      - name: Validate manual target mode
+        shell: bash
+        run: |
+          python lorica_treed/v0.7/calibrate_event_cohesion.py \
+            baseline_rootc.asc work/coupling/TREED_coupling.cfg manual \
+            calibration_outputs/manual_6p5.cfg calibration_outputs/manual_6p5.json \
+            --manual-target-kpa 6.5
+          python - <<'PY'
+          import json
+          d=json.load(open('calibration_outputs/manual_6p5.json'))
+          assert abs(d['reconstructed_mean_root_cohesion_kPa']-6.5) < 1e-9
+          print('V07_MANUAL_TARGET_PASS')
+          PY
+
+      - name: Upload calibration examples
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v07-calibration-${{ github.run_number }}
+          path: calibration_outputs/**
+          if-no-files-found: error
