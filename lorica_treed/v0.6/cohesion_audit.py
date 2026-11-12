@@ -16,6 +16,10 @@ ROOT_C_FRACTION = 0.47
 # Kim et al. (KSFE-FETEC 2025): reduction-corrected Wu-model cohesion after
 # comparison with direct-shear tests.
 COHESION_TARGETS_KPA = {
+    # Hales et al. (2009), Coweeta Hydrologic Laboratory:
+    # vertically integrated mean root cohesion across all pits.
+    "Hales2009_Coweeta_FBM_mean": 3.4,
+    "Hales2009_Coweeta_Wu_mean": 7.6,
     "Korea2025_Larix_kaempferi": 4.3,
     "Korea2025_Pinus_densiflora": 9.0,
     "Korea2025_Pinus_koraiensis": 9.1,
@@ -113,6 +117,8 @@ def main(rootc_path, out_csv, out_txt):
         f"raw_Cr_Kim2025_15p9MPa_kPa={raw_kim:.9f}",
         f"wet40pct_inverse5p1_Cr_kPa={hwang_cr_kpa(mean_rootc, wet_tr, WU_REDUCTION_MIN):.9f}",
         f"wet40pct_inverse1p5_Cr_kPa={hwang_cr_kpa(mean_rootc, wet_tr, WU_REDUCTION_MAX):.9f}",
+        f"effective_Tr_for_Hales2009_FBM_3p4kPa_MPa={required_effective_tr_mpa(mean_rootc, 3.4):.9f}",
+        f"effective_Tr_for_Hales2009_Wu_7p6kPa_MPa={required_effective_tr_mpa(mean_rootc, 7.6):.9f}",
         f"effective_Tr_for_Pinus_densiflora_9kPa_MPa={required_effective_tr_mpa(mean_rootc, 9.0):.9f}",
         "NOTE=Audit only; no value is automatically written back into LORICA-TREED.",
     ]
