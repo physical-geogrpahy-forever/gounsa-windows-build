@@ -39,6 +39,18 @@ jobs:
           tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
           find work -maxdepth 2 -type d | sort | head -50
 
+      - name: Prepare local-coupling TREED entrypoint
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          # CI-only import slimming: local raster coupling does not use GDAL/image IO.
+          # No TREED scientific function or equation is changed.
+          sed -i 's/using Rasters, ArchGDAL, NCDatasets/using Rasters, NCDatasets/' TREED/src/TREED.jl
+          sed -i '/^using Images$/d' TREED/src/TREED.jl
+          echo 'TREED local CI imports:'
+          head -20 TREED/src/TREED.jl
+
       - name: Run v0.5 Python verification suite
         shell: bash
         working-directory: work
