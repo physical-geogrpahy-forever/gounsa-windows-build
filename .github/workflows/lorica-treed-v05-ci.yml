@@ -9,6 +9,10 @@ on:
       - '.github/workflows/lorica-treed-v05-ci.yml'
   workflow_dispatch:
 
+concurrency:
+  group: lorica-treed-v05-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   treed-smoke:
     runs-on: ubuntu-latest
@@ -49,7 +53,8 @@ jobs:
         shell: bash
         working-directory: work/TREED
         run: |
-          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
 
       - name: Load modified TREED module
         shell: bash
