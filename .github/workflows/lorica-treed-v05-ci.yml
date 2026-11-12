@@ -183,7 +183,7 @@ jobs:
         shell: pwsh
         working-directory: work/LORICA
         run: |
-          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform="Any CPU"
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
           if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
           Write-Host 'LORICA_BUILD_OK'
 
