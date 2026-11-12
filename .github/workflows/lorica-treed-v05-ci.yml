@@ -1,4 +1,4 @@
-name: LORICA-TREED v0.5 CI
+name: LORICA-TREED v0.5 CI\n# roundtrip harness uses C# 5 syntax for Framework csc compatibility
 
 on:
   push:
