@@ -1,0 +1,153 @@
+name: LORICA-TREED v0.6 cohesion audit
+
+on:
+  push:
+    branches:
+      - main
+      - lorica-treed-v0.6-cohesion-audit
+    paths:
+      - 'lorica_treed/v0.6/**'
+      - '.github/workflows/lorica-treed-v06-cohesion-audit.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: lorica-treed-v06-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cohesion-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Extract validated v0.5 engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+
+      - name: Prepare local-coupling TREED entrypoint
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          sed -i 's/using Rasters, ArchGDAL, NCDatasets/using Rasters, NCDatasets/' TREED/src/TREED.jl
+          sed -i '/^using Images$/d' TREED/src/TREED.jl
+
+      - name: Instantiate TREED Julia environment
+        shell: bash
+        working-directory: work/TREED
+        run: |
+          JULIA_PKG_PRECOMPILE_AUTO=0 julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Prepare fixed-original 2x2 exchange
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          cp coupling/scenarios/01_original_treed_control.cfg coupling/TREED_coupling.cfg
+          mkdir -p coupling/1/input
+          cat > coupling/1/input/dtm.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          100 99
+          98 97
+          EOF
+          cat > coupling/1/input/soildepth.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          1.0 1.0
+          1.0 1.0
+          EOF
+          cat > coupling/1/input/paw_mm.asc <<'EOF'
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          150 150
+          150 150
+          EOF
+          cat > coupling/1/input/treed_climate_monthly.csv <<'EOF'
+          month,tair_C,precip_mm_month,clt_fraction,rsds_W_m2
+          1,5,60,0.50,120
+          2,7,60,0.50,140
+          3,10,70,0.50,170
+          4,14,80,0.50,190
+          5,18,100,0.50,210
+          6,21,140,0.50,220
+          7,24,250,0.55,210
+          8,24,220,0.55,200
+          9,20,140,0.50,180
+          10,15,80,0.50,160
+          11,10,60,0.50,130
+          12,6,60,0.50,110
+          EOF
+          sed -i 's/^          //' coupling/1/input/*.asc coupling/1/input/*.csv
+
+      - name: Run TREED root-biomass smoke
+        shell: bash
+        working-directory: work
+        run: |
+          set -euo pipefail
+          julia --project=TREED coupling/treed_lorica_driver.jl coupling/1 TREED
+          test -f coupling/1/output/treed_rootC_areanorm_gC_m2.asc
+
+      - name: Run v0.6 cohesion audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          python lorica_treed/v0.6/cohesion_audit.py             work/coupling/1/output/treed_rootC_areanorm_gC_m2.asc             audit/cohesion_audit.csv             audit/cohesion_audit_summary.txt
+          cat audit/cohesion_audit_summary.txt
+          cat audit/cohesion_audit.csv
+
+      - name: Validate audit gates
+        shell: python
+        run: |
+          import csv
+          rows=list(csv.DictReader(open('audit/cohesion_audit.csv', encoding='utf-8')))
+          by={r['case']:r for r in rows}
+          raw=float(by['diagnostic_Kim2025_Pinus_densiflora_mean']['result_Cr_kPa'])
+          wetlow=float(by['wet40pct_plus_Korea2025_inverse5p1']['result_Cr_kPa'])
+          tr9=float(by['Korea2025_Pinus_densiflora']['effective_Tr_MPa'])
+          assert raw > 21.6, raw
+          assert wetlow < raw, (wetlow, raw)
+          assert 0.3 < tr9 < 2.0, tr9
+          print('V06_COHESION_AUDIT_PASS')
+          print('raw15p9_kPa=', raw)
+          print('wet40pct_inverse5p1_kPa=', wetlow)
+          print('effective_Tr_for_9kPa_MPa=', tr9)
+
+      - name: Upload audit outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v06-cohesion-audit-${{ github.run_number }}
+          path: |
+            audit/**
+            work/coupling/1/output/treed_rootC_areanorm_gC_m2.asc
+            work/coupling/1/output/treed_r_s_r.asc
+          if-no-files-found: error
