@@ -1,0 +1,151 @@
+name: LORICA-TREED v0.5 Windows CI
+
+on:
+  push:
+    branches:
+      - lorica-treed-v0.5-ci
+    paths:
+      - 'lorica_treed/v0.5/**'
+      - '.github/workflows/lorica-treed-v05-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Extract LORICA-TREED v0.5 source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          Get-ChildItem work
+
+      - name: Run v0.5 Python verification suite
+        shell: pwsh
+        working-directory: work
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ChildItem tests\test_*.py | Sort-Object Name | ForEach-Object {
+            Write-Host "=== $($_.Name) ==="
+            python $_.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Instantiate TREED Julia environment
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+      - name: Load modified TREED module
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+
+      - name: Prepare 2x2 local-grid smoke exchange
+        shell: pwsh
+        working-directory: work
+        run: |
+          Copy-Item coupling/scenarios/01_original_treed_control.cfg coupling/TREED_coupling.cfg -Force
+          New-Item -ItemType Directory -Force -Path coupling/1/input | Out-Null
+          @"
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          100 99
+          98 97
+          "@ | Set-Content -Encoding ascii coupling/1/input/dtm.asc
+          @"
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          1.0 1.0
+          1.0 1.0
+          "@ | Set-Content -Encoding ascii coupling/1/input/soildepth.asc
+          @"
+          ncols         2
+          nrows         2
+          xllcorner     0
+          yllcorner     0
+          cellsize      10
+          NODATA_value  -9999
+          150 150
+          150 150
+          "@ | Set-Content -Encoding ascii coupling/1/input/paw_mm.asc
+          @"
+          month,tair_C,precip_mm_month,clt_fraction,rsds_W_m2
+          1,5,60,0.50,120
+          2,7,60,0.50,140
+          3,10,70,0.50,170
+          4,14,80,0.50,190
+          5,18,100,0.50,210
+          6,21,140,0.50,220
+          7,24,250,0.55,210
+          8,24,220,0.55,200
+          9,20,140,0.50,180
+          10,15,80,0.50,160
+          11,10,60,0.50,130
+          12,6,60,0.50,110
+          "@ | Set-Content -Encoding ascii coupling/1/input/treed_climate_monthly.csv
+
+      - name: Run 2x2 TREED local-grid coupling step
+        shell: pwsh
+        working-directory: work
+        run: |
+          julia --project=TREED coupling/treed_lorica_driver.jl coupling/1 TREED
+          if (-not (Test-Path coupling/1/output/treed_rootC_areanorm_gC_m2.asc)) { throw 'TREED root-C output missing' }
+          if (-not (Test-Path coupling/1/output/treed_r_s_r.asc)) { throw 'TREED r_s_r output missing' }
+          Write-Host 'TREED_2X2_SMOKE_OK'
+
+      - name: Restore LORICA NuGet dependency
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+
+      - name: Compile modified LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform="Any CPU"
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
+          Write-Host 'LORICA_BUILD_OK'
+
+      - name: Upload smoke outputs and binary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v05-ci-${{ github.run_number }}
+          path: |
+            work/coupling/1/output/**
+            work/coupling/traits/**
+            work/LORICA/bin/Release/**
+          if-no-files-found: warn
