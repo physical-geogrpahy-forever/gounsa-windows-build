@@ -15,8 +15,15 @@ public static class LoricaTreedRoundtripSmoke
         return f;
     }
 
-    static T Get<T>(object o, string name) => (T)Field(o, name).GetValue(o);
-    static void Set(object o, string name, object value) => Field(o, name).SetValue(o, value);
+    static T Get<T>(object o, string name)
+    {
+        return (T)Field(o, name).GetValue(o);
+    }
+
+    static void Set(object o, string name, object value)
+    {
+        Field(o, name).SetValue(o, value);
+    }
 
     static MethodInfo Method(object o, string name)
     {
