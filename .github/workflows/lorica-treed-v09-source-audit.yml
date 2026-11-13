@@ -1,0 +1,59 @@
+name: LORICA-TREED v0.9 source audit
+
+on:
+  push:
+    branches:
+      - lorica-treed-v0.9-geomorphic-audit
+    paths:
+      - '.github/workflows/lorica-treed-v09-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: lorica-treed-v09-source-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Extract the exact validated v0.5 source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          echo '=== SOURCE ROOTS ==='
+          find work -maxdepth 2 -type d | sort
+          echo '=== SOURCE FILE INVENTORY ==='
+          find work -type f \( -name '*.cs' -o -name '*.jl' -o -name '*.py' -o -name '*.cfg' -o -name '*.csproj' -o -name 'Project.toml' \) -printf '%p\t%s bytes\n' | sort | tee source_inventory.tsv
+
+      - name: Print process and coupling entrypoint map
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== LORICA LANDSLIDE / EROSION / HYDROLOGY / SOIL PROCESS SYMBOLS ==='
+          grep -RniE 'landslide|slope failure|stability|factor.of.safety|infinite.slope|root_cohesion|cohesion|shear strength|rainfall|infiltrat|runoff|erosion|sediment|diffus|creep|weathering|soil.depth|soil_depth|soilwater|water.content|saturation|pore.pressure|rill|stream' work/LORICA work/coupling --include='*.cs' --include='*.py' --include='*.jl' --include='*.cfg' | head -1600 || true
+          echo '=== TREED ROOT / ROOTING / WATER / CARBON SYMBOLS ==='
+          grep -RniE 'fine.?root|coarse.?root|root.?biomass|root.?depth|root.?carbon|root.?allocation|r_s_r|PAW|soil.?water|water.?stress|FPC|LAI|NPP|turnover' work/TREED --include='*.jl' | head -1200 || true
+          echo '=== COUPLING ENTRYPOINTS ==='
+          find work/coupling -maxdepth 3 -type f | sort
+
+      - name: Upload exact extracted source for local inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v09-source-audit-${{ github.run_number }}
+          path: |
+            work/LORICA/**
+            work/TREED/**
+            work/coupling/**
+            work/tests/**
+            source_inventory.tsv
+          if-no-files-found: error
