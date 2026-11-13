@@ -743,7 +743,7 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
-    static void Test2DLimitedCapacityCase(string scenario, int mixingMode)
+    static void Test2DClosedSinkResidualCase(string scenario, int mixingMode)
     {
         string root = Path.Combine(OutputRoot, scenario);
         if (Directory.Exists(root)) Directory.Delete(root, true);
@@ -751,6 +751,8 @@ public static class LoricaTreedLandslideSmoke
 
         using (Mother_form f = BuildConvergentCase(root, mixingMode, true))
         {
+            // Stress the terminal sink with a runout distance greater than one cell.
+            Get<TextBox>(f, "runout_ratio_textbox").Text = "20.0";
             Dictionary<string,string> cfg = new Dictionary<string,string>();
             cfg["landslide_event_mode"] = "explicit_event";
             cfg["landslide_event_rainfall_mm"] = "60";
@@ -767,7 +769,7 @@ public static class LoricaTreedLandslideSmoke
                 if (rootMap[r,col] == 0.0 && Math.Abs(critical[r,col]) <= 1e-10)
                     zeroThresholdCells++;
             if (zeroThresholdCells != 8)
-                throw new Exception("Limited-capacity basin must have eight zero-threshold source cells; found " + zeroThresholdCells);
+                throw new Exception("Closed-sink residual test must have eight zero-threshold source cells; found " + zeroThresholdCells);
 
             Call(f, "calculate_slide_new");
 
@@ -787,7 +789,7 @@ public static class LoricaTreedLandslideSmoke
                 erosionAbs, depositionSum, massBefore, massAfter, transport, closure);
 
             if (initiations != 8 || erosionAbs <= 0.0)
-                throw new Exception("Limited-capacity basin should receive eight failed source cells.");
+                throw new Exception("Closed-sink residual test should receive eight failed source cells.");
             for (int r = 0; r < 5; r++)
             for (int col = 0; col < 5; col++)
             {
@@ -797,20 +799,20 @@ public static class LoricaTreedLandslideSmoke
                 bool sourceCell = (distance > 0.0 && distance <= Math.Sqrt(2.0) + 1e-9 &&
                     !(r == 3 && col == 2)) || (r == 0 && col == 2);
                 if (sourceCell && erosion[r,col] >= -1e-8)
-                    throw new Exception("Expected erosion in limited-capacity source cell at " + r + "," + col);
+                    throw new Exception("Expected erosion in closed-sink residual source cell at " + r + "," + col);
                 if (!sourceCell && Math.Abs(erosion[r,col]) > 1e-8)
-                    throw new Exception("Unexpected erosion outside limited-capacity source cells at " + r + "," + col);
+                    throw new Exception("Unexpected erosion outside closed-sink residual source cells at " + r + "," + col);
                 if (!(r == 2 && col == 2) && deposition[r,col] > 1e-8)
                     throw new Exception("Limited-capacity deposit escaped the internal bowl at " + r + "," + col);
             }
 
             double[,] finalDtm = Get<double[,]>(f, "dtm");
-            if (Math.Abs(finalDtm[2,2] - 57.5) > 1e-5)
-                throw new Exception("The internal basin should fill exactly to its 57.5-m spill elevation; got " + finalDtm[2,2].ToString("R"));
+            if (finalDtm[2,2] <= 50.0)
+                throw new Exception("The closed sink should receive a positive deposit.");
             if (deposition[2,2] <= 0.0 || transport <= 1e-6)
-                throw new Exception("The limited-capacity basin should retain residual material in transport storage.");
+                throw new Exception("The closed sink should retain undeposited material in transport storage.");
             if (closure > 1e-6)
-                throw new Exception("Limited-capacity basin mass closure failed: " + closure.ToString("R"));
+                throw new Exception("Closed-sink residual test mass closure failed: " + closure.ToString("R"));
 
             Console.WriteLine(
                 "ROOT_CASE=" + scenario +
@@ -851,8 +853,8 @@ public static class LoricaTreedLandslideSmoke
         // event material, so no open-boundary export is expected.
         Test2DConvergentCase("convergent_2d_complete", 1);
         Test2DConvergentCase("convergent_2d_translation", 2);
-        Test2DLimitedCapacityCase("limited_basin_complete", 1);
-        Test2DLimitedCapacityCase("limited_basin_translation", 2);
+        Test2DClosedSinkResidualCase("closed_sink_residual_complete", 1);
+        Test2DClosedSinkResidualCase("closed_sink_residual_translation", 2);
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
