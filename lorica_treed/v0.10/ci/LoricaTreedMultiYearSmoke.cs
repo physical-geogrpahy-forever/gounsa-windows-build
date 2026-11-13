@@ -2127,7 +2127,6 @@ public static class LoricaTreedMultiYearSmoke
 
                 double[,] soilDepth = Get<double[,]>(f, "soildepth_m");
                 double[,] finalDtm = Get<double[,]>(f, "dtm");
-                double[,] texture = null;
                 double[,,,] textureMass = Get<double[,,,]>(f, "texture_kg");
                 double meanDtm = 0.0, meanDepth = 0.0;
                 for (int r = 0; r < nr; r++)
@@ -2224,7 +2223,7 @@ public static class LoricaTreedMultiYearSmoke
     [STAThread]
     public static void Main(string[] args)
     {
-        if (args.Length != 1) throw new Exception("Usage: LoricaTreedLandslideSmoke.exe OUTPUT_DIR");
+        if (args.Length != 1) throw new Exception("Usage: LoricaTreedMultiYearSmoke.exe OUTPUT_DIR");
         OutputRoot = Path.GetFullPath(args[0]);
         Directory.CreateDirectory(OutputRoot);
         if (Environment.GetEnvironmentVariable("LORICA_TREED_BASELINE_ONLY") == "1")
