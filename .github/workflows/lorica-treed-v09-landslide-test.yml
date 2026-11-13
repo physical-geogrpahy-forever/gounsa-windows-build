@@ -199,7 +199,7 @@ jobs:
           $env:JULIA_NUM_THREADS = '1'
           Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path $testOut | Out-Null
-          & .\LoricaTreedLandslideSmoke.exe $testOut
+          & .\LoricaTreedMultiYearSmoke.exe $testOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt'))) {
             throw 'LORICA v0.9 process-suite marker missing'
