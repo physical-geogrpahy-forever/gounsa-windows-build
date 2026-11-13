@@ -1,0 +1,48 @@
+name: LORICA-TREED v0.9 source audit bundle
+
+on:
+  push:
+    branches:
+      - lorica-treed-v0.9-30yr-coupling-audit
+    paths:
+      - 'lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz'
+      - '.github/workflows/lorica-treed-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  extract-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Extract exact v0.5 source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C audit
+          echo '--- extracted source tree ---'
+          find audit -maxdepth 3 -type f | sort
+          echo '--- source bundle SHA256 ---'
+          sha256sum lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz
+          echo '--- source file counts ---'
+          find audit/LORICA -type f | wc -l
+          find audit/TREED -type f | wc -l
+      - name: Upload extracted LORICA-TREED source for audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v09-source-audit-${{ github.run_number }}
+          path: |
+            audit/LORICA/**
+            audit/TREED/**
+            audit/coupling/**
+            audit/tests/**
+            audit/README*
+            audit/*.md
+          if-no-files-found: error
