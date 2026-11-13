@@ -870,6 +870,43 @@ replace_once(
     "audit bare bedrock treatment",
 )
 
+# 7h. Opt-in current-year topsoil hydraulic-conductivity refresh.
+# Native LORICA refreshes Ks at t % 10 == 0. After landslide erosion,
+# topsoil composition/depth may change annually, so enable yearly refresh
+# for a controlled dynamic coupling sensitivity without changing Wosten PTF.
+replace_once(
+    coupling,
+    "        bool treed_landslide_event_override_enabled = false;",
+    """        bool treed_refresh_ks_each_year = false;
+        bool treed_landslide_event_override_enabled = false;""",
+    "add optional annual Ks refresh state",
+)
+replace_once(
+    coupling,
+    '            treed_landslide_event_override_enabled = false;\n            treed_landslide_event_intensity_m_d = 0.0;',
+    '''            treed_landslide_event_override_enabled = false;
+            treed_landslide_event_intensity_m_d = 0.0;
+            string ksMode = cfg_string(cfg, "treed_ks_refresh_mode", "legacy_10yr");
+            if (ksMode != "legacy_10yr" && ksMode != "annual")
+                throw new Exception("Unknown treed_ks_refresh_mode: " + ksMode);
+            treed_refresh_ks_each_year = ksMode == "annual";''',
+    "parse Ks sensitivity configuration independently of rainfall mode",
+)
+hydro = ROOT / "LORICA/Functions/hydro.cs"
+replace_once(
+    hydro,
+    "if (t % 10 == 0) { update_Ks(); }",
+    "if (t % 10 == 0 || treed_refresh_ks_each_year) { update_Ks(); }",
+    "refresh Ks annually only in opted-in TREED coupling scenario",
+)
+replace_once(
+    coupling,
+    '                "treed_bare_bedrock_policy=" + bedrockMode + Environment.NewLine +',
+    '''                "treed_ks_refresh_mode=" + (treed_refresh_ks_each_year ? "annual" : "legacy_10yr") + Environment.NewLine +
+                "treed_bare_bedrock_policy=" + bedrockMode + Environment.NewLine +''',
+    "record effective Ks refresh mode",
+)
+
 # 8. Add explicit defaults without changing the legacy model behaviour.
 cfg_paths = [ROOT / "coupling/TREED_coupling.cfg"]
 cfg_paths += sorted((ROOT / "coupling/scenarios").glob("*.cfg"))
