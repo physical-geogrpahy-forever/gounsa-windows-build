@@ -316,6 +316,235 @@ c_cleanup_diag = """                        //clean up after we are done here:
 if geomorph_text.count(c_cleanup_anchor) != 1:
     raise RuntimeError(f"situation-C cleanup anchor expected once, found {geomorph_text.count(c_cleanup_anchor)}")
 geomorph_text = geomorph_text.replace(c_cleanup_anchor, c_cleanup_diag, 1)
+
+# 7b. Layer-preserving deposition must use the actual mass-derived thickness
+# of each transported source layer. The former implementation multiplied
+# depofraction by segmentThickness/expected_lay_thick a second time. When a
+# cell held less than one template layer of transport, this left material in
+# transport even when depofraction == 1; the subsequent cleanup erased it.
+method_start = geomorph_text.find("        double deposit_slid_mass_mm2(")
+method_end = geomorph_text.find("        void BlockShiftDownWithBottomMerge_Strict", method_start)
+if method_start < 0 or method_end < 0 or method_end <= method_start:
+    raise RuntimeError("could not locate complete deposit_slid_mass_mm2 method")
+
+new_method = r"""        double calc_layered_transport_thickness_m(int row, int col)
+        {
+            double totalThickness_m = 0.0;
+            for (int layer = 0; layer < max_soil_layers; layer++)
+            {
+                double[] layerTextures_kg = new double[n_texture_classes];
+                double fineMass_kg = 0.0;
+                for (int tex = 0; tex < n_texture_classes; tex++)
+                {
+                    layerTextures_kg[tex] = lay_sediment_in_transport_kg[row, col, layer, tex];
+                    if (tex >= 1) fineMass_kg += layerTextures_kg[tex];
+                }
+
+                double youngMass_kg = lay_young_SOM_in_transport_kg[row, col, layer];
+                double oldMass_kg = lay_old_SOM_in_transport_kg[row, col, layer];
+                fineMass_kg += youngMass_kg + oldMass_kg;
+
+                if (fineMass_kg > 1e-12)
+                {
+                    double layerThickness_m = calc_thickness_from_mass(
+                        layerTextures_kg, youngMass_kg, oldMass_kg);
+                    if (!Double.IsNaN(layerThickness_m) &&
+                        !Double.IsInfinity(layerThickness_m) &&
+                        layerThickness_m > 0.0)
+                        totalThickness_m += layerThickness_m;
+                }
+                else if (layerTextures_kg[0] > 1e-12)
+                {
+                    totalThickness_m += layerTextures_kg[0] / (dx * dx * 2700.0);
+                }
+            }
+            return totalThickness_m;
+        }
+
+        double deposit_slid_mass_mm2(int deprow, int depcol, double dep_depth_m)
+        {
+            double locally_deposited_mass_kg = 0.0;
+            const double Eps = 1e-12;
+            const double ClampEps = 1e-12;
+
+            double ClampNonNegative(double x)
+            {
+                if (x < 0.0 && x > -ClampEps) return 0.0;
+                return (x < 0.0) ? 0.0 : x;
+            }
+
+            if (Double.IsNaN(dep_depth_m) || Double.IsInfinity(dep_depth_m) || dep_depth_m <= Eps)
+                return 0.0;
+
+            // Allocate the requested deposition depth from the transported
+            // profile in source-layer order. Each fraction is based on the
+            // actual thickness represented by that layer's transported mass,
+            // not on the original template thickness.
+            List<int> sourceLayerIndices = new List<int>();
+            List<double> depositionSegmentThicknesses_m = new List<double>();
+            List<double> layerWithdrawalFractions = new List<double>();
+
+            double remainingDepositionDepth_m = dep_depth_m;
+            for (int sourceLayer = 0;
+                 sourceLayer < max_soil_layers && remainingDepositionDepth_m > Eps;
+                 sourceLayer++)
+            {
+                double[] layerTextures_kg = new double[n_texture_classes];
+                double fineMass_kg = 0.0;
+                double totalMass_kg = 0.0;
+
+                for (int textureClass = 0; textureClass < n_texture_classes; textureClass++)
+                {
+                    double value = lay_sediment_in_transport_kg[deprow, depcol, sourceLayer, textureClass];
+                    layerTextures_kg[textureClass] = value;
+                    totalMass_kg += value;
+                    if (textureClass >= 1) fineMass_kg += value;
+                }
+
+                double youngMass_kg = lay_young_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                double oldMass_kg = lay_old_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                totalMass_kg += youngMass_kg + oldMass_kg;
+                fineMass_kg += youngMass_kg + oldMass_kg;
+
+                if (totalMass_kg <= Eps) continue;
+
+                double availableLayerThickness_m;
+                if (fineMass_kg > Eps)
+                    availableLayerThickness_m = calc_thickness_from_mass(
+                        layerTextures_kg, youngMass_kg, oldMass_kg);
+                else
+                    availableLayerThickness_m = layerTextures_kg[0] / (dx * dx * 2700.0);
+
+                if (Double.IsNaN(availableLayerThickness_m) ||
+                    Double.IsInfinity(availableLayerThickness_m) ||
+                    availableLayerThickness_m <= Eps)
+                    continue;
+
+                double segmentThickness_m = Math.Min(
+                    remainingDepositionDepth_m, availableLayerThickness_m);
+                double withdrawalFraction = segmentThickness_m / availableLayerThickness_m;
+                withdrawalFraction = Math.Max(0.0, Math.Min(1.0, withdrawalFraction));
+
+                sourceLayerIndices.Add(sourceLayer);
+                depositionSegmentThicknesses_m.Add(segmentThickness_m);
+                layerWithdrawalFractions.Add(withdrawalFraction);
+                remainingDepositionDepth_m -= segmentThickness_m;
+            }
+
+            int totalNumberOfSegments = depositionSegmentThicknesses_m.Count;
+            if (totalNumberOfSegments == 0)
+                return locally_deposited_mass_kg;
+
+            // Keep one bottom layer for pre-existing material. Any overflow
+            // segments are merged into that bottom layer without discarding mass.
+            int numberOfTopSegments = Math.Min(totalNumberOfSegments, max_soil_layers - 1);
+            BlockShiftDownWithBottomMerge_Strict(
+                deprow, depcol, numberOfTopSegments, max_soil_layers);
+
+            // Place the upper segments into newly opened top layers.
+            for (int segmentIndex = 0; segmentIndex < numberOfTopSegments; segmentIndex++)
+            {
+                int sourceLayer = sourceLayerIndices[segmentIndex];
+                double segmentThickness_m = depositionSegmentThicknesses_m[segmentIndex];
+                double withdrawalFraction = layerWithdrawalFractions[segmentIndex];
+
+                layerthickness_m[deprow, depcol, segmentIndex] = segmentThickness_m;
+                for (int textureClass = 0; textureClass < n_texture_classes; textureClass++)
+                    texture_kg[deprow, depcol, segmentIndex, textureClass] = 0.0;
+                young_SOM_kg[deprow, depcol, segmentIndex] = 0.0;
+                old_SOM_kg[deprow, depcol, segmentIndex] = 0.0;
+
+                for (int textureClass = 0; textureClass < n_texture_classes; textureClass++)
+                {
+                    double availableMass_kg =
+                        lay_sediment_in_transport_kg[deprow, depcol, sourceLayer, textureClass];
+                    double withdrawnMass_kg = availableMass_kg * withdrawalFraction;
+                    texture_kg[deprow, depcol, segmentIndex, textureClass] += withdrawnMass_kg;
+                    lay_sediment_in_transport_kg[deprow, depcol, sourceLayer, textureClass] =
+                        ClampNonNegative(availableMass_kg - withdrawnMass_kg);
+                    locally_deposited_mass_kg += withdrawnMass_kg;
+                }
+
+                double availableYoung_kg =
+                    lay_young_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                double availableOld_kg =
+                    lay_old_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                double withdrawnYoung_kg = availableYoung_kg * withdrawalFraction;
+                double withdrawnOld_kg = availableOld_kg * withdrawalFraction;
+
+                young_SOM_kg[deprow, depcol, segmentIndex] += withdrawnYoung_kg;
+                old_SOM_kg[deprow, depcol, segmentIndex] += withdrawnOld_kg;
+                lay_young_SOM_in_transport_kg[deprow, depcol, sourceLayer] =
+                    ClampNonNegative(availableYoung_kg - withdrawnYoung_kg);
+                lay_old_SOM_in_transport_kg[deprow, depcol, sourceLayer] =
+                    ClampNonNegative(availableOld_kg - withdrawnOld_kg);
+                locally_deposited_mass_kg += withdrawnYoung_kg + withdrawnOld_kg;
+            }
+
+            // Merge remaining segments into the bottom layer when the profile
+            // has fewer available slots than transported source layers.
+            if (totalNumberOfSegments > numberOfTopSegments)
+            {
+                int bottomLayerIndex = max_soil_layers - 1;
+                for (int segmentIndex = numberOfTopSegments;
+                     segmentIndex < totalNumberOfSegments;
+                     segmentIndex++)
+                {
+                    int sourceLayer = sourceLayerIndices[segmentIndex];
+                    double segmentThickness_m = depositionSegmentThicknesses_m[segmentIndex];
+                    double withdrawalFraction = layerWithdrawalFractions[segmentIndex];
+
+                    layerthickness_m[deprow, depcol, bottomLayerIndex] += segmentThickness_m;
+
+                    for (int textureClass = 0; textureClass < n_texture_classes; textureClass++)
+                    {
+                        double availableMass_kg =
+                            lay_sediment_in_transport_kg[deprow, depcol, sourceLayer, textureClass];
+                        double withdrawnMass_kg = availableMass_kg * withdrawalFraction;
+                        texture_kg[deprow, depcol, bottomLayerIndex, textureClass] += withdrawnMass_kg;
+                        lay_sediment_in_transport_kg[deprow, depcol, sourceLayer, textureClass] =
+                            ClampNonNegative(availableMass_kg - withdrawnMass_kg);
+                        locally_deposited_mass_kg += withdrawnMass_kg;
+                    }
+
+                    double availableYoung_kg =
+                        lay_young_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                    double availableOld_kg =
+                        lay_old_SOM_in_transport_kg[deprow, depcol, sourceLayer];
+                    double withdrawnYoung_kg = availableYoung_kg * withdrawalFraction;
+                    double withdrawnOld_kg = availableOld_kg * withdrawalFraction;
+
+                    young_SOM_kg[deprow, depcol, bottomLayerIndex] += withdrawnYoung_kg;
+                    old_SOM_kg[deprow, depcol, bottomLayerIndex] += withdrawnOld_kg;
+                    lay_young_SOM_in_transport_kg[deprow, depcol, sourceLayer] =
+                        ClampNonNegative(availableYoung_kg - withdrawnYoung_kg);
+                    lay_old_SOM_in_transport_kg[deprow, depcol, sourceLayer] =
+                        ClampNonNegative(availableOld_kg - withdrawnOld_kg);
+                    locally_deposited_mass_kg += withdrawnYoung_kg + withdrawnOld_kg;
+                }
+            }
+
+            update_all_layer_thicknesses(deprow, depcol);
+            return locally_deposited_mass_kg;
+        }
+
+"""
+geomorph_text = geomorph_text[:method_start] + new_method + geomorph_text[method_end:]
+
+old_available = "double available_landslide_material_m = calc_thickness_from_mass(available_mass_kg, available_youngsom, available_oldsom);"
+new_available = """double available_landslide_material_m = (ls_mixingmode == 2)
+                            ? calc_layered_transport_thickness_m(row, col)
+                            : calc_thickness_from_mass(available_mass_kg, available_youngsom, available_oldsom);"""
+if geomorph_text.count(old_available) != 1:
+    raise RuntimeError(f"available material thickness anchor expected once, found {geomorph_text.count(old_available)}")
+geomorph_text = geomorph_text.replace(old_available, new_available, 1)
+
+old_call = "deposit_slid_mass_mm2(deposited_landslide_fraction, row, col, maximum_allowed_deposition_m)"
+new_call = "deposit_slid_mass_mm2(row, col, maximum_allowed_deposition_m)"
+if geomorph_text.count(old_call) != 1:
+    raise RuntimeError(f"layer-preserving deposit call expected once, found {geomorph_text.count(old_call)}")
+geomorph_text = geomorph_text.replace(old_call, new_call, 1)
+
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
