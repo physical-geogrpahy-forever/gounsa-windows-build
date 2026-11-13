@@ -566,8 +566,26 @@ public static class LoricaTreedLandslideSmoke
             WriteDiagnostics(root, f, scenario, 0.0, 0.0, initiations,
                 erosionAbs, depositionSum, massBefore, massAfter, transport, closure);
 
-            if (initiations <= 0 || erosionAbs <= 0.0)
-                throw new Exception("2-D convergent source ring did not initiate a landslide.");
+            if (initiations != 8 || erosionAbs <= 0.0)
+                throw new Exception("2-D convergent source ring should initiate in exactly eight cells.");
+            for (int r = 0; r < 5; r++)
+            for (int col = 0; col < 5; col++)
+            {
+                bool sourceRing = (r >= 1 && r <= 3 && col >= 1 && col <= 3 && !(r == 2 && col == 2));
+                if (sourceRing && erosion[r,col] >= -1e-8)
+                    throw new Exception("Expected erosion in the eight-cell source ring at " + r + "," + col);
+                if (!sourceRing && Math.Abs(erosion[r,col]) > 1e-8)
+                    throw new Exception("Unexpected erosion outside the source ring at " + r + "," + col);
+                if (!(r == 2 && col == 2) && deposition[r,col] > 1e-8)
+                    throw new Exception("Depositional material escaped the internal bowl at " + r + "," + col);
+            }
+            if (deposition[2,2] <= 0.0)
+                throw new Exception("2-D convergent event did not deposit material in the internal bowl.");
+            if (transport > 1e-6)
+                throw new Exception("The internal bowl had sufficient capacity but left material in transport: " + transport.ToString("R"));
+            double[,] finalDtm = Get<double[,]>(f, "dtm");
+            if (finalDtm[2,2] >= 50.0)
+                throw new Exception("Internal bowl deposit exceeded the 10-m spill elevation.");
             if (closure > 1e-6)
                 throw new Exception("2-D convergent landslide mass closure failed: " + closure.ToString("R"));
 
