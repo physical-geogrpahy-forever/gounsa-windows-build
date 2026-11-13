@@ -839,7 +839,7 @@ replace_once(
                     // Do not interpret that biomass as a local soil-root bond
                     // in the explicitly selected sensitivity case.
                     bool bareBedrock = bedrockMode == "zero_coupling" &&
-                                       soildepth_m[r, c] <= 0.0;
+                                       soildepth_m[r, c] <= 1e-6; // 1 micron: numerical zero on 6-digit soil ASCII grid
                     double cover = bareBedrock ? 0.0 :
                         Math.Max(0.0, Math.Min(1.0, fpc[r, c]));
                     effectiveFpc[r, c] = cover;
@@ -865,6 +865,7 @@ replace_once(
     coupling,
     '                "root_allocation_mode=" + cfg_string(cfg, "root_allocation_mode", "adaptive_experimental") + Environment.NewLine +',
     '''                "treed_bare_bedrock_policy=" + bedrockMode + Environment.NewLine +
+                "treed_bare_bedrock_epsilon_m=1e-6" + Environment.NewLine +
                 "root_allocation_mode=" + cfg_string(cfg, "root_allocation_mode", "adaptive_experimental") + Environment.NewLine +''',
     "audit bare bedrock treatment",
 )
