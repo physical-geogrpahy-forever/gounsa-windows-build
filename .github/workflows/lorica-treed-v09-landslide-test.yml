@@ -340,24 +340,27 @@ jobs:
           # reproducibility within each fixed thread count.
           a = root / "threads_1/run_1/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output"
           b = root / "threads_4/run_1/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output"
-          names_a = sorted(p.name for p in a.iterdir() if p.is_file() and p.suffix.lower() == ".asc")
-          names_b = sorted(p.name for p in b.iterdir() if p.is_file() and p.suffix.lower() == ".asc")
-          same_names = names_a == names_b
-          same_rasters = same_names and all((a / name).read_bytes() == (b / name).read_bytes() for name in names_a)
+          all_names_a = sorted(p.name for p in a.iterdir() if p.is_file())
+          all_names_b = sorted(p.name for p in b.iterdir() if p.is_file())
+          same_all_names = all_names_a == all_names_b
+          all_files_identical = same_all_names and all((a / name).read_bytes() == (b / name).read_bytes() for name in all_names_a)
+          raster_names = [name for name in all_names_a if name.lower().endswith(".asc")]
+          same_rasters = same_all_names and all((a / name).read_bytes() == (b / name).read_bytes() for name in raster_names)
           header_a, values_a = read_ascii(a / "treed_rootC_areanorm_gC_m2.asc")
           header_b, values_b = read_ascii(b / "treed_rootC_areanorm_gC_m2.asc")
           cross_max_abs = max((abs(x-y) for x, y in zip(values_a, values_b)), default=0.0)
-          cross_identical = same_rasters and header_a == header_b and len(values_a) == len(values_b) and cross_max_abs == 0.0
+          cross_identical = all_files_identical and same_rasters and header_a == header_b and len(values_a) == len(values_b) and cross_max_abs == 0.0
           report["cross_thread_counts"] = {
+              "all_output_files_byte_identical": all_files_identical,
               "ascii_rasters_identical": same_rasters,
               "rootC_identical": cross_identical,
               "rootC_max_abs_difference_gC_m2": cross_max_abs,
               "threads_1_mean_rootC_gC_m2": sum(values_a) / len(values_a),
               "threads_4_mean_rootC_gC_m2": sum(values_b) / len(values_b),
-              "ascii_files_threads_1": names_a,
-              "ascii_files_threads_4": names_b,
+              "all_files_threads_1": all_names_a,
+              "all_files_threads_4": all_names_b,
           }
-          print(f"CROSS_THREAD_ASCII_RASTERS_IDENTICAL={same_rasters} ROOTC_MAX_ABS_DIFF={cross_max_abs:.12g}")
+          print(f"CROSS_THREAD_ALL_FILES_IDENTICAL={all_files_identical} ASCII_RASTERS_IDENTICAL={same_rasters} ROOTC_MAX_ABS_DIFF={cross_max_abs:.12g}")
           if not cross_identical:
               failed = True
 
@@ -391,6 +394,8 @@ jobs:
             work/LORICA/LORICA_main.cs
             work/LORICA/**/*.cs
             work/TREED/src/TREED_model_functions.jl
+            work/TREED/Project.toml
+            work/TREED/Manifest.toml
             work/TREED/src/TREED_physiological_functions.jl
             work/coupling/treed_lorica_driver_seeded_wrapper.jl
             work/compare_treed_reproducibility.py
