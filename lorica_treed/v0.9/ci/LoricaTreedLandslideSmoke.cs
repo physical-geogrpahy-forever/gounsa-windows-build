@@ -1435,6 +1435,7 @@ public static class LoricaTreedLandslideSmoke
             Call(f, "prepare_daily_weather_for_current_timestep");
             double[] py = Get<double[]>(f, "Py");
             int[] tavgy = Get<int[]>(f, "Tavgy");
+            int[] monthDays = Get<int[]>(f, "month");
 
             Call(f, "run_treed_coupling");
 
@@ -1500,12 +1501,12 @@ public static class LoricaTreedLandslideSmoke
             for (int mo = 0; mo < 12; mo++)
             {
                 double pmm = 0.0, tmean = 0.0;
-                for (int d = 0; d < month[mo]; d++)
+                for (int d = 0; d < monthDays[mo]; d++)
                 {
                     pmm += py[day0 + d] * 1000.0;
                     tmean += tavgy[day0 + d];
                 }
-                tmean /= month[mo];
+                tmean /= monthDays[mo];
                 string[] fields = climateLines[mo + 1].Split(',');
                 double actualT = Double.Parse(fields[1], CultureInfo.InvariantCulture);
                 double actualP = Double.Parse(fields[2], CultureInfo.InvariantCulture);
