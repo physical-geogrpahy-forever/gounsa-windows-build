@@ -827,6 +827,92 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+    static void TestResidualPersistenceAcrossTimesteps(string scenario, int mixingMode)
+    {
+        string root = Path.Combine(OutputRoot, scenario);
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        using (Mother_form f = BuildConvergentCase(root, mixingMode, true))
+        {
+            Get<TextBox>(f, "runout_ratio_textbox").Text = "20.0";
+            Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
+
+            Dictionary<string,string> cfg = new Dictionary<string,string>();
+            cfg["landslide_event_mode"] = "explicit_event";
+            cfg["landslide_event_rainfall_mm"] = "60";
+            cfg["landslide_event_duration_h"] = "6";
+            Call(f, "configure_treed_landslide_event", cfg);
+
+            // Event 1 creates residual material at the closed central sink.
+            double massBefore1 = TotalSoilMass(f);
+            Call(f, "calc_and_write_ls_rasters");
+            Call(f, "calculate_slide_new");
+            double soilAfter1 = TotalSoilMass(f);
+            double transportAfter1 = TotalTransportMass(f);
+            double totalAfter1 = soilAfter1 + transportAfter1;
+            double closure1 = Math.Abs(massBefore1 - totalAfter1) / Math.Max(1.0, massBefore1);
+            if (transportAfter1 <= 1e-6 || closure1 > 1e-6)
+                throw new Exception("Event 1 did not produce a closed, mass-balanced residual store.");
+
+            // This is the actual annual reset routine used before water erosion.
+            // It clears the transient mixed transport arrays and runout state.
+            // Persistent landslide-only storage must survive this call.
+            Call(f, "initialise_every");
+            double transportAfterReset = TotalTransportMass(f);
+            if (Math.Abs(transportAfterReset - transportAfter1) >
+                Math.Max(1e-6, transportAfter1 * 1e-10))
+                throw new Exception("Residual landslide material was lost by initialise_every(): before=" +
+                    transportAfter1.ToString("R") + ", after=" + transportAfterReset.ToString("R"));
+
+            // Recompute the next timestep's stability field, then allow the stored
+            // residual to deposit/route again without adding a new source mass.
+            Call(f, "calc_and_write_ls_rasters");
+            double massBefore2 = TotalSoilMass(f) + TotalTransportMass(f);
+            Call(f, "calculate_slide_new");
+
+            double soilAfter2 = TotalSoilMass(f);
+            double transportAfter2 = TotalTransportMass(f);
+            double totalAfter2 = soilAfter2 + transportAfter2;
+            double closure2 = Math.Abs(massBefore2 - totalAfter2) / Math.Max(1.0, massBefore2);
+            double[,] deposition2 = Get<double[,]>(f, "sed_slid_m");
+            double depositionSum2 = 0.0;
+            for (int r = 0; r < 5; r++)
+            for (int col = 0; col < 5; col++)
+                depositionSum2 += deposition2[r,col];
+
+            if (deposition2[2,2] <= 0.0 || depositionSum2 <= 0.0)
+                throw new Exception("Stored residual was not reactivated and deposited in event 2.");
+            if (transportAfter2 >= transportAfter1 - 1e-6)
+                throw new Exception("Event 2 did not reduce the stored residual transport mass.");
+            if (closure2 > 1e-6)
+                throw new Exception("Event 2 residual remobilization failed mass closure: " + closure2.ToString("R"));
+
+            string event2Dir = Path.Combine(root, "event2");
+            Directory.CreateDirectory(event2Dir);
+            WriteDiagnostics(event2Dir, f, scenario + "_event2", 0.0, 0.0,
+                Get<int>(f, "landslide_initiation_cells"), SumAbs(Get<double[,]>(f, "ero_slid_m")),
+                depositionSum2, massBefore2, soilAfter2, transportAfter2, closure2);
+
+            string persistence =
+                "stage,soil_mass_kg,transport_mass_kg,total_mass_kg,relative_closure\n" +
+                "event1," + F(soilAfter1) + "," + F(transportAfter1) + "," + F(totalAfter1) + "," + F(closure1) + "\n" +
+                "after_initialise_every," + F(soilAfter1) + "," + F(transportAfterReset) + "," + F(soilAfter1 + transportAfterReset) + "," + F(Math.Abs(totalAfter1 - (soilAfter1 + transportAfterReset)) / Math.Max(1.0,totalAfter1)) + "\n" +
+                "event2," + F(soilAfter2) + "," + F(transportAfter2) + "," + F(totalAfter2) + "," + F(closure2) + "\n";
+            File.WriteAllText(Path.Combine(root, "residual_persistence.csv"), persistence);
+
+            Console.WriteLine(
+                "ROOT_CASE=" + scenario +
+                " mixing_mode=" + mixingMode +
+                " transport_event1_kg=" + transportAfter1.ToString("R") +
+                " transport_after_reset_kg=" + transportAfterReset.ToString("R") +
+                " transport_event2_kg=" + transportAfter2.ToString("R") +
+                " deposition_event2_m=" + depositionSum2.ToString("R") +
+                " closure_event1=" + closure1.ToString("R") +
+                " closure_event2=" + closure2.ToString("R"));
+        }
+    }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -855,6 +941,8 @@ public static class LoricaTreedLandslideSmoke
         Test2DConvergentCase("convergent_2d_translation", 2);
         Test2DClosedSinkResidualCase("closed_sink_residual_complete", 1);
         Test2DClosedSinkResidualCase("closed_sink_residual_translation", 2);
+        TestResidualPersistenceAcrossTimesteps("residual_persistence_complete", 1);
+        TestResidualPersistenceAcrossTimesteps("residual_persistence_translation", 2);
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
