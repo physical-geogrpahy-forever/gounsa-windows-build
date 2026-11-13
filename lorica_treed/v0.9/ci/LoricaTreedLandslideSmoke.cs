@@ -1204,8 +1204,6 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "bio_protection", new double[nr,nc]);
 
             double[,] ks = Get<double[,]>(f, "Ks_topsoil_m_h");
-            double[,] ra = Get<double[,,]>(f, "Ra_rcm").GetLength(0) == nr
-                ? new double[nr,nc] : new double[nr,nc];
             double[,] kfac = Get<double[,]>(f, "K_fac");
             for (int r = 0; r < nr; r++)
             for (int col = 0; col < nc; col++)
