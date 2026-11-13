@@ -75,6 +75,16 @@ jobs:
           $source = [System.Text.RegularExpressions.Regex]::Replace($source, '(?m)^using Images\r?\n', '')
           [System.IO.File]::WriteAllText($treedModule, $source, (New-Object System.Text.UTF8Encoding($false)))
 
+          # TREED's ECA optimization is applied cell-by-cell inside Threads.@threads.
+          # For this small process-level CI grid, run the same loop serially so that
+          # the seeded Julia RNG is consumed in a reproducible cell order.
+          $modelFunctions = Join-Path $PWD 'work/TREED/src/TREED_model_functions.jl'
+          $modelSource = [System.IO.File]::ReadAllText($modelFunctions)
+          $parallelLoop = 'Threads.@threads for i = 1:length(lookup(traits_start.H, X))'
+          if (-not $modelSource.Contains($parallelLoop)) { throw 'TREED ECA optimization loop anchor missing' }
+          $modelSource = $modelSource.Replace($parallelLoop, 'for i = 1:length(lookup(traits_start.H, X))')
+          [System.IO.File]::WriteAllText($modelFunctions, $modelSource, (New-Object System.Text.UTF8Encoding($false)))
+
           $coupling = Join-Path $PWD 'work/coupling'
           Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
           Copy-Item (Join-Path $PWD 'lorica_treed/v0.8/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
@@ -273,5 +283,6 @@ jobs:
             work/LORICA/Functions/hydro.cs
             work/LORICA/LORICA_main.cs
             work/LORICA/**/*.cs
+            work/TREED/src/TREED_model_functions.jl
             work/coupling/**
           if-no-files-found: warn
