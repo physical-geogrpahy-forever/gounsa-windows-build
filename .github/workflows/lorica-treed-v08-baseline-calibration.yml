@@ -1,0 +1,192 @@
+name: LORICA-TREED v0.8 baseline-calibrated roundtrip
+
+on:
+  push:
+    branches:
+      - main
+      - lorica-treed-v0.8-baseline-calibration
+    paths:
+      - 'lorica_treed/v0.8/**'
+      - 'lorica_treed/v0.7/**'
+      - 'lorica_treed/v0.5/**'
+      - '.github/workflows/lorica-treed-v08-baseline-calibration.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: lorica-treed-v08-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calibrated-roundtrip:
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Cache Julia depot (v0.8 calibrated roundtrip)
+        uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v08-windows-julia-1.11.6
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Extract validated v0.5 source bundle
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+          if (-not (Test-Path work/TREED/Project.toml)) { throw 'TREED Julia project missing' }
+
+      - name: Prepare local-coupling TREED entrypoint
+        shell: pwsh
+        run: |
+          $p = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $s = [System.IO.File]::ReadAllText($p)
+          $s = $s.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $s = [System.Text.RegularExpressions.Regex]::Replace($s, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($p, $s, (New-Object System.Text.UTF8Encoding($false)))
+
+      - name: Instantiate TREED Julia environment
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Restore LORICA NuGet dependency
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+
+      - name: Compile LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
+          Write-Host 'LORICA_BUILD_OK'
+
+      - name: Compile C# roundtrip harness
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedRoundtripSmoke.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v0.5\ci\LoricaTreedRoundtripSmoke.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LoricaTreedRoundtripSmoke.exe)) { throw 'Roundtrip harness not produced' }
+
+      - name: Prepare original fixed-root control configuration
+        shell: pwsh
+        run: |
+          Copy-Item work/coupling/scenarios/01_original_treed_control.cfg work/coupling/TREED_coupling.cfg -Force
+          New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
+          New-Item -ItemType Directory -Force -Path work/baseline | Out-Null
+          New-Item -ItemType Directory -Force -Path work/calibrated | Out-Null
+
+      - name: Run uncalibrated baseline through LORICA and TREED
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $coupling = (Resolve-Path ../../../coupling).Path
+          $baseline = (Resolve-Path ../../../baseline).Path
+          & .\LoricaTreedRoundtripSmoke.exe $coupling $baseline
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rootC = Join-Path $baseline 'TREED_exchange_run_9001/0001/output/treed_rootC_areanorm_gC_m2.asc'
+          if (-not (Test-Path $rootC)) { throw 'Baseline TREED root-C raster missing' }
+          Copy-Item $rootC ../../../baseline_rootC.asc -Force
+          Write-Host 'UNCALIBRATED_BASELINE_ROUNDTRIP_OK'
+
+      - name: Calibrate one fixed event-scale Tr from actual TREED baseline
+        shell: pwsh
+        run: |
+          python lorica_treed/v0.7/calibrate_event_cohesion.py work/baseline_rootC.asc work/coupling/TREED_coupling.cfg hales2009_wu_mean work/calibration/TREED_coupling_hales2009_wu.cfg work/calibration/hales2009_wu_calibration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-Content work/calibration/hales2009_wu_calibration.json
+          Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
+
+      - name: Run calibrated LORICA and TREED roundtrip
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $coupling = (Resolve-Path ../../../coupling).Path
+          $calibrated = (Resolve-Path ../../../calibrated).Path
+          & .\LoricaTreedRoundtripSmoke.exe $coupling $calibrated
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $marker = Join-Path $calibrated 'LORICA_TREED_ROUNDTRIP_OK.txt'
+          if (-not (Test-Path $marker)) { throw 'Calibrated roundtrip marker missing' }
+          Get-Content $marker
+          Write-Host 'CALIBRATED_ROUNDTRIP_OK'
+
+      - name: Validate fixed calibration and unchanged TREED biomass
+        shell: pwsh
+        run: |
+          @'
+          import csv, json, pathlib
+
+          def read_ascii(path):
+              lines=pathlib.Path(path).read_text(encoding="utf-8").strip().splitlines()
+              header=lines[:6]
+              vals=[float(x) for line in lines[6:] for x in line.split()]
+              return header, vals
+
+          baseline=pathlib.Path("work/baseline/TREED_exchange_run_9001/0001/output")
+          calibrated=pathlib.Path("work/calibrated/TREED_exchange_run_9001/0001/output")
+          h0,a=read_ascii(baseline/"treed_rootC_areanorm_gC_m2.asc")
+          h1,b=read_ascii(calibrated/"treed_rootC_areanorm_gC_m2.asc")
+          assert h0==h1, "Root-C raster headers changed after cohesion calibration"
+          assert len(a)==len(b) and all(abs(x-y)<1e-6 for x,y in zip(a,b)), "Cohesion calibration changed TREED root biomass"
+
+          d=json.loads(pathlib.Path("work/calibration/hales2009_wu_calibration.json").read_text(encoding="utf-8"))
+          with open(calibrated/"treed_rootcohesion_summary.csv", newline="", encoding="utf-8") as f:
+              row=next(csv.DictReader(f))
+          observed=float(row["Cr_corrected_mean_kPa"])
+          tr=float(row["Tr_MPa"])
+          target=float(d["target_mean_root_cohesion_kPa"])
+          inferred=float(d["effective_event_Tr_MPa"])
+          assert abs(observed-target)<0.05, (observed,target)
+          assert abs(tr-inferred)<1e-9, (tr,inferred)
+          assert abs(float(row["Cr_raw_mean_kPa"])-observed)<1e-8, "Unexpected hidden cohesion reduction/multiplier"
+          print("V08_BASELINE_CALIBRATED_ROUNDTRIP_PASS")
+          print("benchmark_target_kPa=", target)
+          print("observed_LORICA_mean_Cr_kPa=", observed)
+          print("fixed_event_Tr_eff_MPa=", tr)
+          print("baseline_rootC_mean_gC_m2=", sum(a)/len(a))
+          '@ | Set-Content -Encoding utf8 work/validate_v08.py
+          python work/validate_v08.py
+
+      - name: Upload baseline and calibrated outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v08-baseline-calibration-${{ github.run_number }}
+          path: |
+            work/baseline_rootC.asc
+            work/calibration/**
+            work/baseline/TREED_exchange_run_9001/0001/output/**
+            work/calibrated/TREED_exchange_run_9001/0001/output/**
+            work/baseline/LORICA_TREED_ROUNDTRIP_OK.txt
+            work/calibrated/LORICA_TREED_ROUNDTRIP_OK.txt
+          if-no-files-found: warn
