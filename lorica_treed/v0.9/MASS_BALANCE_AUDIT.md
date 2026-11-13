@@ -134,29 +134,79 @@ This demonstrates that the translation mode preserves distinct layer composition
 
 **Verified:** the patched LORICA process kernel compiles on Windows; rainfall timing and event-intensity conversion tests pass; root-cohesion values survive diagnostic output; both user-selectable mixing modes close mass to floating-point precision in the tested ten-layer profile; and the tested translation-mode layers retain their source signatures.
 
+**Verified in the expanded synthetic tests:**
+
+- 2-D convergent flow from eight surrounding source cells into an internal depression;
+- retention of residual transport when a closed sink has no lower neighbour;
+- residual mass persistence through `initialise_every()` and remobilization in a second event in both mixing modes.
+
 **Not yet verified:**
 
-- two-dimensional convergent flow from multiple directions;
-- closed internal depressions versus open outlet boundaries;
-- residual transport where topographic deposition capacity is insufficient;
-- multi-event accumulation and remobilization;
+- actual water-erosion transport between sequential landslide events;
+- more than two successive events and long-run accumulation/remobilization;
 - multi-year TREED root-biomass updates entering LORICA in the same timestep;
 - 30-year catchment-scale coupling;
 - field validation of the root-cohesion transfer or landslide occurrence.
 
 The third radio option (\`ls_mix_radio_3\`) is disabled in the source UI and was not tested. The current test is a 1-D synthetic process test, not a 2-D catchment or field-validation result.
 
-## 7. Next test
 
-The next test should be a 2-D convergent hillslope with an explicitly specified outlet or closed boundary. It must track, per event:
+## 7. Cross-timestep residual storage and remobilization
+
+### 7.1 Source-level issue
+
+The original \`calculate_slide_new()\` reset \`remaining_vertical_size_m\` and the fully mixed transport arrays at the beginning of every landslide calculation. In addition, \`initialise_every()\` cleared the mixed transport arrays when the landslide checkbox was active. The layer-resolved arrays were not cleared by \`initialise_every()\`, but their runout state was still reset to zero by \`calculate_slide_new()\`. Thus, residual material could be present in memory but inactive in the next timestep.
+
+### 7.2 v0.9 correction
+
+The patch now uses the existing layer-resolved transport arrays as persistent landslide-only storage for both modes:
+
+- **Fully mixed mode:** after each event, residual mineral and SOM mass is moved into layer 0 of the persistent layer arrays. At the next event, it is restored into the fully mixed transport arrays. This avoids losing the residual when \`initialise_every()\` clears the mixed arrays and avoids passing the landslide residual to water erosion as transient water-erosion sediment.
+- **Layer-preserving mode:** residual mass remains in its source-layer arrays.
+- **Both modes:** \`remaining_vertical_size_m\` is reconstructed from the actual transported mass using LORICA's PTF-based thickness calculation before the next landslide routing pass.
+
+The persistent arrays remain separate from the transient mixed arrays used by the water-erosion routine. This test covers the annual reset routine, not the full water-erosion process.
+
+### 7.3 Two-event results
+
+GitHub Actions #27 passed the Windows compile, existing v0.5 Python regression suite, process harness compile, and all process tests.
+
+| Metric | Fully mixed | Layer-preserving |
+|---|---:|---:|
+| Event 1 residual transport | 1,252,616.880 kg | 1,252,553.992 kg |
+| After \`initialise_every()\` | 1,252,616.880 kg | 1,252,553.992 kg |
+| Event 2 residual transport | 1,179,501.647 kg | 1,179,316.162 kg |
+| Event 2 deposited thickness | 0.500 m | 0.500 m |
+| Event 1 relative closure error | \(1.39\times10^{-15}\) | \(1.39\times10^{-15}\) |
+| Event 2 relative closure error | \(1.16\times10^{-16}\) | \(2.32\times10^{-16}\) |
+
+For both modes, the event-1 total mass was 4,014,797.693 kg. The same total was retained after the annual reset. Event 2 converted 0.5 m of residual material into soil deposition while conserving total soil plus transport mass to floating-point precision.
+
+The second-event rasters and ledgers are stored under:
+
+- \`landslide_test/residual_persistence_complete/\`
+- \`landslide_test/residual_persistence_translation/\`
+
+### 7.4 Interpretation
+
+This is direct evidence that residual mass survives one annual reset and is processed in the next landslide calculation. It is not yet evidence that the full annual hydrology and water-erosion sequence conserves or routes the material correctly. In particular, the next test must execute water erosion between the two landslide events and verify that landslide residual storage is not accidentally consumed, duplicated, or mixed into the water-erosion sediment arrays.
+
+## 8. Next verification
+
+The next process test should run a 2-D multi-year case in the actual LORICA timestep order:
+
+1. \`initialise_every()\` and the water-erosion process;
+2. daily water balance and TREED root update;
+3. landslide critical-rainfall calculation and event routing;
+4. soil-layer update and DEM update.
+
+At each timestep, record separate ledgers for soil mass, water-erosion transport, landslide residual transport, and any explicit boundary export. The closure equation should be:
 
 \[
-M_{\mathrm{initial}} =
-M_{\mathrm{soil,final}} +
-M_{\mathrm{transport,final}} +
-M_{\mathrm{export}}
+M_{\mathrm{soil},t} + M_{\mathrm{water},t} + M_{\mathrm{landslide},t}
+=
+M_{\mathrm{soil},t+1} + M_{\mathrm{water},t+1} + M_{\mathrm{landslide},t+1}
++ M_{\mathrm{export},t}
 \]
 
-Internal depressions must not be treated as open outlets by default. Any material that cannot be deposited or routed must remain represented as transport/storage or be recorded as boundary export; it must not be silently cleared.
-
-Only after that test passes should the 30-year LORICA–TREED coupling run be expanded.
+Only after that integrated test passes should the 30-year LORICA–TREED coupling run be expanded.
