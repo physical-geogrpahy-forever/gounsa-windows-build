@@ -63,7 +63,7 @@ The process test checks:
 
 ## Verified results
 
-The latest end-to-end Windows integration run is GitHub Actions **#77** ([run #77](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/43437639072)), commit `d468661dcc8a0af3d8d5b594001a0e7d763033d7`. It extracts the exact v0.5 source bundle, applies the v0.9 LORICA fixes and per-cell TREED ECA seed patch, compiles the actual C# project, and runs the TREED–LORICA landslide test.
+The original one-year deterministic Windows integration gate was GitHub Actions **#77** ([run #77](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/43437639072)), commit `d468661dcc8a0af3d8d5b594001a0e7d763033d7`. It extracts the exact v0.5 source bundle, applies the v0.9 LORICA fixes and per-cell TREED ECA seed patch, compiles the actual C# project, and runs the TREED–LORICA landslide test.
 
 - Windows LORICA compilation: passed.
 - Existing v0.5 Python regression suite: passed.
@@ -90,6 +90,31 @@ GitHub Actions #77 repeated the 5×5 run twice with 1 thread and twice with 4 th
 - Mean root carbon in all four runs: **1181.40304199 gC/m²**.
 
 This establishes deterministic TREED output for the tested 5×5 case across the tested thread counts. It does not by itself establish cross-version or cross-platform bitwise reproducibility.
+
+## Three-year coupling and zero-soil sensitivity (verified November 2026)
+
+GitHub Actions [#85](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/43511920687) verified the 3-year 5×5 synthetic model and fixed the event initiation counter: count a newly initiated landslide only where the slide erodes positive soil thickness; reset event-local counters each year. Its outputs confirm 24 physically eroded cells and 21.226323 m summed erosion thickness in year 1, followed by **zero new landslide erosion** in years 2 and 3. The year-2 10.129850 m summed deposition uses the 1,481,588.137 kg persistent landslide mass from year 1. This is not a new failure event.
+
+Inspection of `TREEDlocalstep.jl` and `TREED_physiological_functions.jl` shows that the local TREED habitat mask checks valid topography and air temperature but does **not** require positive soil depth. Water supply is based on precipitation plus a bounded PAW term; PAW=0 does not set the entire water supply to zero. Consequently the original TREED run still returns positive root carbon on zero-soil cells (16/25 cells at year-2 input; 12/25 at year-3 input). This does not prove plants cannot root in bedrock fractures; it identifies a missing explicit substrate constraint in the coupled experiment.
+
+GitHub Actions **[#88](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/43524227105)**, source commit `9cc0909f3a457b05eb4519161cd74d637f3d3390`, passed a paired 3-year sensitivity run. The **default `treed_bare_bedrock_policy=legacy` remains unchanged**. The optional experimental `treed_bare_bedrock_policy=zero_coupling` sets only the LORICA-transferred effective root carbon and FPC to zero where LORICA's soil depth is at most 1e-6 m (an ASCII-output/numerical-zero tolerance); raw TREED biomass, trait state, ecological equations and optimization are not changed.
+
+| Year | Variable | legacy | zero_coupling |
+|---|---|---:|---:|
+| 1 | Mean root cohesion (kPa) | 3.331109 | 3.331109 |
+| 2 | Mean root cohesion (kPa) | 3.838615 | 1.382962 |
+| 3 | Mean root cohesion (kPa) | 3.924336 | 2.042555 |
+| 2 | Mean actual evapotranspiration (mm/year) | 421.997 | 435.610 |
+| 3 | Mean actual evapotranspiration (mm/year) | 338.891 | 345.226 |
+| 2 | Sum of directional overland-flow depths (m) | 4.052938 | 4.052938 |
+| 3 | Sum of directional overland-flow depths (m) | 6.626288 | 6.626288 |
+| 2–3 | New landslide initiation cells | 0 in each year | 0 in each year |
+
+Raw TREED root-carbon rasters are unchanged across both modes for all three tested years, confirming this is a coupling-side mask rather than a TREED vegetation/mortality model. In both modes, the first-year run is identical and the second-year zero-soil outputs are masked in the sensitivity experiment. Maximum three-year test relative mass-closure discrepancy is 2.93e-7, below the CI criterion of 1e-6.
+
+**Confirmed model limitation:** source audit of `LORICA/Functions/hydro.cs` shows `water_balance()` calls `dailyflow()` to compute and accumulate `OFy_m` from rainfall excess and topsoil `Ks` **before** the monthly `ET0_m × Ra_rcm × veg_correction_factor` and actual ET calculation. Therefore the FPC-dependent ET factor affects reported ET and the residual annual infiltration, but does not directly alter that same year's `dailyflow()` surface runoff. The identical runoff and water erosion in #88 are consistent with this process ordering and must not be misread as evidence that canopy/roots have no physical effect on runoff.
+
+**Scientific scope:** #88 is a synthetic software integration and sensitivity test, not a field or catchment calibration. The zero-soil mode represents an explicit extreme end-member assumption about **local substrate support**, not an assertion that vegetation can never grow on exposed bedrock. TREED mortality, uprooting, succession on newly deposited soil, and intrastorm pore-pressure dynamics are not established by this test. A 30-year physically validated coupled run has not been completed.
 
 ## 2-D convergent hillslope and closed-sink tests
 
