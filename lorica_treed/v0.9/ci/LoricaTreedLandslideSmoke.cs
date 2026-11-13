@@ -905,7 +905,7 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "index", new double[25]);
             Call(f, "comb_sort");
             double[,,] waterFlowDirection = new double[5,5,10];
-            waterFlowDirection[0,0,8] = 1.0;
+            waterFlowDirection[0,0,7] = 1.0;
             Set(f, "OFy_m", waterFlowDirection);
             double[,] waterFlowVolume = Get<double[,]>(f, "waterflow_m3");
             waterFlowVolume[0,0] = 1.0;
