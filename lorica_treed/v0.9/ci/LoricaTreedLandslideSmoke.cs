@@ -437,7 +437,10 @@ public static class LoricaTreedLandslideSmoke
 
             // Eight cells surrounding the internal bowl are the failed source
             // ring. The centre and outer cells retain high root cohesion.
-            root[r,col] = (distance > 0.0 && distance <= Math.Sqrt(2.0) + 1e-9)
+            bool ringSource = distance > 0.0 && distance <= Math.Sqrt(2.0) + 1e-9;
+            bool closedSinkSaddle = limitedCapacity && r == 3 && col == 2;
+            bool extraSource = limitedCapacity && r == 0 && col == 2;
+            root[r,col] = ((ringSource && !closedSinkSaddle) || extraSource)
                 ? 0.0 : 7.6;
 
             depth[r,col] = 1.0;
@@ -758,14 +761,13 @@ public static class LoricaTreedLandslideSmoke
             Call(f, "calc_and_write_ls_rasters");
             double[,] critical = Get<double[,]>(f, "crrain_m_d");
             int zeroThresholdCells = 0;
-            for (int r = 1; r <= 3; r++)
-            for (int col = 1; col <= 3; col++)
-            {
-                if (r == 2 && col == 2) continue;
-                if (Math.Abs(critical[r,col]) <= 1e-10) zeroThresholdCells++;
-            }
+            double[,] rootMap = Get<double[,]>(f, "root_cohesion_kPa_new");
+            for (int r = 0; r < 5; r++)
+            for (int col = 0; col < 5; col++)
+                if (rootMap[r,col] == 0.0 && Math.Abs(critical[r,col]) <= 1e-10)
+                    zeroThresholdCells++;
             if (zeroThresholdCells != 8)
-                throw new Exception("Limited-capacity basin must have eight zero-threshold source cells.");
+                throw new Exception("Limited-capacity basin must have eight zero-threshold source cells; found " + zeroThresholdCells);
 
             Call(f, "calculate_slide_new");
 
@@ -789,11 +791,15 @@ public static class LoricaTreedLandslideSmoke
             for (int r = 0; r < 5; r++)
             for (int col = 0; col < 5; col++)
             {
-                bool sourceRing = (r >= 1 && r <= 3 && col >= 1 && col <= 3 && !(r == 2 && col == 2));
-                if (sourceRing && erosion[r,col] >= -1e-8)
-                    throw new Exception("Expected erosion in limited-capacity source ring at " + r + "," + col);
-                if (!sourceRing && Math.Abs(erosion[r,col]) > 1e-8)
-                    throw new Exception("Unexpected erosion outside limited-capacity source ring at " + r + "," + col);
+                double dr = r - 2.0;
+                double dc = col - 2.0;
+                double distance = Math.Sqrt(dr * dr + dc * dc);
+                bool sourceCell = (distance > 0.0 && distance <= Math.Sqrt(2.0) + 1e-9 &&
+                    !(r == 3 && col == 2)) || (r == 0 && col == 2);
+                if (sourceCell && erosion[r,col] >= -1e-8)
+                    throw new Exception("Expected erosion in limited-capacity source cell at " + r + "," + col);
+                if (!sourceCell && Math.Abs(erosion[r,col]) > 1e-8)
+                    throw new Exception("Unexpected erosion outside limited-capacity source cells at " + r + "," + col);
                 if (!(r == 2 && col == 2) && deposition[r,col] > 1e-8)
                     throw new Exception("Limited-capacity deposit escaped the internal bowl at " + r + "," + col);
             }
