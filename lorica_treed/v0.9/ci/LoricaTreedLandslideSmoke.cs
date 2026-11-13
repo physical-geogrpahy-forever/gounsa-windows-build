@@ -1911,7 +1911,7 @@ public static class LoricaTreedLandslideSmoke
                 }
 
                 StringBuilder summary = new StringBuilder();
-                summary.AppendLine("year,annual_precipitation_mm,mean_temperature_C,mean_rootC_gC_m2,max_rootC_change_gC_m2,mean_FPC,mean_LAI,mean_root_cohesion_kPa,mean_ET_m,overland_flow_sum_m,water_erosion_thickness_sum_m,water_deposition_thickness_sum_m,landslide_initiations,landslide_erosion_thickness_sum_m,landslide_deposition_thickness_sum_m,water_mass_closure,landslide_mass_closure,mean_soil_depth_m,mean_DTM_m,traits_restart_bytes");
+                summary.AppendLine("year,annual_precipitation_mm,mean_temperature_C,mean_rootC_gC_m2,max_rootC_change_gC_m2,mean_FPC,mean_LAI,mean_root_cohesion_kPa,mean_ET_m,overland_flow_sum_m,water_erosion_thickness_sum_m,water_deposition_thickness_sum_m,landslide_initiations,landslide_erosion_thickness_sum_m,landslide_deposition_thickness_sum_m,water_mass_closure,landslide_mass_closure,mean_soil_depth_m,mean_DTM_m,traits_restart_bytes,threshold_status_cells,physical_eroded_cells,landslide_continuation_cells,landslide_deposition_cells,persistent_before_kg,persistent_after_kg");
 
                 int[] annualRain = new int[] { 730, 900, 600 };
                 int[] annualTemp = new int[] { 10, 11, 12 };
@@ -2038,6 +2038,7 @@ public static class LoricaTreedLandslideSmoke
                     Call(f, "comb_sort");
                     Call(f, "ini_slope");
                     Call(f, "calculate_critical_rain");
+                    double persistentBeforeSlide = TotalPersistentLandslideMass(f);
                     double systemBeforeSlide = TotalSoilMass(f) + TotalTransportMass(f);
                     Call(f, "calculate_slide_new");
                     Call(f, "soil_update_split_and_combine_layers");
@@ -2045,8 +2046,28 @@ public static class LoricaTreedLandslideSmoke
                     double slideClosure = Math.Abs(systemBeforeSlide - systemAfterSlide) /
                         Math.Max(1.0, systemBeforeSlide);
                     int initiations = Get<int>(f, "landslide_initiation_cells");
-                    double slideErosion = SumAbs(Get<double[,]>(f, "ero_slid_m"));
+                    int continuations = Get<int>(f, "landslide_continuation_cells");
+                    int depositionalStatuses = Get<int>(f, "landslide_deposition_cells");
+                    double[,] slideErosionGrid = Get<double[,]>(f, "ero_slid_m");
+                    double slideErosion = SumAbs(slideErosionGrid);
                     double slideDeposition = SumAbs(Get<double[,]>(f, "sed_slid_m"));
+                    double persistentAfterSlide = TotalPersistentLandslideMass(f);
+                    short[,] slideStatus = Get<short[,]>(f, "slidestatus");
+                    int thresholdStatusCells = 0, physicallyErodedCells = 0;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    {
+                        if (slideStatus[r,col] == 1) thresholdStatusCells++;
+                        if (slideErosionGrid[r,col] < -1e-10) physicallyErodedCells++;
+                    }
+                    if (initiations > physicallyErodedCells)
+                        throw new Exception("Initiation diagnostic counted non-eroding cells.");
+                    if ((slideErosion <= 1e-10) != (physicallyErodedCells == 0))
+                        throw new Exception("Landslide erosion raster and eroded-cell diagnostic disagree.");
+                    if (year > 0 && (initiations != 0 || slideErosion > 1e-10))
+                        throw new Exception("Later synthetic years should have no newly eroded landslide soil.");
+                    if (year == 1 && (slideDeposition <= 0.0 || persistentBeforeSlide <= 0.0))
+                        throw new Exception("Second-year deposition must consume previous event's persistent mass.");
                     if (initiations > 0) anyLandslide = true;
 
                     if (runoffSum <= 0.0)
@@ -2086,7 +2107,7 @@ public static class LoricaTreedLandslideSmoke
                     WriteAscii(Path.Combine(yearOutput, "overland_flow_m.asc"), runoff);
                     WriteAscii(Path.Combine(yearOutput, "water_erosion_m.asc"), Get<double[,]>(f, "dz_ero_m"));
                     WriteAscii(Path.Combine(yearOutput, "water_deposition_m.asc"), Get<double[,]>(f, "dz_sed_m"));
-                    WriteAscii(Path.Combine(yearOutput, "landslide_erosion_m.asc"), Get<double[,]>(f, "ero_slid_m"));
+                    WriteAscii(Path.Combine(yearOutput, "landslide_erosion_m.asc"), slideErosionGrid);
                     WriteAscii(Path.Combine(yearOutput, "landslide_deposition_m.asc"), Get<double[,]>(f, "sed_slid_m"));
                     WriteAscii(Path.Combine(yearOutput, "soil_depth_m.asc"), depth);
                     WriteAscii(Path.Combine(yearOutput, "dtm_m.asc"), dtm);
@@ -2100,8 +2121,21 @@ public static class LoricaTreedLandslideSmoke
                         F(rootMean), F(etMean), F(runoffSum), F(waterErosion),
                         F(waterDeposition), initiations.ToString(CultureInfo.InvariantCulture),
                         F(slideErosion), F(slideDeposition), F(waterClosure), F(slideClosure),
-                        F(depthMean), F(dtmMean), new FileInfo(traitsRestart).Length.ToString(CultureInfo.InvariantCulture)
+                        F(depthMean), F(dtmMean), new FileInfo(traitsRestart).Length.ToString(CultureInfo.InvariantCulture),
+                        thresholdStatusCells.ToString(CultureInfo.InvariantCulture),
+                        physicallyErodedCells.ToString(CultureInfo.InvariantCulture),
+                        continuations.ToString(CultureInfo.InvariantCulture),
+                        depositionalStatuses.ToString(CultureInfo.InvariantCulture),
+                        F(persistentBeforeSlide), F(persistentAfterSlide)
                     }));
+                    Console.WriteLine("MULTI_YEAR_EVENT year=" + (year + 1) +
+                        " physical_initiations=" + initiations +
+                        " threshold_status=" + thresholdStatusCells +
+                        " eroded_cells=" + physicallyErodedCells +
+                        " slide_erosion_m=" + F(slideErosion) +
+                        " slide_deposition_m=" + F(slideDeposition) +
+                        " persistent_before_kg=" + F(persistentBeforeSlide) +
+                        " persistent_after_kg=" + F(persistentAfterSlide));
 
                     Set(f, "daily_weather_prepared_for_timestep", false);
                 }
