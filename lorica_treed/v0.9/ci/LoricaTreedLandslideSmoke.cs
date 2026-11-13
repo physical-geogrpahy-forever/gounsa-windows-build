@@ -9,6 +9,7 @@ using LORICA4;
 
 public static class LoricaTreedLandslideSmoke
 {
+    static string OutputRoot;
     static readonly BindingFlags BF = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
     static FieldInfo Field(object o, string name)
@@ -217,7 +218,7 @@ public static class LoricaTreedLandslideSmoke
 
     static void TestRootCohesionCase(string rootName, double rootC, bool expectFailure)
     {
-        string root = Path.Combine(Path.GetTempPath(), "lorica_treed_v09_" + rootName);
+        string root = Path.Combine(OutputRoot, rootName);
         if (Directory.Exists(root)) Directory.Delete(root, true);
         Directory.CreateDirectory(root);
 
@@ -293,7 +294,10 @@ public static class LoricaTreedLandslideSmoke
     [STAThread]
     public static void Main(string[] args)
     {
-        TestRainfallTimeSeries(Path.GetTempPath());
+        if (args.Length != 1) throw new Exception("Usage: LoricaTreedLandslideSmoke.exe OUTPUT_DIR");
+        OutputRoot = Path.GetFullPath(args[0]);
+        Directory.CreateDirectory(OutputRoot);
+        TestRainfallTimeSeries(OutputRoot);
         TestEventConfig();
 
         // The 60 mm / 6 h storm is 10 mm/h = 0.24 m/day.
@@ -303,6 +307,8 @@ public static class LoricaTreedLandslideSmoke
         TestRootCohesionCase("intermediate", 4.3, true);
         TestRootCohesionCase("high", 7.6, false);
 
+        File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
+            "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
         Console.WriteLine("LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS");
     }
 }
