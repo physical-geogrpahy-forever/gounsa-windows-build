@@ -31,6 +31,16 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Cache Julia depot
+        uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v09-windows-julia-1.11.6
+
       - name: Extract exact v0.5 LORICA-TREED source
         shell: pwsh
         run: |
@@ -53,6 +63,43 @@ jobs:
           Select-String -Path work/LORICA/Functions/geomorph.cs -Pattern 'undeposited_landslide_fraction' -Context 2,2
           Write-Host '=== landslide mixing radio fields ==='
           Get-ChildItem work/LORICA -Recurse -Filter *.cs | Select-String -Pattern 'ls_mix_radio_' | ForEach-Object { $_.Line.Trim() }
+
+      - name: Prepare deterministic TREED local-grid driver
+        shell: pwsh
+        run: |
+          $treedModule = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $source = [System.IO.File]::ReadAllText($treedModule)
+          $source = $source.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $source = [System.Text.RegularExpressions.Regex]::Replace($source, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($treedModule, $source, (New-Object System.Text.UTF8Encoding($false)))
+
+          $coupling = Join-Path $PWD 'work/coupling'
+          Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
+          Copy-Item (Join-Path $PWD 'lorica_treed/v0.8/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
+
+          $cfgSource = Join-Path $coupling 'scenarios/01_original_treed_control.cfg'
+          $cfg = [System.IO.File]::ReadAllText($cfgSource)
+          $cfg = $cfg.Replace('driver_path=treed_lorica_driver.jl', 'driver_path=treed_lorica_driver_seeded_wrapper.jl')
+          if ($cfg -notmatch '(?m)^treed_random_seed=') { $cfg += [Environment]::NewLine + 'treed_random_seed=20261113' + [Environment]::NewLine }
+          [System.IO.File]::WriteAllText((Join-Path $coupling 'TREED_coupling.cfg'), $cfg, (New-Object System.Text.UTF8Encoding($false)))
+          Write-Host 'TREED_SEEDED_DRIVER_READY'
+
+      - name: Instantiate TREED Julia environment
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Load TREED Julia module
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Run existing v0.5 Python regression suite
         shell: pwsh
@@ -102,6 +149,8 @@ jobs:
         working-directory: work/LORICA/bin/Release
         run: |
           $testOut = (Resolve-Path ../../../).Path + '\landslide_test'
+          $env:LORICA_TREED_COUPLING_DIR = (Resolve-Path ../../../coupling).Path
+          $env:JULIA_NUM_THREADS = '1'
           New-Item -ItemType Directory -Force -Path $testOut | Out-Null
           & .\LoricaTreedLandslideSmoke.exe $testOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
