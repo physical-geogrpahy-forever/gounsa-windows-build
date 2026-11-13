@@ -902,6 +902,7 @@ public static class LoricaTreedLandslideSmoke
             // initialise_every() clears the overland-flow direction raster;
             // rebuild the one-cell flow path afterwards, as the annual
             // hydrology/water-erosion preparation does in the real timestep.
+            Set(f, "index", new double[25]);
             Call(f, "comb_sort");
             double[,,] waterFlowDirection = new double[5,5,10];
             waterFlowDirection[0,0,8] = 1.0;
