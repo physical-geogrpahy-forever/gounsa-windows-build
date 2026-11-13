@@ -1857,7 +1857,7 @@ public static class LoricaTreedLandslideSmoke
                 Set(f, "slopeAnalysis", new double[nr,nc]);
                 Set(f, "aspect", new double[nr,nc]);
                 Get<TextBox>(f, "latitude_deg").Text = "38";
-                Get<TextBox>(f, "latitude_min").Text = "0";
+                Get<Label>(f, "latitude_min").Text = "0";
 
                 Get<TextBox>(f, "daily_n").Text = "1";
                 Get<CheckBox>(f, "check_scaling_daily_weather").Checked = false;
