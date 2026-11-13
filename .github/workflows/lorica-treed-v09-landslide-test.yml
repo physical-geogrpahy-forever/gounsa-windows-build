@@ -6,6 +6,8 @@ on:
       - lorica-treed-v0.9-30yr-coupling-audit
       - lorica-treed-v0.9-mass-audit
     paths:
+      - 'lorica_treed/v0.7/**'
+      - 'lorica_treed/v0.8/**'
       - 'lorica_treed/v0.9/**'
       - '.github/workflows/lorica-treed-v09-landslide-test.yml'
   workflow_dispatch:
@@ -144,18 +146,51 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path bin/Release/LoricaTreedLandslideSmoke.exe)) { throw 'Landslide harness not produced' }
 
-      - name: Run root-cohesion and event-landslide process tests
+      - name: Generate uncalibrated baseline TREED root-C raster
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
-          $testOut = (Resolve-Path ../../../).Path + '\landslide_test'
-          $env:LORICA_TREED_COUPLING_DIR = (Resolve-Path ../../../coupling).Path
+          $work = (Resolve-Path ../../../).Path
+          $baselineOut = Join-Path $work 'landslide_baseline'
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
           $env:JULIA_NUM_THREADS = '1'
+          $env:LORICA_TREED_BASELINE_ONLY = '1'
+          New-Item -ItemType Directory -Force -Path $baselineOut | Out-Null
+          & .\LoricaTreedLandslideSmoke.exe $baselineOut
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path (Join-Path $baselineOut 'LORICA_TREED_V09_BASELINE_ROOTC_PASS.txt'))) {
+            throw 'LORICA v0.9 baseline root-C marker missing'
+          }
+          $rootC = Join-Path $baselineOut 'treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output/treed_rootC_areanorm_gC_m2.asc'
+          if (-not (Test-Path $rootC)) { throw 'Baseline TREED root-C raster missing' }
+          Copy-Item $rootC (Join-Path $work 'baseline_rootC.asc') -Force
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+          Write-Host 'V09_UNCALIBRATED_BASELINE_ROOTC_READY'
+
+      - name: Calibrate fixed event-scale Tr from the actual TREED baseline
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
+          python lorica_treed/v0.7/calibrate_event_cohesion.py work/baseline_rootC.asc work/coupling/TREED_coupling.cfg hales2009_wu_mean work/calibration/TREED_coupling_hales2009_wu.cfg work/calibration/hales2009_wu_calibration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-Content work/calibration/hales2009_wu_calibration.json
+          Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
+          Write-Host 'V09_FIXED_EVENT_SCALE_TR_CALIBRATION_READY'
+
+      - name: Run calibrated root-cohesion and event-landslide process tests
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $testOut = Join-Path $work 'landslide_test_calibrated'
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS = '1'
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path $testOut | Out-Null
           & .\LoricaTreedLandslideSmoke.exe $testOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt'))) {
-            throw 'LORICA v0.9 landslide smoke marker missing'
+            throw 'LORICA v0.9 calibrated landslide smoke marker missing'
           }
           Get-Content (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt')
 
@@ -165,7 +200,10 @@ jobs:
         with:
           name: lorica-treed-v09-landslide-process-${{ github.run_number }}
           path: |
-            work/landslide_test/**
+            work/baseline_rootC.asc
+            work/calibration/**
+            work/landslide_baseline/**
+            work/landslide_test_calibrated/**
             work/LORICA/Functions/geomorph.cs
             work/LORICA/Functions/treed_coupling.cs
             work/LORICA/Functions/initialise_update.cs
