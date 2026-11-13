@@ -809,4 +809,62 @@ for path in cfg_paths:
         )
         path.write_text(cfg_text, encoding="utf-8")
 
+
+# 9. Give each TREED ECA cell its own deterministic RNG stream. The ECA
+# algorithm and objective function are unchanged; only its RNG is made explicit.
+treed_model = ROOT / "TREED/src/TREED_model_functions.jl"
+treed_physiology = ROOT / "TREED/src/TREED_physiological_functions.jl"
+if not treed_model.is_file() or not treed_physiology.is_file():
+    raise RuntimeError("TREED source files missing from the extracted v0.5 bundle")
+
+model_text = treed_model.read_text(encoding="utf-8-sig")
+model_anchor = "# Climate input struct"
+seed_declaration = """# Per-cell ECA seed base supplied by treed_lorica_driver_seeded_wrapper.jl.
+# The cell index is added in run_TREED_optimization, making the RNG independent
+# of Julia's thread scheduling and thread count.
+const TREED_ECA_BASE_SEED = parse(UInt64, get(ENV, "TREED_RANDOM_SEED", "20261113"))
+
+"""
+if model_text.count(model_anchor) != 1:
+    raise RuntimeError("TREED climate-input anchor expected exactly once")
+if "TREED_ECA_BASE_SEED" in model_text:
+    raise RuntimeError("TREED per-cell ECA seed patch already present")
+model_text = model_text.replace(model_anchor, seed_declaration + model_anchor, 1)
+
+old_loop = """    # Run loop on multiple threads   
+    Threads.@threads for i = 1:length(lookup(traits_start.H, X))
+        for j = 1:length(lookup(traits_start.H, Y))"""
+new_loop = """    # Run loop on multiple threads. Each cell has its own seeded ECA RNG.
+    nY = length(lookup(traits_start.H, Y))
+    Threads.@threads for i = 1:length(lookup(traits_start.H, X))
+        for j = 1:nY"""
+if model_text.count(old_loop) != 1:
+    raise RuntimeError(f"TREED ECA threaded-loop anchor expected exactly once, found {model_text.count(old_loop)}")
+model_text = model_text.replace(old_loop, new_loop, 1)
+
+old_optimizer_call = """                optimized_traits = trait_optimizer(env = env, par = pars2, trait_optimization_function = trait_optimization_function, iters = 20)"""
+new_optimizer_call = """                cell_seed = TREED_ECA_BASE_SEED + UInt64((i - 1) * nY + j)
+                optimized_traits = trait_optimizer(env = env, par = pars2,
+                    trait_optimization_function = trait_optimization_function,
+                    iters = 20, seed = cell_seed)"""
+if model_text.count(old_optimizer_call) != 1:
+    raise RuntimeError(f"TREED trait-optimizer call expected exactly once, found {model_text.count(old_optimizer_call)}")
+model_text = model_text.replace(old_optimizer_call, new_optimizer_call, 1)
+treed_model.write_text(model_text, encoding="utf-8")
+
+phys_text = treed_physiology.read_text(encoding="utf-8-sig")
+old_signature = "trait_optimizer = function(; env, par,trait_optimization_function, iters)"
+new_signature = "trait_optimizer = function(; env, par,trait_optimization_function, iters, seed=20261113)"
+if phys_text.count(old_signature) != 1:
+    raise RuntimeError(f"TREED trait_optimizer signature expected exactly once, found {phys_text.count(old_signature)}")
+phys_text = phys_text.replace(old_signature, new_signature, 1)
+old_solve = "Optimization.solve(prob, ECA(), maxiters = iters, abstol = 50)"
+new_solve = "Optimization.solve(prob, ECA(options=Metaheuristics.Options(seed=seed)), maxiters = iters, abstol = 50)"
+if phys_text.count(old_solve) != 1:
+    raise RuntimeError(f"TREED ECA solve call expected exactly once, found {phys_text.count(old_solve)}")
+phys_text = phys_text.replace(old_solve, new_solve, 1)
+treed_physiology.write_text(phys_text, encoding="utf-8")
+
+print("TREED_PER_CELL_ECA_RNG_PATCH_APPLIED")
+
 print("LORICA_TREED_V09_PATCH_APPLIED")
