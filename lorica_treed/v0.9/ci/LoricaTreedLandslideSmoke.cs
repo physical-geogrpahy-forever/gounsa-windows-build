@@ -986,7 +986,8 @@ public static class LoricaTreedLandslideSmoke
             // LORICA timestep. It generates OFy_m from the 365-day weather.
             Call(f, "water_balance");
             double[,,] annualFlow = Get<double[,,]>(f, "OFy_m");
-            double sourceFlow = annualFlow[0,0,2] + annualFlow[0,0,7] + annualFlow[0,0,8];
+            // At the NW corner, east/south/southeast are directions 5, 7, and 8.
+            double sourceFlow = annualFlow[0,0,5] + annualFlow[0,0,7] + annualFlow[0,0,8];
             if (sourceFlow <= 0.0)
                 throw new Exception("Annual water_balance() did not generate flow from the source cell.");
 
@@ -1025,11 +1026,13 @@ public static class LoricaTreedLandslideSmoke
             Call(f, "soil_update_split_and_combine_layers");
             Call(f, "soil_update_split_and_combine_layers");
             double soilAfterLayerMaintenance = TotalSoilMass(f);
+            double persistentAfterLayerMaintenance = TotalPersistentLandslideMass(f);
+            double totalAfterLayerMaintenance = soilAfterLayerMaintenance + persistentAfterLayerMaintenance;
             double layerMaintenanceClosure = Math.Abs(soilBeforeLayerMaintenance - soilAfterLayerMaintenance) /
                 Math.Max(1.0, soilBeforeLayerMaintenance);
             if (layerMaintenanceClosure > 1e-10)
                 throw new Exception("Soil layer split/combine changed total soil mass: " + layerMaintenanceClosure.ToString("R"));
-            if (Math.Abs(TotalPersistentLandslideMass(f) - transportAfter1) >
+            if (Math.Abs(persistentAfterLayerMaintenance - transportAfter1) >
                 Math.Max(1e-6, transportAfter1 * 1e-10))
                 throw new Exception("Soil layer maintenance changed persistent landslide residual mass.");
 
@@ -1070,7 +1073,7 @@ public static class LoricaTreedLandslideSmoke
                 "event1," + F(soilAfter1) + "," + F(transportAfter1) + ",0,0," + F(totalAfter1) + "," + F(closure1) + "\n" +
                 "after_annual_reset," + F(soilAfter1) + "," + F(transportAfterReset) + ",0,0," + F(soilAfter1 + transportAfterReset) + "," + F(Math.Abs(totalAfter1 - (soilAfter1 + transportAfterReset)) / Math.Max(1.0,totalAfter1)) + "\n" +
                 "after_annual_water_erosion," + F(soilAfterWater) + "," + F(transportAfterWater) + "," + F(boundaryExport) + "," + F(staleWaterTransportArrays) + "," + F(soilAfterWater + transportAfterWater) + "," + F(waterErosionClosure) + "\n" +
-                "after_layer_maintenance," + F(soilAfterLayerMaintenance) + "," + F(TotalPersistentLandslideMass(f)) + "," + F(boundaryExport) + "," + F(staleWaterTransportArrays) + "," + F(soilAfterLayerMaintenance + TotalPersistentLandslideMass(f)) + "," + F(layerMaintenanceClosure) + "\n" +
+                "after_layer_maintenance," + F(soilAfterLayerMaintenance) + "," + F(persistentAfterLayerMaintenance) + "," + F(boundaryExport) + "," + F(staleWaterTransportArrays) + "," + F(totalAfterLayerMaintenance) + "," + F(layerMaintenanceClosure) + "\n" +
                 "event2," + F(soilAfter2) + "," + F(transportAfter2) + ",0,0," + F(totalAfter2) + "," + F(closure2) + "\n";
             File.WriteAllText(Path.Combine(root, "residual_persistence.csv"), persistence);
 
@@ -1081,8 +1084,10 @@ public static class LoricaTreedLandslideSmoke
                 " annual_flow_depth_m=" + sourceFlow.ToString("R") +
                 " water_erosion_soil_loss_kg=" + soilLoss.ToString("R") +
                 " boundary_export_kg=" + boundaryExport.ToString("R") +
+                " source_erosion_m=" + waterErosion[0,0].ToString("R") +
                 " interior_deposition_m=" + waterDeposition[1,1].ToString("R") +
                 " persistent_after_water_kg=" + transportAfterWater.ToString("R") +
+                " persistent_after_layer_maintenance_kg=" + persistentAfterLayerMaintenance.ToString("R") +
                 " layer_maintenance_closure=" + layerMaintenanceClosure.ToString("R") +
                 " event2_residual_kg=" + transportAfter2.ToString("R") +
                 " event2_deposition_m=" + depositionSum2.ToString("R") +
