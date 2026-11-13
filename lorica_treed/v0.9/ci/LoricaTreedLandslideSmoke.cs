@@ -161,7 +161,7 @@ public static class LoricaTreedLandslideSmoke
         Set(f, "lay_young_SOM_in_transport_kg", new double[nr,nc,1]);
         Set(f, "lay_old_SOM_in_transport_kg", new double[nr,nc,1]);
 
-        Set(f, "row_index", new int[] { 0, 1, 2, 3, 4 });
+        Set(f, "row_index", new int[] { 4, 3, 2, 1, 0 });
         Set(f, "col_index", new int[] { 0, 0, 0, 0, 0 });
         Set(f, "inputheader", new string[] {
             "ncols         1", "nrows         5", "xllcorner     0",
