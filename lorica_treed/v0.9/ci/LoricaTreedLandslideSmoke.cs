@@ -838,7 +838,43 @@ public static class LoricaTreedLandslideSmoke
             Get<TextBox>(f, "runout_ratio_textbox").Text = "20.0";
             Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
             Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
+            Get<CheckBox>(f, "only_waterflow_checkbox").Checked = false;
+            Get<CheckBox>(f, "daily_water").Checked = false;
+
+            // Prepare the exact daily water-erosion kernel for one small,
+            // convergent flow path: (0,0) -> (1,1). The landslide residual
+            // remains in the separate layer-resolved storage arrays.
+            double[,,] waterFlowDirection = new double[5,5,10];
+            waterFlowDirection[0,0,8] = 1.0;
+            Set(f, "OFy_m", waterFlowDirection);
+            double[] cellIndex = new double[25];
+            for (int i = 0; i < cellIndex.Length; i++) cellIndex[i] = 1.0;
+            Set(f, "index", cellIndex);
             Set(f, "waterflow_m3", new double[5,5]);
+            Set(f, "evapotranspiration", new double[5,5]);
+            Set(f, "infil", new double[5,5]);
+            Set(f, "sum_water_erosion", new double[5,5]);
+            Set(f, "dz_ero_m", new double[5,5]);
+            Set(f, "dz_sed_m", new double[5,5]);
+            Set(f, "lake_sed_m", new double[5,5]);
+            Set(f, "K_fac", new double[5,5]);
+            Set(f, "bio_protection", new double[5,5]);
+            double[,] waterK = Get<double[,]>(f, "K_fac");
+            for (int r = 0; r < 5; r++)
+            for (int col = 0; col < 5; col++)
+                waterK[r,col] = 1e-6;
+            Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
+            Set(f, "water_ero_active", true);
+            Set(f, "erodibility_value_m", 1e-6);
+            Set(f, "bio_protection_constant", 0.0);
+            Set(f, "rock_protection_constant", 0.0);
+            Set(f, "constant_selective_transcap", 0.0);
+            Set(f, "erosion_threshold_kg", 0.0);
+            Set(f, "m", 0.5);
+            Set(f, "n", 1.0);
+            Set(f, "rain_value_m", 0.0);
+            Set(f, "evap_value_m", 0.0);
+            Set(f, "infil_value_m", 0.0);
 
             Dictionary<string,string> cfg = new Dictionary<string,string>();
             cfg["landslide_event_mode"] = "explicit_event";
@@ -867,8 +903,27 @@ public static class LoricaTreedLandslideSmoke
                 throw new Exception("Residual landslide material was lost by initialise_every(): before=" +
                     transportAfter1.ToString("R") + ", after=" + transportAfterReset.ToString("R"));
 
+            // Run the actual LORICA daily water-erosion routine between the
+            // landslide events. A small amount of material moves from (0,0)
+            // into the interior receiver (1,1), where it deposits.
+            double soilBeforeWater = TotalSoilMass(f);
+            Call(f, "calculate_water_ero_sed_daily");
+            double soilAfterWater = TotalSoilMass(f);
+            double transportAfterWater = TotalTransportMass(f);
+            double waterErosionClosure = Math.Abs(soilBeforeWater - soilAfterWater) /
+                Math.Max(1.0, soilBeforeWater);
+            double[,] waterErosion = Get<double[,]>(f, "dz_ero_m");
+            double[,] waterDeposition = Get<double[,]>(f, "dz_sed_m");
+            if (waterErosion[0,0] >= 0.0 || waterDeposition[1,1] <= 0.0)
+                throw new Exception("Daily water-erosion kernel did not erode the source and deposit at the receiver.");
+            if (Math.Abs(transportAfterWater - transportAfterReset) >
+                Math.Max(1e-6, transportAfterReset * 1e-10))
+                throw new Exception("Water erosion changed the separately stored landslide residual.");
+            if (waterErosionClosure > 1e-6)
+                throw new Exception("Water-erosion substep failed soil-mass closure: " + waterErosionClosure.ToString("R"));
+
             // Recompute the next timestep's stability field, then allow the stored
-            // residual to deposit/route again without adding a new source mass.
+            // residual to deposit/route again after the water-erosion substep.
             Call(f, "calc_and_write_ls_rasters");
             double massBefore2 = TotalSoilMass(f) + TotalTransportMass(f);
             Call(f, "calculate_slide_new");
@@ -900,6 +955,7 @@ public static class LoricaTreedLandslideSmoke
                 "stage,soil_mass_kg,transport_mass_kg,total_mass_kg,relative_closure\n" +
                 "event1," + F(soilAfter1) + "," + F(transportAfter1) + "," + F(totalAfter1) + "," + F(closure1) + "\n" +
                 "after_initialise_every," + F(soilAfter1) + "," + F(transportAfterReset) + "," + F(soilAfter1 + transportAfterReset) + "," + F(Math.Abs(totalAfter1 - (soilAfter1 + transportAfterReset)) / Math.Max(1.0,totalAfter1)) + "\n" +
+                "after_water_erosion," + F(soilAfterWater) + "," + F(transportAfterWater) + "," + F(soilAfterWater + transportAfterWater) + "," + F(waterErosionClosure) + "\n" +
                 "event2," + F(soilAfter2) + "," + F(transportAfter2) + "," + F(totalAfter2) + "," + F(closure2) + "\n";
             File.WriteAllText(Path.Combine(root, "residual_persistence.csv"), persistence);
 
@@ -908,6 +964,8 @@ public static class LoricaTreedLandslideSmoke
                 " mixing_mode=" + mixingMode +
                 " transport_event1_kg=" + transportAfter1.ToString("R") +
                 " transport_after_reset_kg=" + transportAfterReset.ToString("R") +
+                " transport_after_water_kg=" + transportAfterWater.ToString("R") +
+                " water_erosion_closure=" + waterErosionClosure.ToString("R") +
                 " transport_event2_kg=" + transportAfter2.ToString("R") +
                 " deposition_event2_m=" + depositionSum2.ToString("R") +
                 " closure_event1=" + closure1.ToString("R") +
