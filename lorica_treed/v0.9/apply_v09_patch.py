@@ -860,9 +860,10 @@ if phys_text.count(old_signature) != 1:
 phys_text = phys_text.replace(old_signature, new_signature, 1)
 old_solve = "Optimization.solve(prob, ECA(), maxiters = iters, abstol = 50)"
 new_solve = "Optimization.solve(prob, ECA(options=Metaheuristics.Options(seed=seed)), maxiters = iters, abstol = 50)"
-if phys_text.count(old_solve) != 1:
-    raise RuntimeError(f"TREED ECA solve call expected exactly once, found {phys_text.count(old_solve)}")
-phys_text = phys_text.replace(old_solve, new_solve, 1)
+n_solve = phys_text.count(old_solve)
+if n_solve != 2:
+    raise RuntimeError(f"TREED ECA solve calls expected exactly twice (fixed_original and adaptive_experimental), found {n_solve}")
+phys_text = phys_text.replace(old_solve, new_solve)
 treed_physiology.write_text(phys_text, encoding="utf-8")
 
 print("TREED_PER_CELL_ECA_RNG_PATCH_APPLIED")
