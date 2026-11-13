@@ -1517,6 +1517,118 @@ public static class LoricaTreedLandslideSmoke
             if (maxClimateError > 1e-8)
                 throw new Exception("TREED monthly climate does not match the same-year LORICA daily weather.");
 
+            // Next integration gate: use the TREED-derived spatial root-cohesion
+            // raster in LORICA's actual critical-rainfall and landslide routines.
+            Dictionary<string,string> eventCfg = new Dictionary<string,string>();
+            eventCfg["landslide_event_mode"] = "explicit_event";
+            eventCfg["landslide_event_rainfall_mm"] = "60";
+            eventCfg["landslide_event_duration_h"] = "6";
+            Call(f, "configure_treed_landslide_event", eventCfg);
+
+            double[,] treedRootMap = (double[,])rootCohesion.Clone();
+            double rootMean = 0.0, rootMin = Double.PositiveInfinity, rootMax = Double.NegativeInfinity;
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                double v = treedRootMap[r,col];
+                rootMean += v;
+                rootMin = Math.Min(rootMin, v);
+                rootMax = Math.Max(rootMax, v);
+            }
+            rootMean /= validCells;
+
+            // Compare the actual TREED spatial map with a spatially uniform map
+            // having the same mean. This isolates the contribution of spatial
+            // variation from the effect of the overall root-cohesion magnitude.
+            double[,] uniformRootMap = new double[nr,nc];
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+                uniformRootMap[r,col] = rootMean;
+            Set(f, "root_cohesion_kPa_new", uniformRootMap);
+            Call(f, "calc_and_write_ls_rasters");
+            double[,] uniformCohesionFactor = (double[,])Get<double[,]>(f, "Cohesion_factor").Clone();
+            double[,] uniformCriticalRain = (double[,])Get<double[,]>(f, "crrain_m_d").Clone();
+
+            Set(f, "root_cohesion_kPa_new", treedRootMap);
+            Call(f, "calc_and_write_ls_rasters");
+            double[,] treedCohesionFactor = (double[,])Get<double[,]>(f, "Cohesion_factor").Clone();
+            double[,] treedCriticalRain = (double[,])Get<double[,]>(f, "crrain_m_d").Clone();
+
+            double maxSpatialFactorDifference = 0.0;
+            int treedUnstableThresholdCells = 0;
+            int uniformUnstableThresholdCells = 0;
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                maxSpatialFactorDifference = Math.Max(
+                    maxSpatialFactorDifference,
+                    Math.Abs(treedCohesionFactor[r,col] - uniformCohesionFactor[r,col]));
+                if (treedCriticalRain[r,col] >= 0.0) treedUnstableThresholdCells++;
+                if (uniformCriticalRain[r,col] >= 0.0) uniformUnstableThresholdCells++;
+            }
+            if (maxSpatialFactorDifference <= 0.0)
+                throw new Exception("LORICA did not retain the spatial variation in TREED root cohesion.");
+
+            // Run the actual event with the TREED root map.
+            double treedMassBefore = TotalSoilMass(f);
+            Call(f, "calculate_slide_new");
+            int treedInitiations = Get<int>(f, "landslide_initiation_cells");
+            double treedErosion = SumAbs(Get<double[,]>(f, "ero_slid_m"));
+            double treedMassAfter = TotalSoilMass(f);
+            double treedTransport = TotalTransportMass(f);
+            double treedMassClosure = Math.Abs(treedMassBefore - treedMassAfter - treedTransport)
+                                    / Math.Max(1.0, treedMassBefore);
+            if (treedMassClosure > 1e-6)
+                throw new Exception("TREED-root landslide event mass closure failed: " + treedMassClosure.ToString("R"));
+
+            // Paired bare-root control: identical terrain, soil profile, event,
+            // routing mode, and rainfall, changing only the root-cohesion map.
+            int bareInitiations;
+            double bareErosion, bareMassClosure;
+            int bareUnstableThresholdCells;
+            using (Mother_form bare = BuildConvergentCase(Path.Combine(root, "bare_root_control"), 1, false))
+            {
+                Set(bare, "root_cohesion_kPa_new", new double[nr,nc]);
+                Call(bare, "configure_treed_landslide_event", eventCfg);
+                double bareMassBefore = TotalSoilMass(bare);
+                Call(bare, "calc_and_write_ls_rasters");
+                double[,] bareCriticalRain = Get<double[,]>(bare, "crrain_m_d");
+                bareUnstableThresholdCells = 0;
+                for (int r = 0; r < nr; r++)
+                for (int col = 0; col < nc; col++)
+                    if (bareCriticalRain[r,col] >= 0.0) bareUnstableThresholdCells++;
+                Call(bare, "calculate_slide_new");
+                bareInitiations = Get<int>(bare, "landslide_initiation_cells");
+                bareErosion = SumAbs(Get<double[,]>(bare, "ero_slid_m"));
+                double bareMassAfter = TotalSoilMass(bare);
+                double bareTransport = TotalTransportMass(bare);
+                bareMassClosure = Math.Abs(bareMassBefore - bareMassAfter - bareTransport)
+                                / Math.Max(1.0, bareMassBefore);
+            }
+
+            if (bareInitiations <= treedInitiations || bareErosion <= treedErosion)
+                throw new Exception("TREED root cohesion did not reduce landslide initiation and erosion relative to the paired bare-root control.");
+            if (bareMassClosure > 1e-6)
+                throw new Exception("Bare-root control landslide mass closure failed: " + bareMassClosure.ToString("R"));
+
+            string stabilitySummary =
+                "TREED_ROOT_MAP_MEAN_KPA=" + rootMean.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_ROOT_MAP_MIN_KPA=" + rootMin.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_ROOT_MAP_MAX_KPA=" + rootMax.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "MAX_COHESION_FACTOR_DIFFERENCE_VS_UNIFORM=" + maxSpatialFactorDifference.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_UNSTABLE_THRESHOLD_CELLS=" + treedUnstableThresholdCells.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "UNIFORM_UNSTABLE_THRESHOLD_CELLS=" + uniformUnstableThresholdCells.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "BARE_UNSTABLE_THRESHOLD_CELLS=" + bareUnstableThresholdCells.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "EVENT_INTENSITY_M_DAY=" + Get<double>(f, "treed_landslide_event_intensity_m_d").ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_INITIATIONS=" + treedInitiations.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "BARE_INITIATIONS=" + bareInitiations.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_EROSION_M=" + treedErosion.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "BARE_EROSION_M=" + bareErosion.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "TREED_MASS_CLOSURE=" + treedMassClosure.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "BARE_MASS_CLOSURE=" + bareMassClosure.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine;
+            File.WriteAllText(Path.Combine(root, "TREED_LANDSLIDE_STABILITY_PASS.txt"), stabilitySummary);
+            Console.WriteLine("TREED_LANDSLIDE_STABILITY_PASS " + stabilitySummary.Replace(Environment.NewLine, " "));
+
             string marker = Path.Combine(root, "TREED_SAME_YEAR_ROOTCOHESION_PASS.txt");
             File.WriteAllText(marker,
                 "TREED_ACTUAL_JULIA_TO_LORICA_CSHARP=PASS" + Environment.NewLine +
