@@ -63,26 +63,21 @@ The process test checks:
 
 ## Verified results
 
-The latest completed run is GitHub Actions **#16**, commit \`1473f49e3bc0cfbcba64ff6607a32fa98d2b937e\`.
+The process-kernel regression history below remains valid. The latest TREED-to-LORICA integration run is GitHub Actions **#64**, commit \`e8cea549ca52b0294b62f5e61db0b57eb5132288\`.
 
-- Windows LORICA compilation: passed, 0 compiler errors.
+- Windows LORICA compilation: passed; no compiler errors.
 - Existing v0.5 Python regression suite: passed.
-- Six process cases: passed (three root-cohesion values × two mixing modes).
-- Maximum relative mass-closure error: \(2.90 \times 10^{-16}\).
-- Initial and final soil mass: approximately 802,959.539 kg in the 5-cell test domain.
-- Residual transport mass after the event: 0 kg in all six cases.
-- No-slide soil depth: 1.0000000000000002 m.
-- Automated layer-order assertions: passed for the translation-mode test.
-- Actual annual `water_balance()` flow generated and passed to `calculate_water_ero_sed_daily()` between two landslide events: passed in both mixing modes.
-- Internal water-erosion deposition and boundary export occurred in the same event.
-- Persistent landslide residual mass unchanged by water erosion and soil-layer split/combine.
-- Second landslide event remobilized the residual in both mixing modes.
+- TREED Julia module instantiation and loading: passed.
+- Same-year LORICA daily climate to TREED monthly climate transfer: maximum numerical difference \(4.26 \times 10^{-14}\).
+- Actual TREED root-carbon, FPC, and LAI outputs were read by LORICA; the Hwang Eq. (5), FPC, and ET-factor transfer checks passed with zero recorded formula/transfer error.
+- Baseline and calibrated root-carbon rasters were byte-identical (SHA-256 \`25dfa6519125f2f39f81a178875c2e3684b86450fa73bdbca770a7b3ab51a41d\`); mean root C was \(1181.8501\;gC\,m^{-2}\).
+- The fixed event-scale effective tensile parameter was \(T_{r,eff}=1.09637\;MPa\), inverse-calibrated to a mean root cohesion of 7.6 kPa. This is a model calibration coefficient, not a measured species tensile strength.
+- The actual spatial root-cohesion raster had mean 7.6000 kPa, minimum 7.5568 kPa, and maximum 7.7615 kPa.
+- Under the same 60 mm / 6 h event, the TREED-root case produced 0 initiations and 0 m summed erosion; the paired bare-root case produced 24 initiations and 24 m summed erosion.
+- Relative mass-closure error was 0 for the TREED-root case and \(2.38 \times 10^{-15}\) for the bare-root case.
+- The root-cohesion sensitivity sequence (0, 3.4, 7.6, 9.0, 9.1, 12.9, and 21.6 kPa) was monotonic in unstable-cell count and initiation count.
 
-The first process run reported an 8.333% mass deficit. After correcting residual routing, a separate layer-preserving test exposed a 5.561% deficit caused by the second thickness-fraction scaling. Both corrections are now included in the audit branch and pass the ten-layer, depth-varying-texture test.
-
-Detailed ledgers and the run-by-run diagnosis are in [MASS_BALANCE_AUDIT.md](MASS_BALANCE_AUDIT.md).
-
-
+Run #63 failed because independently threaded TREED ECA optimizations produced different root-carbon rasters. #64 serializes only the cell loop in the CI copy of TREED's optimization routine, while retaining the original objective function and model equations. The baseline and calibrated root-carbon rasters then matched byte-for-byte, and the full integration validation passed. This CI-only determinism patch does not alter the TREED source bundle or production model equations.
 
 ## 2-D convergent hillslope and closed-sink tests
 
@@ -164,10 +159,8 @@ This is a process-kernel verification on synthetic 1-D and 5×5 2-D terrain. The
 
 ## Next verification stage
 
-Before a 30-year run:
-
-1. Verify TREED-generated root carbon and FPC are transferred into LORICA before the same year's water balance and critical-rainfall calculation.
-2. Run a short multi-year 2-D LORICA–TREED case; inspect DEM, soil mass, layer composition, root cohesion, and transport ledgers at every event.
-3. Only then expand to the 30-year coupling audit.
+1. **Completed in #64:** verify same-year TREED root carbon/FPC transfer and the resulting root-cohesion effect in LORICA's critical-rainfall and landslide routines. The same-year climate transfer and vegetation-to-ET coefficient were also checked; a full annual water-balance run with TREED-derived ET remains part of the next gate.
+2. Run a short multi-year 2-D LORICA–TREED case with the actual annual order: TREED update, daily water balance, water erosion, and rainfall-triggered landslide. Record DEM, soil depth/mass, layer composition, root cohesion, and transport ledgers at every year.
+3. Only after that test passes, expand to the 30-year coupling audit.
 
 No taproot geometry, fire module, or unverified root architecture is introduced in v0.9. Root reinforcement remains based on TREED area-normalized fine + coarse root biomass and the Hwang et al. (2015) biomass-to-cohesion relationship.
