@@ -1955,6 +1955,10 @@ public static class LoricaTreedLandslideSmoke
                     Set(f, "Tmax_all", tmax);
                     Set(f, "rain_value_m", annualRain[year] / 1000.0);
                     Set(f, "temp_value_C", annualTemp[year]);
+                    double[,] annualRainGrid = Get<double[,]>(f, "rain_m");
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                        annualRainGrid[r,col] = annualRain[year] / 1000.0;
 
                     // Match every_timestep(): weather preparation and TREED
                     // vegetation/root update precede LORICA's annual water balance.
