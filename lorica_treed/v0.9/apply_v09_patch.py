@@ -814,6 +814,61 @@ replace_once(
     "count physical initiations rather than critical-rain exceedance alone",
 )
 
+# 7g. Optional coupling-side bare-bedrock sensitivity treatment.
+# 'legacy' is the default and preserves TREED output transfer exactly.
+# 'zero_coupling' removes *local* root reinforcement and FPC-based ET
+# correction only where the current LORICA cell has no soil. It does NOT
+# change TREED plant physiology, root carbon, trait optimization, or ecology.
+replace_once(
+    coupling,
+    '            double etFull = cfg_double(cfg, "treed_et_factor_full_cover", 0.85);',
+    '''            double etFull = cfg_double(cfg, "treed_et_factor_full_cover", 0.85);
+            string bedrockMode = cfg_string(cfg, "treed_bare_bedrock_policy", "legacy");
+            if (bedrockMode != "legacy" && bedrockMode != "zero_coupling")
+                throw new Exception("Unknown treed_bare_bedrock_policy: " + bedrockMode);
+            double[,] effectiveRootC = new double[nr, nc];
+            double[,] effectiveFpc = new double[nr, nc];''',
+    "optional bare-bedrock coupling policy",
+)
+replace_once(
+    coupling,
+    '''                    double cover = Math.Max(0.0, Math.Min(1.0, fpc[r, c]));
+                    aridity_vegetation[r, c] = cover;''',
+    '''                    // A no-soil grid cell may still have TREED biomass
+                    // because TREED permits direct rainfall use at PAW=0.
+                    // Do not interpret that biomass as a local soil-root bond
+                    // in the explicitly selected sensitivity case.
+                    bool bareBedrock = bedrockMode == "zero_coupling" &&
+                                       soildepth_m[r, c] <= 0.0;
+                    double cover = bareBedrock ? 0.0 :
+                        Math.Max(0.0, Math.Min(1.0, fpc[r, c]));
+                    effectiveFpc[r, c] = cover;
+                    aridity_vegetation[r, c] = cover;''',
+    "exclude zero-soil cover only for sensitivity mode",
+)
+replace_once(
+    coupling,
+    '                    double rc = Math.Max(0.0, rootC[r, c]);',
+    '''                    double rc = bareBedrock ? 0.0 : Math.Max(0.0, rootC[r, c]);
+                    effectiveRootC[r, c] = rc;''',
+    "exclude zero-soil root reinforcement only for sensitivity mode",
+)
+replace_once(
+    coupling,
+    '            out_double(Path.Combine(outputDir, "treed_root_biomass_kgDM_m2.asc"), rootDryBiomass);',
+    '''            out_double(Path.Combine(outputDir, "treed_effective_rootC_gC_m2.asc"), effectiveRootC);
+            out_double(Path.Combine(outputDir, "treed_effective_fpc.asc"), effectiveFpc);
+            out_double(Path.Combine(outputDir, "treed_root_biomass_kgDM_m2.asc"), rootDryBiomass);''',
+    "write audit of effective coupling vegetation",
+)
+replace_once(
+    coupling,
+    '                "root_allocation_mode=" + cfg_string(cfg, "root_allocation_mode", "adaptive_experimental") + Environment.NewLine +',
+    '''                "treed_bare_bedrock_policy=" + bedrockMode + Environment.NewLine +
+                "root_allocation_mode=" + cfg_string(cfg, "root_allocation_mode", "adaptive_experimental") + Environment.NewLine +''',
+    "audit bare bedrock treatment",
+)
+
 # 8. Add explicit defaults without changing the legacy model behaviour.
 cfg_paths = [ROOT / "coupling/TREED_coupling.cfg"]
 cfg_paths += sorted((ROOT / "coupling/scenarios").glob("*.cfg"))
