@@ -1404,7 +1404,7 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "workdir", root);
             Set(f, "daily_weather_prepared_for_timestep", false);
             Set(f, "rain_value_m", 0.73);
-            Set(f, "temp_value_C", 10.0);
+            Set(f, "temp_value_C", 10);
             Set(f, "veg_correction_factor", new double[nr,nc]);
             Set(f, "aridity_vegetation", new double[nr,nc]);
 
