@@ -26,6 +26,20 @@ public static class LoricaTreedLandslideSmoke
         Field(o, name).SetValue(o, value);
     }
 
+    static double ReadCfgDouble(string cfgPath, string key, double fallback)
+    {
+        foreach (string raw in File.ReadAllLines(cfgPath))
+        {
+            string line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith("#")) continue;
+            int equals = line.IndexOf('=');
+            if (equals <= 0) continue;
+            if (line.Substring(0, equals).Trim() != key) continue;
+            return Double.Parse(line.Substring(equals + 1).Trim(), CultureInfo.InvariantCulture);
+        }
+        return fallback;
+    }
+
     static T Get<T>(object o, string name)
     {
         return (T)Field(o, name).GetValue(o);
@@ -1385,7 +1399,7 @@ public static class LoricaTreedLandslideSmoke
     }
 
 
-    static void TestTreedSameYearRootCohesion()
+    static void TestTreedSameYearRootCohesion(bool runStabilityTests)
     {
         string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
         if (String.IsNullOrWhiteSpace(couplingDir) ||
@@ -1458,10 +1472,13 @@ public static class LoricaTreedLandslideSmoke
             double[,] rootCohesion = Get<double[,]>(f, "root_cohesion_kPa_new");
             double[,] cover = Get<double[,]>(f, "aridity_vegetation");
             double[,] et = Get<double[,]>(f, "veg_correction_factor");
-            const double TrMpa = 17.284220625;
-            const double fCarbon = 0.47;
-            const double rhoRoot = 435.3;
-            const double K = 1.2;
+            string couplingCfgPath = Path.Combine(couplingDir, "TREED_coupling.cfg");
+            double TrMpa = ReadCfgDouble(couplingCfgPath, "hwang_root_tensile_strength_MPa", 17.284220625);
+            double fCarbon = ReadCfgDouble(couplingCfgPath, "hwang_root_carbon_fraction", 0.47);
+            double rhoRoot = ReadCfgDouble(couplingCfgPath, "hwang_root_density_kg_m3", 435.3);
+            double K = ReadCfgDouble(couplingCfgPath, "hwang_K_m_inv", 1.2);
+            double cohesionReduction = ReadCfgDouble(couplingCfgPath, "hwang_root_cohesion_reduction_factor", 1.0);
+            double cohesionMultiplier = ReadCfgDouble(couplingCfgPath, "hwang_root_cohesion_multiplier", 1.0);
             double maxFormulaError = 0.0;
             double maxCoverError = 0.0;
             double maxEtError = 0.0;
@@ -1473,7 +1490,7 @@ public static class LoricaTreedLandslideSmoke
             for (int col = 0; col < nc; col++)
             {
                 if (rootC[r,col] == -9999.0 || fpc[r,col] == -9999.0) continue;
-                double expectedRootCohesion = Math.Max(0.0,
+                double expectedRootCohesion = cohesionReduction * cohesionMultiplier * Math.Max(0.0,
                     K * (TrMpa * 1e6) * ((Math.Max(0.0, rootC[r,col]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
                 double expectedEt = 1.0 + Math.Max(0.0, Math.Min(1.0, fpc[r,col])) * (0.85 - 1.0);
                 maxFormulaError = Math.Max(maxFormulaError, Math.Abs(rootCohesion[r,col] - expectedRootCohesion));
@@ -1517,6 +1534,8 @@ public static class LoricaTreedLandslideSmoke
             if (maxClimateError > 1e-8)
                 throw new Exception("TREED monthly climate does not match the same-year LORICA daily weather.");
 
+            if (runStabilityTests)
+            {
             // Next integration gate: use the TREED-derived spatial root-cohesion
             // raster in LORICA's actual critical-rainfall and landslide routines.
             Dictionary<string,string> eventCfg = new Dictionary<string,string>();
@@ -1615,21 +1634,26 @@ public static class LoricaTreedLandslideSmoke
             if (bareMassClosure > 1e-6)
                 throw new Exception("Bare-root control landslide mass closure failed: " + bareMassClosure.ToString("R"));
 
-            // Sweep explicit reduction factors without changing the production
-            // configuration. The 21.6-kPa case reproduces Hwang et al. (2015)'s
-            // spatially uniform Wu-method comparison value.
-            double[] reductionFactors = new double[] {
-                0.0, 0.025, 0.05, 0.075, 0.10, 21.6 / rootMean, 0.20, 0.40, 0.67, 1.0
+            // Sensitivity cases are anchored to published cohesion benchmarks.
+            // TREED's spatial pattern is retained for all biomass-derived targets;
+            // the 21.6-kPa Hwang comparator is separately spatially uniform.
+            double[] benchmarkTargets = new double[] { 0.0, 3.4, 7.6, 9.0, 9.1, 12.9 };
+            string[] benchmarkNames = new string[] {
+                "bare_root", "hales2009_fbm_mean", "hales2009_wu_mean",
+                "korea2025_pinus_densiflora", "korea2025_pinus_koraiensis",
+                "korea2025_quercus_mongolica"
             };
             StringBuilder sensitivityCsv = new StringBuilder();
-            sensitivityCsv.AppendLine("reduction_factor,mean_root_cohesion_kPa,unstable_threshold_cells,landslide_initiations,erosion_m,relative_mass_closure,min_critical_rain_m_d,max_critical_rain_m_d");
+            sensitivityCsv.AppendLine("scenario,target_mean_root_cohesion_kPa,actual_map_mean_root_cohesion_kPa,unstable_threshold_cells,landslide_initiations,erosion_m,relative_mass_closure,min_critical_rain_m_d,max_critical_rain_m_d");
             int previousUnstableCells = Int32.MaxValue;
             int previousInitiations = Int32.MaxValue;
-            for (int fi = 0; fi < reductionFactors.Length; fi++)
+
+            for (int bi = 0; bi < benchmarkTargets.Length; bi++)
             {
-                double factor = reductionFactors[fi];
-                string factorLabel = factor.ToString("0.000000", CultureInfo.InvariantCulture).Replace(".", "_");
-                string sensitivityDir = Path.Combine(root, "root_cohesion_sensitivity", factorLabel);
+                double targetCr = benchmarkTargets[bi];
+                double factor = targetCr <= 0.0 ? 0.0 : targetCr / rootMean;
+                string scenario = benchmarkNames[bi];
+                string sensitivityDir = Path.Combine(root, "root_cohesion_sensitivity", scenario);
                 using (Mother_form sens = BuildConvergentCase(sensitivityDir, 1, false))
                 {
                     double[,] scaledRootMap = new double[nr,nc];
@@ -1666,18 +1690,18 @@ public static class LoricaTreedLandslideSmoke
                     double transport = TotalTransportMass(sens);
                     double closure = Math.Abs(massBefore - massAfter - transport) / Math.Max(1.0, massBefore);
                     if (closure > 1e-6)
-                        throw new Exception("Root-cohesion sensitivity mass closure failed at factor " + factor.ToString("R") + ": " + closure.ToString("R"));
+                        throw new Exception("Root-cohesion sensitivity mass closure failed for " + scenario + ": " + closure.ToString("R"));
                     if (unstableCells > previousUnstableCells || initiations > previousInitiations)
-                        throw new Exception("Root-cohesion sensitivity was not monotonic at factor " + factor.ToString("R"));
+                        throw new Exception("Root-cohesion sensitivity was not monotonic at " + scenario);
                     previousUnstableCells = unstableCells;
                     previousInitiations = initiations;
 
-                    double meanCr = rootMean * factor;
                     if (Double.IsPositiveInfinity(minCritical)) minCritical = -9999.0;
                     if (Double.IsNegativeInfinity(maxCritical)) maxCritical = -9999.0;
                     sensitivityCsv.AppendLine(String.Join(",",
-                        factor.ToString("R", CultureInfo.InvariantCulture),
-                        meanCr.ToString("R", CultureInfo.InvariantCulture),
+                        scenario,
+                        targetCr.ToString("R", CultureInfo.InvariantCulture),
+                        targetCr.ToString("R", CultureInfo.InvariantCulture),
                         unstableCells.ToString(CultureInfo.InvariantCulture),
                         initiations.ToString(CultureInfo.InvariantCulture),
                         erosion.ToString("R", CultureInfo.InvariantCulture),
@@ -1685,6 +1709,63 @@ public static class LoricaTreedLandslideSmoke
                         minCritical.ToString("R", CultureInfo.InvariantCulture),
                         maxCritical.ToString("R", CultureInfo.InvariantCulture)));
                 }
+            }
+
+            // Hwang et al. (2015) used 21.6 kPa as the spatially uniform
+            // Wu-method comparison case; this is a separate constant raster.
+            const double hwangUniformCr = 21.6;
+            string uniformSensitivityDir = Path.Combine(root, "root_cohesion_sensitivity", "hwang2015_uniform_21p6");
+            using (Mother_form sens = BuildConvergentCase(uniformSensitivityDir, 1, false))
+            {
+                double[,] uniform21Map = new double[nr,nc];
+                for (int r = 0; r < nr; r++)
+                for (int col = 0; col < nc; col++)
+                    uniform21Map[r,col] = hwangUniformCr;
+                Set(sens, "root_cohesion_kPa_new", uniform21Map);
+                Set(sens, "veg_correction_factor", (double[,])treedEtMap.Clone());
+                Set(sens, "aridity_vegetation", (double[,])treedCoverMap.Clone());
+                Call(sens, "configure_treed_landslide_event", eventCfg);
+
+                double massBefore = TotalSoilMass(sens);
+                Call(sens, "calc_and_write_ls_rasters");
+                double[,] critical = Get<double[,]>(sens, "crrain_m_d");
+                int unstableCells = 0;
+                double minCritical = Double.PositiveInfinity;
+                double maxCritical = Double.NegativeInfinity;
+                for (int r = 0; r < nr; r++)
+                for (int col = 0; col < nc; col++)
+                {
+                    double v = critical[r,col];
+                    if (v >= 0.0)
+                    {
+                        unstableCells++;
+                        minCritical = Math.Min(minCritical, v);
+                        maxCritical = Math.Max(maxCritical, v);
+                    }
+                }
+
+                Call(sens, "calculate_slide_new");
+                int initiations = Get<int>(sens, "landslide_initiation_cells");
+                double erosion = SumAbs(Get<double[,]>(sens, "ero_slid_m"));
+                double massAfter = TotalSoilMass(sens);
+                double transport = TotalTransportMass(sens);
+                double closure = Math.Abs(massBefore - massAfter - transport) / Math.Max(1.0, massBefore);
+                if (closure > 1e-6)
+                    throw new Exception("Hwang uniform 21.6-kPa mass closure failed: " + closure.ToString("R"));
+                if (unstableCells > previousUnstableCells || initiations > previousInitiations)
+                    throw new Exception("Hwang uniform 21.6-kPa case increased instability unexpectedly.");
+                if (Double.IsPositiveInfinity(minCritical)) minCritical = -9999.0;
+                if (Double.IsNegativeInfinity(maxCritical)) maxCritical = -9999.0;
+                sensitivityCsv.AppendLine(String.Join(",",
+                    "hwang2015_uniform_21p6",
+                    hwangUniformCr.ToString("R", CultureInfo.InvariantCulture),
+                    hwangUniformCr.ToString("R", CultureInfo.InvariantCulture),
+                    unstableCells.ToString(CultureInfo.InvariantCulture),
+                    initiations.ToString(CultureInfo.InvariantCulture),
+                    erosion.ToString("R", CultureInfo.InvariantCulture),
+                    closure.ToString("R", CultureInfo.InvariantCulture),
+                    minCritical.ToString("R", CultureInfo.InvariantCulture),
+                    maxCritical.ToString("R", CultureInfo.InvariantCulture)));
             }
             File.WriteAllText(Path.Combine(root, "TREED_LANDSLIDE_STABILITY_SENSITIVITY.csv"), sensitivityCsv.ToString());
 
@@ -1706,6 +1787,8 @@ public static class LoricaTreedLandslideSmoke
             File.WriteAllText(Path.Combine(root, "TREED_LANDSLIDE_STABILITY_PASS.txt"), stabilitySummary);
             Console.WriteLine("TREED_LANDSLIDE_STABILITY_PASS " + stabilitySummary.Replace(Environment.NewLine, " "));
 
+            }
+
             string marker = Path.Combine(root, "TREED_SAME_YEAR_ROOTCOHESION_PASS.txt");
             File.WriteAllText(marker,
                 "TREED_ACTUAL_JULIA_TO_LORICA_CSHARP=PASS" + Environment.NewLine +
@@ -1726,6 +1809,14 @@ public static class LoricaTreedLandslideSmoke
         if (args.Length != 1) throw new Exception("Usage: LoricaTreedLandslideSmoke.exe OUTPUT_DIR");
         OutputRoot = Path.GetFullPath(args[0]);
         Directory.CreateDirectory(OutputRoot);
+        if (Environment.GetEnvironmentVariable("LORICA_TREED_BASELINE_ONLY") == "1")
+        {
+            TestTreedSameYearRootCohesion(false);
+            File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_BASELINE_ROOTC_PASS.txt"),
+                "LORICA_TREED_V09_BASELINE_ROOTC_PASS" + Environment.NewLine);
+            Console.WriteLine("LORICA_TREED_V09_BASELINE_ROOTC_PASS");
+            return;
+        }
         TestRainfallTimeSeries(OutputRoot);
         TestEventConfig();
 
@@ -1752,7 +1843,7 @@ public static class LoricaTreedLandslideSmoke
         TestResidualPersistenceAcrossTimesteps("residual_persistence_translation", 2);
         TestDailyflowGeneratedWaterErosion();
         TestAnnualWaterBalanceGeneratedWaterErosion();
-        TestTreedSameYearRootCohesion();
+        TestTreedSameYearRootCohesion(true);
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
