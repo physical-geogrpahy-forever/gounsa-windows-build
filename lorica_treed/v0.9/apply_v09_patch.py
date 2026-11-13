@@ -651,6 +651,135 @@ if geomorph_text.count(c_cleanup_old) != 1:
     raise RuntimeError(f"situation-C transport cleanup expected once, found {geomorph_text.count(c_cleanup_old)}")
 geomorph_text = geomorph_text.replace(c_cleanup_old, c_cleanup_new, 1)
 
+# 7d. Carry residual landslide material across model timesteps in both mixing modes.
+# The original per-event initializer clears the fully mixed transport arrays and
+# resets remaining_vertical_size_m. Layer-resolved arrays survive by accident,
+# but are not reactivated because their runout thickness is reset to zero.
+# Use the layer arrays as persistent landslide-only storage for mode 1 as well;
+# this keeps them separate from the mixed arrays shared with water erosion.
+slide_method_start = geomorph_text.find("        void calculate_slide_new()")
+reset_start = geomorph_text.find("                for (row = 0; row < nr; row++)", slide_method_start)
+reset_end = geomorph_text.find('                //Debug.WriteLine("prepared");', reset_start)
+if slide_method_start < 0 or reset_start < 0 or reset_end < 0 or reset_end <= reset_start:
+    raise RuntimeError("could not locate calculate_slide_new initialization block")
+
+new_reset = r"""                for (row = 0; row < nr; row++)
+                {
+                    for (col = 0; col < nc; col++)
+                    {
+                        if (dtm[row, col] != nodata_value)
+                        {
+                            ero_slid_m[row, col] = 0;
+                            sed_slid_m[row, col] = 0;
+                            slidestatus[row, col] = 0;
+                            remaining_vertical_size_m[row, col] = 0;
+
+                            // The mixed arrays are transient and can also be
+                            // cleared by LORICA's water-erosion timestep setup.
+                            for (int material = 0; material < 5; material++)
+                                sediment_in_transport_kg[row, col, material] = 0;
+                            young_SOM_in_transport_kg[row, col] = 0;
+                            old_SOM_in_transport_kg[row, col] = 0;
+
+                            if (ls_mixingmode == 1)
+                            {
+                                // Restore fully mixed residuals from layer 0
+                                // of the landslide-only persistent store.
+                                double[] storedMass = new double[n_texture_classes];
+                                double storedYoung = 0.0;
+                                double storedOld = 0.0;
+                                for (int storedLayer = 0; storedLayer < max_soil_layers; storedLayer++)
+                                {
+                                    for (int tex = 0; tex < n_texture_classes; tex++)
+                                    {
+                                        storedMass[tex] += lay_sediment_in_transport_kg[row, col, storedLayer, tex];
+                                        lay_sediment_in_transport_kg[row, col, storedLayer, tex] = 0.0;
+                                    }
+                                    storedYoung += lay_young_SOM_in_transport_kg[row, col, storedLayer];
+                                    storedOld += lay_old_SOM_in_transport_kg[row, col, storedLayer];
+                                    lay_young_SOM_in_transport_kg[row, col, storedLayer] = 0.0;
+                                    lay_old_SOM_in_transport_kg[row, col, storedLayer] = 0.0;
+                                }
+
+                                double storedFineMass = storedYoung + storedOld;
+                                for (int tex = 1; tex < n_texture_classes; tex++)
+                                    storedFineMass += storedMass[tex];
+
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                    sediment_in_transport_kg[row, col, tex] = storedMass[tex];
+                                young_SOM_in_transport_kg[row, col] = storedYoung;
+                                old_SOM_in_transport_kg[row, col] = storedOld;
+
+                                double storedThickness_m = 0.0;
+                                if (storedFineMass > 1e-12)
+                                    storedThickness_m = calc_thickness_from_mass(storedMass, storedYoung, storedOld);
+                                else if (storedMass[0] > 1e-12)
+                                    storedThickness_m = storedMass[0] / (dx * dx * 2700.0);
+
+                                if (!Double.IsNaN(storedThickness_m) &&
+                                    !Double.IsInfinity(storedThickness_m) &&
+                                    storedThickness_m > 0.0)
+                                    remaining_vertical_size_m[row, col] = storedThickness_m;
+                            }
+                            else if (ls_mixingmode == 2)
+                            {
+                                // Layer-preserving transport already lives in
+                                // the persistent layer arrays. Reconstruct the
+                                // runout state from its actual mass-derived depth.
+                                double storedThickness_m = calc_layered_transport_thickness_m(row, col);
+                                if (!Double.IsNaN(storedThickness_m) &&
+                                    !Double.IsInfinity(storedThickness_m) &&
+                                    storedThickness_m > 0.0)
+                                    remaining_vertical_size_m[row, col] = storedThickness_m;
+                            }
+                        }
+                    }
+                }
+"""
+geomorph_text = geomorph_text[:reset_start] + new_reset + geomorph_text[reset_end:]
+
+# After the event has routed all cells, move any fully mixed residual back into
+# the landslide-only persistent arrays. This prevents the next initialise_every()
+# call from deleting it and avoids letting water erosion consume it as its own
+# transient sediment load.
+dtm_anchor = "                //now update the DTM:"
+if geomorph_text.count(dtm_anchor) != 1:
+    raise RuntimeError(f"DTM update anchor expected once, found {geomorph_text.count(dtm_anchor)}")
+mixed_store = r"""                if (ls_mixingmode == 1)
+                {
+                    for (row = 0; row < nr; row++)
+                    {
+                        for (col = 0; col < nc; col++)
+                        {
+                            if (dtm[row, col] == nodata_value) continue;
+
+                            for (int storedLayer = 0; storedLayer < max_soil_layers; storedLayer++)
+                            {
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                    lay_sediment_in_transport_kg[row, col, storedLayer, tex] = 0.0;
+                                lay_young_SOM_in_transport_kg[row, col, storedLayer] = 0.0;
+                                lay_old_SOM_in_transport_kg[row, col, storedLayer] = 0.0;
+                            }
+
+                            for (int tex = 0; tex < n_texture_classes; tex++)
+                            {
+                                lay_sediment_in_transport_kg[row, col, 0, tex] =
+                                    sediment_in_transport_kg[row, col, tex];
+                                sediment_in_transport_kg[row, col, tex] = 0.0;
+                            }
+                            lay_young_SOM_in_transport_kg[row, col, 0] =
+                                young_SOM_in_transport_kg[row, col];
+                            lay_old_SOM_in_transport_kg[row, col, 0] =
+                                old_SOM_in_transport_kg[row, col];
+                            young_SOM_in_transport_kg[row, col] = 0.0;
+                            old_SOM_in_transport_kg[row, col] = 0.0;
+                        }
+                    }
+                }
+
+"""
+geomorph_text = geomorph_text.replace(dtm_anchor, mixed_store + dtm_anchor, 1)
+
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
