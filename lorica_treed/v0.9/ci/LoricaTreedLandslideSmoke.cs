@@ -38,6 +38,13 @@ public static class LoricaTreedLandslideSmoke
         m.Invoke(o, args);
     }
 
+    static double CallDouble(object o, string name, params object[] args)
+    {
+        MethodInfo m = o.GetType().GetMethod(name, BF);
+        if (m == null) throw new MissingMethodException(o.GetType().FullName, name);
+        return Convert.ToDouble(m.Invoke(o, args), CultureInfo.InvariantCulture);
+    }
+
     static double SumAbs(double[,] a)
     {
         double s = 0.0;
@@ -199,7 +206,7 @@ public static class LoricaTreedLandslideSmoke
     static Mother_form BuildCase(string workDir, double rootCohesionKPa, int mixingMode)
     {
         Mother_form f = new Mother_form();
-        const int nr = 5, nc = 1, nodata = -9999;
+        const int nr = 5, nc = 1, nodata = -9999, maxLayers = 10;
         Set(f, "nr", nr);
         Set(f, "nc", nc);
         Set(f, "dx", 10.0);
@@ -207,16 +214,20 @@ public static class LoricaTreedLandslideSmoke
         Set(f, "t", 0);
         Set(f, "run_number", 9001);
         Set(f, "workdir", workDir);
-        Set(f, "max_soil_layers", 1);
+        Set(f, "max_soil_layers", maxLayers);
         Set(f, "n_texture_classes", 5);
         Set(f, "number_of_data_cells", 5);
         Set(f, "conv_fac", 1.1);
         Set(f, "guiThread", TaskScheduler.Default);
         Set(f, "landslide_active", true);
         Set(f, "rain_value_m", 1.5);
-        Set(f, "layer_z_surface", 1.0);
-        Set(f, "layer_z_increase", 1.0);
-        Set(f, "expected_lay_thick_m", new double[] { 1.0 });
+        Set(f, "layer_z_surface", 0.1);
+        Set(f, "layer_z_increase", 1.1);
+
+        double[] expectedLayers = new double[maxLayers];
+        for (int layer = 0; layer < maxLayers; layer++)
+            expectedLayers[layer] = 0.1 * Math.Pow(1.1, layer);
+        Set(f, "expected_lay_thick_m", expectedLayers);
         Set(f, "specific_area", new double[] { 10.0, 100.0, 1000.0, 50000.0, 100000.0 });
 
         double[,] dtm = new double[nr,nc];
@@ -224,11 +235,11 @@ public static class LoricaTreedLandslideSmoke
         double[,] rain = new double[nr,nc];
         double[,] root = new double[nr,nc];
         double[,] change = new double[nr,nc];
-        double[,,] layers = new double[nr,nc,1];
-        double[,,] young = new double[nr,nc,1];
-        double[,,] old = new double[nr,nc,1];
-        double[,,] bd = new double[nr,nc,1];
-        double[,,,] texture = new double[nr,nc,1,5];
+        double[,,] layers = new double[nr,nc,maxLayers];
+        double[,,] young = new double[nr,nc,maxLayers];
+        double[,,] old = new double[nr,nc,maxLayers];
+        double[,,] bd = new double[nr,nc,maxLayers];
+        double[,,,] texture = new double[nr,nc,maxLayers,5];
 
         double[] z = new double[] { 100.0, 90.0, 80.0, 70.0, 69.9 };
         for (int r = 0; r < nr; r++)
@@ -237,14 +248,36 @@ public static class LoricaTreedLandslideSmoke
             depth[r,0] = 1.0;
             rain[r,0] = 1.5;
             root[r,0] = rootCohesionKPa;
-            layers[r,0,0] = 1.0;
-            bd[r,0,0] = 1300.0;
-            // 40% sand, 50% silt, 10% clay; 1300 kg m-3 over a 10 x 10 x 1 m cell.
-            texture[r,0,0,0] = 0.0;
-            texture[r,0,0,1] = 52000.0;
-            texture[r,0,0,2] = 65000.0;
-            texture[r,0,0,3] = 13000.0;
-            texture[r,0,0,4] = 0.0;
+
+            // Build a PTF-consistent 1-m profile using LORICA's default
+            // ten-layer geometric template (0.10 m, increasing by 1.1).
+            // Mass in each layer is calculated from LORICA's own bulk-density
+            // function, so thickness_calc() must reproduce the input depth.
+            double remainingDepth = 1.0;
+            double topDepth = 0.0;
+            for (int layer = 0; layer < maxLayers && remainingDepth > 1e-12; layer++)
+            {
+                double layerThickness = Math.Min(expectedLayers[layer], remainingDepth);
+                double bottomDepth = topDepth + layerThickness;
+                double layerBd = CallDouble(
+                    f, "bulk_density_calc_kg_m3",
+                    0.0, 0.4, 0.5, 0.1, 0.0, 0.0, 0.0,
+                    topDepth, bottomDepth);
+                double layerMass = layerBd * 100.0 * layerThickness;
+
+                layers[r,0,layer] = layerThickness;
+                bd[r,0,layer] = layerBd;
+                texture[r,0,layer,0] = 0.0;
+                texture[r,0,layer,1] = 0.4 * layerMass;
+                texture[r,0,layer,2] = 0.5 * layerMass;
+                texture[r,0,layer,3] = 0.1 * layerMass;
+                texture[r,0,layer,4] = 0.0;
+
+                topDepth = bottomDepth;
+                remainingDepth -= layerThickness;
+            }
+            if (remainingDepth > 1e-8)
+                throw new Exception("Ten-layer template did not cover the 1-m synthetic soil profile.");
         }
 
         Set(f, "dtm", dtm);
@@ -274,9 +307,9 @@ public static class LoricaTreedLandslideSmoke
         Set(f, "sediment_in_transport_kg", new double[nr,nc,5]);
         Set(f, "young_SOM_in_transport_kg", new double[nr,nc]);
         Set(f, "old_SOM_in_transport_kg", new double[nr,nc]);
-        Set(f, "lay_sediment_in_transport_kg", new double[nr,nc,1,5]);
-        Set(f, "lay_young_SOM_in_transport_kg", new double[nr,nc,1]);
-        Set(f, "lay_old_SOM_in_transport_kg", new double[nr,nc,1]);
+        Set(f, "lay_sediment_in_transport_kg", new double[nr,nc,maxLayers,5]);
+        Set(f, "lay_young_SOM_in_transport_kg", new double[nr,nc,maxLayers]);
+        Set(f, "lay_old_SOM_in_transport_kg", new double[nr,nc,maxLayers]);
 
         Set(f, "row_index", new int[] { 4, 3, 2, 1, 0 });
         Set(f, "col_index", new int[] { 0, 0, 0, 0, 0 });
@@ -292,10 +325,6 @@ public static class LoricaTreedLandslideSmoke
         Get<RadioButton>(f, "ls_mix_radio_1").Checked = (mixingMode == 1);
         Get<RadioButton>(f, "ls_mix_radio_2").Checked = (mixingMode == 2);
         Console.WriteLine("LS_MODE_SELECTED=" + mixingMode);
-        foreach (FieldInfo rf in f.GetType().GetFields(BF).Where(x =>
-            x.FieldType == typeof(RadioButton) &&
-            x.Name.IndexOf("ls_mix_radio", StringComparison.OrdinalIgnoreCase) >= 0))
-            Console.WriteLine("LS_MODE_FIELD=" + rf.Name);
         Directory.CreateDirectory(workDir);
         return f;
     }
@@ -403,6 +432,8 @@ public static class LoricaTreedLandslideSmoke
             {
                 if (initiations != 0 || erosionAbs > 1e-10 || depositionSum > 1e-10)
                     throw new Exception("High root cohesion should suppress the synthetic event landslide.");
+                if (Math.Abs(afterDepth[0,0] - beforeDepth[0]) > 1e-6)
+                    throw new Exception("No-slide case changed soil depth; synthetic profile is not PTF-consistent.");
             }
 
             Console.WriteLine(
