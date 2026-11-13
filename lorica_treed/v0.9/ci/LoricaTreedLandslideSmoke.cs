@@ -372,6 +372,32 @@ public static class LoricaTreedLandslideSmoke
         return f;
     }
 
+    static void AssertLayerSequence(Mother_form f, int row, int col, int destinationLayer, int sourceLayerStart, int count)
+    {
+        double[,,,] texture = Get<double[,,,]>(f, "texture_kg");
+        for (int i = 0; i < count; i++)
+        {
+            int layer = destinationLayer + i;
+            int sourceLayer = sourceLayerStart + i;
+            double mineralMass = 0.0;
+            for (int tex = 0; tex < 5; tex++) mineralMass += texture[row,col,layer,tex];
+            if (mineralMass <= 1e-8)
+                throw new Exception("Expected deposited stratigraphic layer is empty at row " + row + ", layer " + layer);
+            double observedSand = texture[row,col,layer,1] / mineralMass;
+            double observedSilt = texture[row,col,layer,2] / mineralMass;
+            double observedClay = texture[row,col,layer,3] / mineralMass;
+            double expectedSand = 0.45 - 0.02 * sourceLayer;
+            double expectedSilt = 0.45 + 0.01 * sourceLayer;
+            double expectedClay = 1.0 - expectedSand - expectedSilt;
+            if (Math.Abs(observedSand - expectedSand) > 1e-6 ||
+                Math.Abs(observedSilt - expectedSilt) > 1e-6 ||
+                Math.Abs(observedClay - expectedClay) > 1e-6)
+                throw new Exception("Layer translation order/composition mismatch at row " + row +
+                    ", destination layer " + layer + ", expected source layer " + sourceLayer +
+                    ", observed sand fraction " + observedSand.ToString("R"));
+        }
+    }
+
     static void TestRainfallTimeSeries(string workDir)
     {
         using (Mother_form f = new Mother_form())
@@ -449,6 +475,15 @@ public static class LoricaTreedLandslideSmoke
                 throw new Exception("Expected unconditionally stable slope for high root cohesion; got " + topCritical);
 
             Call(f, "calculate_slide_new");
+
+            // In the bare-root translation case, the upper seven deposited
+            // layers at row 3 should retain source-layer order 0..6. The
+            // residual lower layers reach row 4 in order 6..7.
+            if (mixingMode == 2 && rootC == 0.0)
+            {
+                AssertLayerSequence(f, 3, 0, 0, 0, 7);
+                AssertLayerSequence(f, 4, 0, 0, 6, 2);
+            }
 
             double[,] erosion = Get<double[,]>(f, "ero_slid_m");
             double[,] deposition = Get<double[,]>(f, "sed_slid_m");
