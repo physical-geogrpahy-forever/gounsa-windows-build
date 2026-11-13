@@ -793,6 +793,27 @@ replace_once(
     "water-erosion outlet boundary off-by-one",
 )
 
+# 7f. Event counters are diagnostics, not cumulative simulation state.
+# Start each landslide event with fresh counts, and count an initiation only
+# when soil is physically removed. The original triggering, erosion, runout,
+# deposition, and persistent-layer transport equations remain unchanged.
+replace_once(
+    geomorph,
+    "nb_ok = 0; nb_check = 0; all_grids = 0.0;",
+    "nb_ok = 0; nb_check = 0; all_grids = 0.0;\n"
+    "                landslide_initiation_cells = 0;\n"
+    "                landslide_continuation_cells = 0;\n"
+    "                landslide_deposition_cells = 0;",
+    "reset event-local landslide counters",
+)
+replace_once(
+    geomorph,
+    "landslide_initiation_cells += 1;",
+    "if (actual_erosion_m > 0.0)\n"
+    "                                landslide_initiation_cells += 1;",
+    "count physical initiations rather than critical-rain exceedance alone",
+)
+
 # 8. Add explicit defaults without changing the legacy model behaviour.
 cfg_paths = [ROOT / "coupling/TREED_coupling.cfg"]
 cfg_paths += sorted((ROOT / "coupling/scenarios").glob("*.cfg"))
