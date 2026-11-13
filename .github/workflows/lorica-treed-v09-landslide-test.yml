@@ -1,0 +1,115 @@
+name: LORICA-TREED v0.9 landslide process test
+
+on:
+  push:
+    branches:
+      - lorica-treed-v0.9-30yr-coupling-audit
+    paths:
+      - 'lorica_treed/v0.9/**'
+      - '.github/workflows/lorica-treed-v09-landslide-test.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: lorica-treed-v09-landslide-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  landslide-process-test:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract exact v0.5 LORICA-TREED source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+
+      - name: Apply v0.9 rainfall and landslide fixes
+        shell: pwsh
+        run: |
+          python lorica_treed/v0.9/apply_v09_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host '=== v0.9 patched trigger ==='
+          Select-String -Path work/LORICA/Functions/geomorph.cs -Pattern 'crrain_m_d\[row, col\] >= 0.0'
+          Write-Host '=== v0.9 event rainfall mode ==='
+          Select-String -Path work/LORICA/Functions/treed_coupling.cs -Pattern 'explicit_event|treed_landslide_event_intensity_m_d'
+          Write-Host '=== v0.9 pre-hydrology rainfall update ==='
+          Select-String -Path work/LORICA/LORICA_main.cs -Pattern 'update_time_varying_rainfall_for_current_timestep'
+
+      - name: Run existing v0.5 Python regression suite
+        shell: pwsh
+        working-directory: work
+        run: |
+          $tests = Get-ChildItem tests/test_*.py | Sort-Object Name
+          foreach ($test in $tests) {
+            Write-Host "=== $($test.Name) ==="
+            python $test.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore LORICA NuGet dependency
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Compile patched LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
+          Write-Host 'LORICA_V09_BUILD_OK'
+
+      - name: Compile landslide process harness
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedLandslideSmoke.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v0.9\ci\LoricaTreedLandslideSmoke.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LoricaTreedLandslideSmoke.exe)) { throw 'Landslide harness not produced' }
+
+      - name: Run root-cohesion and event-landslide process tests
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $testOut = (Resolve-Path ../../../).Path + '\landslide_test'
+          New-Item -ItemType Directory -Force -Path $testOut | Out-Null
+          & .\LoricaTreedLandslideSmoke.exe $testOut
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt'))) {
+            throw 'LORICA v0.9 landslide smoke marker missing'
+          }
+          Get-Content (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt')
+
+      - name: Upload process-level landslide outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v09-landslide-process-${{ github.run_number }}
+          path: |
+            work/landslide_test/**
+          if-no-files-found: warn
