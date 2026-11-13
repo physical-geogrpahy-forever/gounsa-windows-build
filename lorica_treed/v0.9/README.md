@@ -38,7 +38,7 @@ Mean event intensity is converted to m/day and compared with LORICA's existing \
 
 ## Process-level Windows test
 
-The CI extracts the exact v0.5 source bundle, applies the v0.9 patch, compiles the actual LORICA C# project, and executes a synthetic 1-D slope test.
+The CI extracts the exact v0.5 source bundle, applies the v0.9 patch, compiles the actual LORICA C# project, and executes a 1-D slope suite plus 5×5 2-D convergent-basin tests.
 
 - 5 cells, 10 m cell size, 1 m initial soil depth.
 - Ten soil layers using the LORICA geometric layer template.
@@ -78,6 +78,20 @@ The first process run reported an 8.333% mass deficit. After correcting residual
 
 Detailed ledgers and the run-by-run diagnosis are in [MASS_BALANCE_AUDIT.md](MASS_BALANCE_AUDIT.md).
 
+
+
+## 2-D convergent hillslope and closed-sink tests
+
+The process harness also tests a 5×5, 10 m-cell synthetic basin with eight failed source cells around an internal depression.
+
+| Scenario | Mode | Initiations | Erosion thickness sum | Deposition thickness sum | Residual transport | Relative mass error |
+|---|---|---:|---:|---:|---:|---:|
+| Convergent basin | Fully mixed | 8 | 8.000 m | 8.785688 m | 0 kg | \(8.12\times10^{-16}\) |
+| Convergent basin | Layer-preserving | 8 | 8.000 m | 8.788155 m | 0 kg | \(8.12\times10^{-16}\) |
+| Closed sink, runout-limited | Fully mixed | 8 | 8.000 m | 0.219642 m | 1,252,616.880 kg | \(1.39\times10^{-15}\) |
+| Closed sink, runout-limited | Layer-preserving | 8 | 8.000 m | 0.219704 m | 1,252,553.992 kg | \(1.33\times10^{-15}\) |
+
+The convergent-basin cases route all material into the central depression. The closed-sink cases use a runout ratio of 20 so that only part of the material deposits during the event; the remaining mass is retained at the central cell as landslide transport rather than being silently cleared. The corresponding raster and mass ledgers are included in the Actions artifact.
 
 ## Cross-timestep residual transport verification
 
