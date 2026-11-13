@@ -123,4 +123,6 @@ jobs:
             work/LORICA/Functions/soil.cs
             work/LORICA/Functions/hydro.cs
             work/LORICA/LORICA_main.cs
+            work/LORICA/**/*.cs
+            work/coupling/**
           if-no-files-found: warn
