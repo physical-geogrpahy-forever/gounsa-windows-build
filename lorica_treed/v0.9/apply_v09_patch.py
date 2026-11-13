@@ -545,6 +545,112 @@ if geomorph_text.count(old_call) != 1:
     raise RuntimeError(f"layer-preserving deposit call expected once, found {geomorph_text.count(old_call)}")
 geomorph_text = geomorph_text.replace(old_call, new_call, 1)
 
+
+# 7c. Preserve residual transport when a cell has no lower neighbour.
+# The original cleanup unconditionally zeroed the transport arrays even when
+# the routing routine had nowhere to send the material. In a closed internal
+# sink this is temporary storage, not boundary export. Keep it in the arrays;
+# a separate explicit outlet rule is required before material can be counted
+# as exported from the model domain.
+ab_cleanup_old = """                        if (ls_mixingmode == 1)
+                        {
+                            for (int tex = 0; tex < n_texture_classes; tex++)
+                            {
+                                sediment_in_transport_kg[row, col, tex] = 0;
+                            }
+                            young_SOM_in_transport_kg[row, col] = 0;
+                            old_SOM_in_transport_kg[row, col] = 0;
+                        }
+                        if (ls_mixingmode == 2)
+                        {
+
+                            for (int layer = 0; layer < max_soil_layers; layer++)
+                            {
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                {
+                                    lay_sediment_in_transport_kg[row, col, layer, tex] = 0;
+                                }
+                                lay_old_SOM_in_transport_kg[row, col, layer] = 0;
+                                lay_young_SOM_in_transport_kg[row, col, layer] = 0;
+                            }
+                        }
+"""
+ab_cleanup_new = """                        if (powered_slope_sum > 0.0)
+                        {
+                            if (ls_mixingmode == 1)
+                            {
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                    sediment_in_transport_kg[row, col, tex] = 0;
+                                young_SOM_in_transport_kg[row, col] = 0;
+                                old_SOM_in_transport_kg[row, col] = 0;
+                            }
+                            if (ls_mixingmode == 2)
+                            {
+                                for (int layer = 0; layer < max_soil_layers; layer++)
+                                {
+                                    for (int tex = 0; tex < n_texture_classes; tex++)
+                                        lay_sediment_in_transport_kg[row, col, layer, tex] = 0;
+                                    lay_old_SOM_in_transport_kg[row, col, layer] = 0;
+                                    lay_young_SOM_in_transport_kg[row, col, layer] = 0;
+                                }
+                            }
+                        }
+                        // If powered_slope_sum is zero, keep the residual in transport
+                        // storage at this closed sink instead of deleting its mass.
+"""
+if geomorph_text.count(ab_cleanup_old) != 1:
+    raise RuntimeError(f"A/B transport cleanup expected once, found {geomorph_text.count(ab_cleanup_old)}")
+geomorph_text = geomorph_text.replace(ab_cleanup_old, ab_cleanup_new, 1)
+
+c_cleanup_old = """                        if (ls_mixingmode == 1)
+                        {
+                            for (int tex = 0; tex < n_texture_classes; tex++)
+                            {
+                                sediment_in_transport_kg[row, col, tex] = 0;
+                            }
+                            young_SOM_in_transport_kg[row, col] = 0;
+                            old_SOM_in_transport_kg[row, col] = 0;
+                        }
+                        if (ls_mixingmode == 2)
+                        {
+                            for (int lay = 0; lay < max_soil_layers; lay++)
+                            {
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                {
+                                    lay_sediment_in_transport_kg[row, col, lay, tex] = 0;
+                                }
+                                lay_young_SOM_in_transport_kg[row, col, lay] = 0;
+                                lay_old_SOM_in_transport_kg[row, col, lay] = 0;
+                            }
+                        }
+"""
+c_cleanup_new = """                        if (powered_slope_sum > 0.0)
+                        {
+                            if (ls_mixingmode == 1)
+                            {
+                                for (int tex = 0; tex < n_texture_classes; tex++)
+                                    sediment_in_transport_kg[row, col, tex] = 0;
+                                young_SOM_in_transport_kg[row, col] = 0;
+                                old_SOM_in_transport_kg[row, col] = 0;
+                            }
+                            if (ls_mixingmode == 2)
+                            {
+                                for (int lay = 0; lay < max_soil_layers; lay++)
+                                {
+                                    for (int tex = 0; tex < n_texture_classes; tex++)
+                                        lay_sediment_in_transport_kg[row, col, lay, tex] = 0;
+                                    lay_young_SOM_in_transport_kg[row, col, lay] = 0;
+                                    lay_old_SOM_in_transport_kg[row, col, lay] = 0;
+                                }
+                            }
+                        }
+                        // With no lower neighbour, retain the residual material in
+                        // transport storage. It is not silently discarded or exported.
+"""
+if geomorph_text.count(c_cleanup_old) != 1:
+    raise RuntimeError(f"situation-C transport cleanup expected once, found {geomorph_text.count(c_cleanup_old)}")
+geomorph_text = geomorph_text.replace(c_cleanup_old, c_cleanup_new, 1)
+
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
