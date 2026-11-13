@@ -10,6 +10,10 @@ on:
       - '.github/workflows/lorica-treed-v06-cohesion-audit.yml'
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 concurrency:
   group: lorica-treed-v06-${{ github.ref }}
   cancel-in-progress: true
@@ -32,6 +36,10 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: '1.11.6'
+      - name: Cache Julia depot (v0.6 cohesion audit)
+        uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v06-linux-julia-1.11.6
 
       - name: Extract validated v0.5 engine
         shell: bash
