@@ -398,6 +398,193 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+    static Mother_form BuildConvergentCase(string workDir, int mixingMode)
+    {
+        Mother_form f = BuildCase(workDir, 0.0, mixingMode);
+        const int nr = 5, nc = 5, maxLayers = 10;
+
+        Set(f, "nr", nr);
+        Set(f, "nc", nc);
+        Set(f, "number_of_data_cells", nr * nc);
+
+        double[,] dtm = new double[nr,nc];
+        double[,] depth = new double[nr,nc];
+        double[,] rain = new double[nr,nc];
+        double[,] root = new double[nr,nc];
+        double[,] change = new double[nr,nc];
+        double[,,] layers = new double[nr,nc,maxLayers];
+        double[,,] young = new double[nr,nc,maxLayers];
+        double[,,] old = new double[nr,nc,maxLayers];
+        double[,,] bd = new double[nr,nc,maxLayers];
+        double[,,,] texture = new double[nr,nc,maxLayers,5];
+
+        double[] expectedLayers = Get<double[]>(f, "expected_lay_thick_m");
+        List<int> cellIds = new List<int>();
+        for (int r = 0; r < nr; r++)
+        for (int col = 0; col < nc; col++)
+        {
+            double dr = r - 2.0;
+            double dc = col - 2.0;
+            double distance = Math.Sqrt(dr * dr + dc * dc);
+            dtm[r,col] = 40.0 + 10.0 * distance;
+            rain[r,col] = 1.5;
+
+            // Eight cells surrounding the internal bowl are the failed source
+            // ring. The centre and outer cells retain high root cohesion.
+            root[r,col] = (distance > 0.0 && distance <= Math.Sqrt(2.0) + 1e-9)
+                ? 0.0 : 7.6;
+
+            depth[r,col] = 1.0;
+            double remainingDepth = 1.0;
+            double topDepth = 0.0;
+            for (int layer = 0; layer < maxLayers && remainingDepth > 1e-12; layer++)
+            {
+                double layerThickness = Math.Min(expectedLayers[layer], remainingDepth);
+                double bottomDepth = topDepth + layerThickness;
+                double sandFraction = 0.45 - 0.02 * layer;
+                double siltFraction = 0.45 + 0.01 * layer;
+                double clayFraction = 1.0 - sandFraction - siltFraction;
+                double layerBd = CallDouble(
+                    f, "bulk_density_calc_kg_m3",
+                    0.0, sandFraction, siltFraction, clayFraction, 0.0, 0.0, 0.0,
+                    topDepth, bottomDepth);
+                double layerMass = layerBd * 100.0 * layerThickness;
+
+                layers[r,col,layer] = layerThickness;
+                bd[r,col,layer] = layerBd;
+                texture[r,col,layer,0] = 0.0;
+                texture[r,col,layer,1] = sandFraction * layerMass;
+                texture[r,col,layer,2] = siltFraction * layerMass;
+                texture[r,col,layer,3] = clayFraction * layerMass;
+                texture[r,col,layer,4] = 0.0;
+
+                topDepth = bottomDepth;
+                remainingDepth -= layerThickness;
+            }
+            if (remainingDepth > 1e-8)
+                throw new Exception("2-D ten-layer profile did not cover 1 m.");
+
+            cellIds.Add(r * nc + col);
+        }
+
+        // LORICA processes cells from high to low elevation by reversing
+        // row_index/col_index, so these arrays are sorted low-to-high.
+        cellIds.Sort((a, b) =>
+        {
+            int ar = a / nc, ac = a % nc;
+            int br = b / nc, bc = b % nc;
+            int cmp = dtm[ar,ac].CompareTo(dtm[br,bc]);
+            return cmp != 0 ? cmp : a.CompareTo(b);
+        });
+        int[] rowIndex = cellIds.Select(id => id / nc).ToArray();
+        int[] colIndex = cellIds.Select(id => id % nc).ToArray();
+
+        Set(f, "dtm", dtm);
+        Set(f, "soildepth_m", depth);
+        Set(f, "rain_m", rain);
+        Set(f, "root_cohesion_kPa_new", root);
+        Set(f, "dtmchange_m", change);
+        Set(f, "layerthickness_m", layers);
+        Set(f, "young_SOM_kg", young);
+        Set(f, "old_SOM_kg", old);
+        Set(f, "bulkdensity", bd);
+        Set(f, "texture_kg", texture);
+
+        Set(f, "stslope_radians", new double[nr,nc]);
+        Set(f, "crrain_m_d", new double[nr,nc]);
+        Set(f, "contributing_cells", new double[nr,nc]);
+        Set(f, "transmissiv_m2_d", new double[nr,nc]);
+        Set(f, "Cohesion_factor", new double[nr,nc]);
+        Set(f, "sat_bd_kg_m3", new double[nr,nc]);
+        Set(f, "peak_friction_angle_radians", new double[nr,nc]);
+        Set(f, "resid_friction_angle_radians", new double[nr,nc]);
+
+        Set(f, "ero_slid_m", new double[nr,nc]);
+        Set(f, "sed_slid_m", new double[nr,nc]);
+        Set(f, "remaining_vertical_size_m", new double[nr,nc]);
+        Set(f, "slidestatus", new short[nr,nc]);
+        Set(f, "sediment_in_transport_kg", new double[nr,nc,5]);
+        Set(f, "young_SOM_in_transport_kg", new double[nr,nc]);
+        Set(f, "old_SOM_in_transport_kg", new double[nr,nc]);
+        Set(f, "lay_sediment_in_transport_kg", new double[nr,nc,maxLayers,5]);
+        Set(f, "lay_young_SOM_in_transport_kg", new double[nr,nc,maxLayers]);
+        Set(f, "lay_old_SOM_in_transport_kg", new double[nr,nc,maxLayers]);
+
+        Set(f, "row_index", rowIndex);
+        Set(f, "col_index", colIndex);
+        Set(f, "inputheader", new string[] {
+            "ncols         5", "nrows         5", "xllcorner     0",
+            "yllcorner     0", "cellsize      10", "NODATA_value  -9999"
+        });
+        return f;
+    }
+
+    static void Test2DConvergentCase(string scenario, int mixingMode)
+    {
+        string root = Path.Combine(OutputRoot, scenario);
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        using (Mother_form f = BuildConvergentCase(root, mixingMode))
+        {
+            Dictionary<string,string> cfg = new Dictionary<string,string>();
+            cfg["landslide_event_mode"] = "explicit_event";
+            cfg["landslide_event_rainfall_mm"] = "60";
+            cfg["landslide_event_duration_h"] = "6";
+            Call(f, "configure_treed_landslide_event", cfg);
+
+            double massBefore = TotalSoilMass(f);
+            Call(f, "calc_and_write_ls_rasters");
+            double[,] critical = Get<double[,]>(f, "crrain_m_d");
+
+            // The eight-cell source ring has zero root cohesion and should
+            // contain at least one zero-threshold unstable cell.
+            int zeroThresholdCells = 0;
+            for (int r = 1; r <= 3; r++)
+            for (int col = 1; col <= 3; col++)
+            {
+                if (r == 2 && col == 2) continue;
+                if (Math.Abs(critical[r,col]) <= 1e-10) zeroThresholdCells++;
+            }
+            if (zeroThresholdCells == 0)
+                throw new Exception("2-D convergent source ring has no zero-threshold unstable cells.");
+
+            Call(f, "calculate_slide_new");
+
+            double[,] erosion = Get<double[,]>(f, "ero_slid_m");
+            double[,] deposition = Get<double[,]>(f, "sed_slid_m");
+            double erosionAbs = SumAbs(erosion);
+            double depositionSum = 0.0;
+            for (int r = 0; r < 5; r++)
+            for (int col = 0; col < 5; col++)
+                depositionSum += deposition[r,col];
+
+            int initiations = Get<int>(f, "landslide_initiation_cells");
+            double massAfter = TotalSoilMass(f);
+            double transport = TotalTransportMass(f);
+            double closure = Math.Abs(massBefore - massAfter - transport) / Math.Max(1.0, massBefore);
+            WriteDiagnostics(root, f, scenario, 0.0, 0.0, initiations,
+                erosionAbs, depositionSum, massBefore, massAfter, transport, closure);
+
+            if (initiations <= 0 || erosionAbs <= 0.0)
+                throw new Exception("2-D convergent source ring did not initiate a landslide.");
+            if (closure > 1e-6)
+                throw new Exception("2-D convergent landslide mass closure failed: " + closure.ToString("R"));
+
+            Console.WriteLine(
+                "ROOT_CASE=" + scenario +
+                " mixing_mode=" + mixingMode +
+                " zero_threshold_cells=" + zeroThresholdCells +
+                " initiations=" + initiations +
+                " erosion_m=" + erosionAbs.ToString("R") +
+                " deposition_m=" + depositionSum.ToString("R") +
+                " mass_before_kg=" + massBefore.ToString("R") +
+                " mass_after_kg=" + massAfter.ToString("R") +
+                " transport_after_kg=" + transport.ToString("R") +
+                " mass_closure=" + closure.ToString("R"));
+        }
+    }
+
     static void TestRainfallTimeSeries(string workDir)
     {
         using (Mother_form f = new Mother_form())
@@ -549,6 +736,12 @@ public static class LoricaTreedLandslideSmoke
         TestRootCohesionCase("bare_translation", 0.0, true, 2);
         TestRootCohesionCase("intermediate_translation", 4.3, true, 2);
         TestRootCohesionCase("high_translation", 7.6, false, 2);
+
+        // A 2-D radial bowl receives material from eight surrounding source
+        // cells. Its internal depression has enough capacity to retain the
+        // event material, so no open-boundary export is expected.
+        Test2DConvergentCase("convergent_2d_complete", 1);
+        Test2DConvergentCase("convergent_2d_translation", 2);
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
