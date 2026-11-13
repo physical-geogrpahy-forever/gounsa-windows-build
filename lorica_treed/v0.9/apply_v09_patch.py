@@ -242,13 +242,13 @@ new_boundary = """if (powered_slope_sum == 0)
                                         residual_transport_mass_kg += lay_old_SOM_in_transport_kg[row, col, lay];
                                     }
                                 }
-                                Console.WriteLine("LS_UNROUTED_RESIDUAL row=" + row +
-                                    " col=" + col +
+                                System.IO.File.AppendAllText(System.IO.Path.Combine(workdir, "landslide_mass_trace.log"),
+                                    "C_NO_LOWER row=" + row + " col=" + col +
                                     " mode=" + ls_mixingmode +
                                     " mass_kg=" + residual_transport_mass_kg.ToString("R") +
                                     " deposited_fraction=" + deposited_landslide_fraction.ToString("R") +
                                     " max_deposition_m=" + maximum_allowed_deposition_m.ToString("R") +
-                                    " available_material_m=" + available_landslide_material_m.ToString("R"));
+                                    " available_material_m=" + available_landslide_material_m.ToString("R") + Environment.NewLine);
                                 Debug.WriteLine("there was vertical space to deposit, but no lower space to send sediment to. Sediment left in transport at " + row + " " + col);
                             }"""
 if geomorph_text.count(old_boundary) != 1:
@@ -285,6 +285,37 @@ ab_diag = ab_anchor + """                        if (ls_mixingmode == 2)
 if geomorph_text.count(ab_anchor) != 1:
     raise RuntimeError(f"A/B cleanup anchor expected once, found {geomorph_text.count(ab_anchor)}")
 geomorph_text = geomorph_text.replace(ab_anchor, ab_diag, 1)
+
+# Also audit the situation-C cleanup path, after any downstream routing but
+# immediately before the transport arrays are reset.
+c_cleanup_anchor = """                        //clean up after we are done here:
+                        if (ls_mixingmode == 1)
+"""
+c_cleanup_diag = """                        //clean up after we are done here:
+                        if (ls_mixingmode == 2)
+                        {
+                            double residualBeforeClearC_kg = 0.0;
+                            for (int auditLayer = 0; auditLayer < max_soil_layers; auditLayer++)
+                            {
+                                for (int auditTex = 0; auditTex < n_texture_classes; auditTex++)
+                                    residualBeforeClearC_kg += lay_sediment_in_transport_kg[row, col, auditLayer, auditTex];
+                                residualBeforeClearC_kg += lay_young_SOM_in_transport_kg[row, col, auditLayer];
+                                residualBeforeClearC_kg += lay_old_SOM_in_transport_kg[row, col, auditLayer];
+                            }
+                            if (residualBeforeClearC_kg > 1e-8)
+                            {
+                                System.IO.File.AppendAllText(System.IO.Path.Combine(workdir, "landslide_mass_trace.log"),
+                                    "C_PRE_CLEAR row=" + row + " col=" + col +
+                                    " slope_sum=" + powered_slope_sum.ToString("R") +
+                                    " residual_kg=" + residualBeforeClearC_kg.ToString("R") +
+                                    Environment.NewLine);
+                            }
+                        }
+                        if (ls_mixingmode == 1)
+"""
+if geomorph_text.count(c_cleanup_anchor) != 1:
+    raise RuntimeError(f"situation-C cleanup anchor expected once, found {geomorph_text.count(c_cleanup_anchor)}")
+geomorph_text = geomorph_text.replace(c_cleanup_anchor, c_cleanup_diag, 1)
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
