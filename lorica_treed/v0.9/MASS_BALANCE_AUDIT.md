@@ -279,6 +279,29 @@ This demonstrates that \`dailyflow()\` generates a usable flow-direction raster 
 
 **Limit:** this test does not yet run the full annual \`water_balance()\` routine, the daily weather generator, or a multi-day rainfall sequence.
 
+### 8.5 Full annual \`water_balance()\` and daily weather
+
+GitHub Actions #47 tests the actual annual hydrology path rather than calling \`dailyflow()\` directly:
+
+1. The test supplies 365-day \`P_all\`, \`D_all\`, \`Tmin_all\`, \`Tavg_all\`, and \`Tmax_all\` arrays.
+2. One 10 mm / 6 h event occurs on day 1; the other 364 days are dry.
+3. LORICA's \`create_daily_weather()\` prepares the daily arrays.
+4. \`water_balance()\` loops over the annual daily sequence and accumulates the overland-flow directions in \`OFy_m\`.
+5. The test follows the model order with \`initialise_every()\`, \`comb_sort()\`, and \`calculate_water_ero_sed_daily()\`.
+
+| Metric | Result |
+|---|---:|
+| Annual precipitation | 0.010 m |
+| Generated source flow direction | 0.010 m |
+| Source erosion | \(-4.6180190\times10^{-8}\) m |
+| Soil mass loss | 0.007464734837 kg |
+| Boundary transport mass | 0.007464734956 kg |
+| Relative mass-closure error | \(2.94\times10^{-17}\) |
+
+This confirms that the annual weather-preparation and water-balance routines generate a usable \`OFy_m\` field and that the daily sediment-erosion kernel conserves the soil-loss/export ledger for this controlled case.
+
+**Limit:** the annual series is deliberately sparse and synthetic. The generated annual flow has not yet been used between sequential landslide events, and the test does not include TREED root updates or a realistic climate-year sequence.
+
 ## 9. Next verification
 
 The next process test should run a 2-D multi-year case in the actual LORICA timestep order:
