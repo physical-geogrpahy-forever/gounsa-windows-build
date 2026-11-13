@@ -79,7 +79,7 @@ This avoids multiplying a global deposition fraction by a second fraction based 
 
 ## 4. Final test design
 
-The final test is a five-cell, one-dimensional synthetic hillslope.
+The base process suite uses a five-cell, one-dimensional synthetic hillslope. It is complemented by a 5×5, 10 m-cell convergent basin and a closed-sink residual-storage case.
 
 | Parameter | Setting |
 |---|---|
@@ -129,6 +129,20 @@ The depth-varying texture test also writes \`layer_mass_ledger.csv\`. Automated 
 - row 4 receiving layers 0–1 retain the remaining source-layer signatures 6–7.
 
 This demonstrates that the translation mode preserves distinct layer composition and the tested layer order in this synthetic routing sequence. It does not establish general stratigraphic validity for all terrain geometries.
+
+
+### 5.1 Two-dimensional convergent basin and closed sink
+
+The 2-D test uses a 5×5 grid with 10 m cells, a central depression, eight source cells, and a 57.5 m spill saddle for the runout-limited closed-sink case.
+
+| Scenario | Mode | Initiations | Erosion thickness sum (m) | Deposition thickness sum (m) | Residual transport (kg) | Relative mass error |
+|---|---|---:|---:|---:|---:|---:|
+| Convergent basin | Fully mixed | 8 | 8.000 | 8.785688 | 0 | \(8.12\times10^{-16}\) |
+| Convergent basin | Layer-preserving | 8 | 8.000 | 8.788155 | 0 | \(8.12\times10^{-16}\) |
+| Closed sink, runout-limited | Fully mixed | 8 | 8.000 | 0.219642 | 1,252,616.880 | \(1.39\times10^{-15}\) |
+| Closed sink, runout-limited | Layer-preserving | 8 | 8.000 | 0.219704 | 1,252,553.992 | \(1.33\times10^{-15}\) |
+
+The convergent cases deposited the routed material in the central cell and ended with zero transport mass. The closed-sink cases retained the un-deposited mass at the central cell because it had no lower neighbour. This verifies that the material is represented in transport storage rather than being silently deleted.
 
 ## 6. Interpretation and remaining limits
 
