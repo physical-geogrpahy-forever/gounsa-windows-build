@@ -254,6 +254,37 @@ new_boundary = """if (powered_slope_sum == 0)
 if geomorph_text.count(old_boundary) != 1:
     raise RuntimeError(f"boundary residual diagnostic anchor expected once, found {geomorph_text.count(old_boundary)}")
 geomorph_text = geomorph_text.replace(old_boundary, new_boundary, 1)
+
+# Record layered transport mass immediately before the initiation/continuation
+# cleanup. This is the second cleanup site and can be reached without entering
+# situation_C, so it must be audited separately.
+ab_anchor = """                        //so, all cells under this cell have received the sediment in transport and OM in transport that they need.
+                        //We will work on those cells when it's their turn but not now.
+                        //for now, we are done with this cell and it does no longer have sediment in transport:
+"""
+ab_diag = ab_anchor + """                        if (ls_mixingmode == 2)
+                        {
+                            double residualBeforeClear_kg = 0.0;
+                            for (int auditLayer = 0; auditLayer < max_soil_layers; auditLayer++)
+                            {
+                                for (int auditTex = 0; auditTex < n_texture_classes; auditTex++)
+                                    residualBeforeClear_kg += lay_sediment_in_transport_kg[row, col, auditLayer, auditTex];
+                                residualBeforeClear_kg += lay_young_SOM_in_transport_kg[row, col, auditLayer];
+                                residualBeforeClear_kg += lay_old_SOM_in_transport_kg[row, col, auditLayer];
+                            }
+                            if (residualBeforeClear_kg > 1e-8)
+                            {
+                                System.IO.File.AppendAllText(System.IO.Path.Combine(workdir, "landslide_mass_trace.log"),
+                                    "AB_PRE_CLEAR row=" + row + " col=" + col +
+                                    " situation_A=" + situation_A + " situation_B=" + situation_B +
+                                    " slope_sum=" + powered_slope_sum.ToString("R") +
+                                    " residual_kg=" + residualBeforeClear_kg.ToString("R") + Environment.NewLine);
+                            }
+                        }
+"""
+if geomorph_text.count(ab_anchor) != 1:
+    raise RuntimeError(f"A/B cleanup anchor expected once, found {geomorph_text.count(ab_anchor)}")
+geomorph_text = geomorph_text.replace(ab_anchor, ab_diag, 1)
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
