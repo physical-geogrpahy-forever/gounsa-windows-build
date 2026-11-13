@@ -1803,6 +1803,326 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+
+    static void TestMultiYearCoupledFeedback()
+    {
+        string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
+        if (String.IsNullOrWhiteSpace(couplingDir))
+            throw new Exception("LORICA_TREED_COUPLING_DIR is required for the multi-year test.");
+        string cfgPath = Path.Combine(couplingDir, "TREED_coupling.cfg");
+        if (!File.Exists(cfgPath)) throw new FileNotFoundException("TREED coupling config missing.", cfgPath);
+        string originalCfg = File.ReadAllText(cfgPath);
+        string root = Path.Combine(OutputRoot, "multi_year_coupled_feedback_3yr");
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            // Use the published 3.4-kPa sensitivity level as a process stress
+            // case. The calibrated default remains 7.6 kPa in the main test.
+            List<string> cfgLines = File.ReadAllLines(cfgPath).ToList();
+            string[] overrides = new string[] {
+                "hwang_root_cohesion_multiplier=0.4473684210526316",
+                "landslide_event_mode=explicit_event",
+                "landslide_event_rainfall_mm=60",
+                "landslide_event_duration_h=6"
+            };
+            foreach (string item in overrides)
+            {
+                int equals = item.IndexOf('=');
+                string key = item.Substring(0, equals);
+                bool replaced = false;
+                for (int i = 0; i < cfgLines.Count; i++)
+                {
+                    string line = cfgLines[i].Trim();
+                    int currentEquals = line.IndexOf('=');
+                    if (currentEquals <= 0 || line.Substring(0, currentEquals).Trim() != key) continue;
+                    cfgLines[i] = item;
+                    replaced = true;
+                    break;
+                }
+                if (!replaced) cfgLines.Add(item);
+            }
+            File.WriteAllLines(cfgPath, cfgLines);
+
+            using (Mother_form f = BuildConvergentCase(root, 1, false))
+            {
+                const int nr = 5, nc = 5, days = 365;
+                Set(f, "run_number", 9003);
+                Set(f, "workdir", root);
+                Set(f, "t_intervene", 0);
+                Set(f, "daily_weather_prepared_for_timestep", false);
+                Set(f, "index", new double[nr * nc]);
+                Set(f, "rowcol_index", new string[nr * nc]);
+                Set(f, "slopeAnalysis", new double[nr,nc]);
+                Set(f, "aspect", new double[nr,nc]);
+                Get<TextBox>(f, "latitude_deg").Text = "38";
+                Get<TextBox>(f, "latitude_min").Text = "0";
+
+                Get<TextBox>(f, "daily_n").Text = "1";
+                Get<CheckBox>(f, "check_scaling_daily_weather").Checked = false;
+                Get<CheckBox>(f, "check_time_rain").Checked = false;
+                Get<CheckBox>(f, "daily_water").Checked = true;
+                Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
+                Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
+                Get<CheckBox>(f, "only_waterflow_checkbox").Checked = false;
+                Get<CheckBox>(f, "version_lux_checkbox").Checked = false;
+                Set(f, "water_ero_active", true);
+                Set(f, "landslide_active", true);
+
+                Set(f, "OFy_m", new double[nr,nc,10]);
+                Set(f, "waterflow_m3", new double[nr,nc]);
+                Set(f, "Ks_topsoil_m_h", new double[nr,nc]);
+                Set(f, "Ks_min_mh", 0.0001);
+                Set(f, "Ra_rcm", new double[nr,nc,12]);
+                Set(f, "veg_correction_factor", new double[nr,nc]);
+                Set(f, "ETay", new double[nr,nc]);
+                Set(f, "ET0y", new double[nr,nc]);
+                Set(f, "Iy", new double[nr,nc]);
+                Set(f, "pond_y", new double[nr,nc]);
+                Set(f, "outflow_y", new double[nr,nc]);
+                Set(f, "waterfactor", new double[nr,nc]);
+                Set(f, "total_outflow_y", new double[nr,nc]);
+                Set(f, "aridity_vegetation", new double[nr,nc]);
+                Set(f, "evapotranspiration", new double[nr,nc]);
+                Set(f, "infil", new double[nr,nc]);
+                Set(f, "sum_water_erosion", new double[nr,nc]);
+                Set(f, "dz_ero_m", new double[nr,nc]);
+                Set(f, "dz_sed_m", new double[nr,nc]);
+                Set(f, "lake_sed_m", new double[nr,nc]);
+                Set(f, "K_fac", new double[nr,nc]);
+                Set(f, "bio_protection", new double[nr,nc]);
+                Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
+                Set(f, "erodibility_value_m", 1e-6);
+                Set(f, "bio_protection_constant", 0.0);
+                Set(f, "rock_protection_constant", 0.0);
+                Set(f, "constant_selective_transcap", 0.0);
+                Set(f, "erosion_threshold_kg", 0.0);
+                Set(f, "m", 0.5);
+                Set(f, "n", 1.0);
+
+                double[,] kfac = Get<double[,]>(f, "K_fac");
+                double[,] bio = Get<double[,]>(f, "bio_protection");
+                for (int r = 0; r < nr; r++)
+                for (int col = 0; col < nc; col++)
+                {
+                    kfac[r,col] = 1e-6;
+                    bio[r,col] = 0.0;
+                }
+
+                StringBuilder summary = new StringBuilder();
+                summary.AppendLine("year,annual_precipitation_mm,mean_temperature_C,mean_rootC_gC_m2,max_rootC_change_gC_m2,mean_FPC,mean_LAI,mean_root_cohesion_kPa,mean_ET_m,overland_flow_sum_m,water_erosion_thickness_sum_m,water_deposition_thickness_sum_m,landslide_initiations,landslide_erosion_thickness_sum_m,landslide_deposition_thickness_sum_m,water_mass_closure,landslide_mass_closure,mean_soil_depth_m,mean_DTM_m,traits_restart_bytes");
+
+                int[] annualRain = new int[] { 730, 900, 600 };
+                int[] annualTemp = new int[] { 10, 11, 12 };
+                double[,] previousRootC = null;
+                bool anyWaterErosion = false;
+                bool anyLandslide = false;
+                double totalRunoff = 0.0;
+
+                for (int year = 0; year < 3; year++)
+                {
+                    Set(f, "t", year);
+                    Set(f, "daily_weather_prepared_for_timestep", false);
+                    int[] precipitation = new int[days];
+                    int[] duration = new int[days];
+                    int[] tmin = new int[days];
+                    int[] tavg = new int[days];
+                    int[] tmax = new int[days];
+
+                    const int stormMm = 60;
+                    precipitation[0] = stormMm;
+                    duration[0] = 6;
+                    int background = annualRain[year] - stormMm;
+                    int dailyBase = background / (days - 1);
+                    int remainder = background % (days - 1);
+                    for (int day = 1; day < days; day++)
+                    {
+                        precipitation[day] = dailyBase + (day <= remainder ? 1 : 0);
+                        duration[day] = 24;
+                    }
+                    for (int day = 0; day < days; day++)
+                    {
+                        tmin[day] = annualTemp[year] - 5;
+                        tavg[day] = annualTemp[year];
+                        tmax[day] = annualTemp[year] + 5;
+                    }
+
+                    Set(f, "P_all", precipitation);
+                    Set(f, "D_all", duration);
+                    Set(f, "Tmin_all", tmin);
+                    Set(f, "Tavg_all", tavg);
+                    Set(f, "Tmax_all", tmax);
+                    Set(f, "rain_value_m", annualRain[year] / 1000.0);
+                    Set(f, "temp_value_C", annualTemp[year]);
+
+                    // Match every_timestep(): weather preparation and TREED
+                    // vegetation/root update precede LORICA's annual water balance.
+                    Call(f, "update_time_varying_rainfall_for_current_timestep");
+                    Call(f, "prepare_daily_weather_for_current_timestep");
+                    Call(f, "run_treed_coupling");
+
+                    string exchangeRoot = Path.Combine(root, "TREED_exchange_run_9003");
+                    string yearDir = Path.Combine(exchangeRoot, (year + 1).ToString("D4", CultureInfo.InvariantCulture));
+                    string outputDir = Path.Combine(yearDir, "output");
+                    string rootCPath = Path.Combine(outputDir, "treed_rootC_areanorm_gC_m2.asc");
+                    string fpcPath = Path.Combine(outputDir, "treed_fpc.asc");
+                    string laiPath = Path.Combine(outputDir, "treed_lai.asc");
+                    if (!File.Exists(rootCPath) || !File.Exists(fpcPath) || !File.Exists(laiPath))
+                        throw new Exception("TREED annual output is missing for year " + (year + 1));
+
+                    double[,] rootC = ReadAsciiGrid(rootCPath);
+                    double[,] fpc = ReadAsciiGrid(fpcPath);
+                    double[,] lai = ReadAsciiGrid(laiPath);
+                    double rootCMean = 0.0, fpcMean = 0.0, laiMean = 0.0, rootChangeMax = 0.0;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    {
+                        rootCMean += rootC[r,col];
+                        fpcMean += fpc[r,col];
+                        laiMean += lai[r,col];
+                        if (previousRootC != null)
+                            rootChangeMax = Math.Max(rootChangeMax, Math.Abs(rootC[r,col] - previousRootC[r,col]));
+                    }
+                    rootCMean /= nr * nc;
+                    fpcMean /= nr * nc;
+                    laiMean /= nr * nc;
+                    previousRootC = rootC;
+
+                    string traitsRestart = Path.Combine(exchangeRoot, "traits", "traits_restart.jld2");
+                    if (!File.Exists(traitsRestart))
+                        throw new Exception("TREED trait restart was not written after year " + (year + 1));
+
+                    // Annual LORICA water balance consumes the same daily weather
+                    // already transferred to TREED and the current TREED ET factor.
+                    Call(f, "water_balance");
+                    double[,,] flow = Get<double[,,]>(f, "OFy_m");
+                    double[,] runoff = new double[nr,nc];
+                    double runoffSum = 0.0;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    for (int dir = 0; dir < flow.GetLength(2); dir++)
+                    {
+                        runoff[r,col] += flow[r,col,dir];
+                        runoffSum += Math.Abs(flow[r,col,dir]);
+                    }
+                    totalRunoff += runoffSum;
+
+                    // Water erosion follows annual hydrology, with the v0.9
+                    // layer-preserving reset and mass ledger.
+                    Call(f, "initialise_every");
+                    Set(f, "index", new double[nr * nc]);
+                    Set(f, "rowcol_index", new string[nr * nc]);
+                    Call(f, "comb_sort");
+                    double systemBeforeWater = TotalSoilMass(f) + TotalTransportMass(f);
+                    Call(f, "calculate_water_ero_sed_daily");
+                    Call(f, "soil_update_split_and_combine_layers");
+                    double systemAfterWater = TotalSoilMass(f) + TotalTransportMass(f);
+                    double waterClosure = Math.Abs(systemBeforeWater - systemAfterWater) /
+                        Math.Max(1.0, systemBeforeWater);
+                    double waterErosion = SumAbs(Get<double[,]>(f, "dz_ero_m"));
+                    double waterDeposition = SumAbs(Get<double[,]>(f, "dz_sed_m"));
+                    if (waterErosion > 0.0) anyWaterErosion = true;
+
+                    // Shallow landslide follows water erosion in the annual
+                    // process order. The 3.4-kPa sensitivity level exercises
+                    // the failure and deposition path without changing the
+                    // calibrated 7.6-kPa default scenario.
+                    Call(f, "soil_update_split_and_combine_layers");
+                    Set(f, "index", new double[nr * nc]);
+                    Set(f, "rowcol_index", new string[nr * nc]);
+                    Call(f, "comb_sort");
+                    Call(f, "ini_slope");
+                    Call(f, "calculate_critical_rain");
+                    double systemBeforeSlide = TotalSoilMass(f) + TotalTransportMass(f);
+                    Call(f, "calculate_slide_new");
+                    Call(f, "soil_update_split_and_combine_layers");
+                    double systemAfterSlide = TotalSoilMass(f) + TotalTransportMass(f);
+                    double slideClosure = Math.Abs(systemBeforeSlide - systemAfterSlide) /
+                        Math.Max(1.0, systemBeforeSlide);
+                    int initiations = Get<int>(f, "landslide_initiation_cells");
+                    double slideErosion = SumAbs(Get<double[,]>(f, "ero_slid_m"));
+                    double slideDeposition = SumAbs(Get<double[,]>(f, "sed_slid_m"));
+                    if (initiations > 0) anyLandslide = true;
+
+                    if (runoffSum <= 0.0)
+                        throw new Exception("Annual water balance generated no overland flow in year " + (year + 1));
+                    if (waterClosure > 1e-6)
+                        throw new Exception("Annual water-erosion mass closure failed in year " + (year + 1) + ": " + F(waterClosure));
+                    if (slideClosure > 1e-6)
+                        throw new Exception("Annual landslide mass closure failed in year " + (year + 1) + ": " + F(slideClosure));
+                    if (year == 0 && initiations == 0)
+                        throw new Exception("The first 3.4-kPa stress year did not exercise landslide initiation.");
+
+                    double[,] rootMap = Get<double[,]>(f, "root_cohesion_kPa_new");
+                    double[,] et = Get<double[,]>(f, "ETay");
+                    double[,] depth = Get<double[,]>(f, "soildepth_m");
+                    double[,] dtm = Get<double[,]>(f, "dtm");
+                    double rootMean = 0.0, etMean = 0.0, depthMean = 0.0, dtmMean = 0.0;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    {
+                        rootMean += rootMap[r,col];
+                        etMean += et[r,col];
+                        depthMean += depth[r,col];
+                        dtmMean += dtm[r,col];
+                    }
+                    rootMean /= nr * nc;
+                    etMean /= nr * nc;
+                    depthMean /= nr * nc;
+                    dtmMean /= nr * nc;
+
+                    string yearOutput = Path.Combine(root, "year_" + (year + 1).ToString("D2", CultureInfo.InvariantCulture));
+                    Directory.CreateDirectory(yearOutput);
+                    WriteAscii(Path.Combine(yearOutput, "rootC_gC_m2.asc"), rootC);
+                    WriteAscii(Path.Combine(yearOutput, "FPC.asc"), fpc);
+                    WriteAscii(Path.Combine(yearOutput, "LAI.asc"), lai);
+                    WriteAscii(Path.Combine(yearOutput, "root_cohesion_kPa.asc"), rootMap);
+                    WriteAscii(Path.Combine(yearOutput, "ET_m.asc"), et);
+                    WriteAscii(Path.Combine(yearOutput, "overland_flow_m.asc"), runoff);
+                    WriteAscii(Path.Combine(yearOutput, "water_erosion_m.asc"), Get<double[,]>(f, "dz_ero_m"));
+                    WriteAscii(Path.Combine(yearOutput, "water_deposition_m.asc"), Get<double[,]>(f, "dz_sed_m"));
+                    WriteAscii(Path.Combine(yearOutput, "landslide_erosion_m.asc"), Get<double[,]>(f, "ero_slid_m"));
+                    WriteAscii(Path.Combine(yearOutput, "landslide_deposition_m.asc"), Get<double[,]>(f, "sed_slid_m"));
+                    WriteAscii(Path.Combine(yearOutput, "soil_depth_m.asc"), depth);
+                    WriteAscii(Path.Combine(yearOutput, "dtm_m.asc"), dtm);
+                    File.Copy(traitsRestart, Path.Combine(yearOutput, "traits_restart.jld2"), true);
+
+                    summary.AppendLine(String.Join(",", new string[] {
+                        (year + 1).ToString(CultureInfo.InvariantCulture),
+                        annualRain[year].ToString(CultureInfo.InvariantCulture),
+                        annualTemp[year].ToString(CultureInfo.InvariantCulture),
+                        F(rootCMean), F(rootChangeMax), F(fpcMean), F(laiMean),
+                        F(rootMean), F(etMean), F(runoffSum), F(waterErosion),
+                        F(waterDeposition), initiations.ToString(CultureInfo.InvariantCulture),
+                        F(slideErosion), F(slideDeposition), F(waterClosure), F(slideClosure),
+                        F(depthMean), F(dtmMean), new FileInfo(traitsRestart).Length.ToString(CultureInfo.InvariantCulture)
+                    }));
+
+                    Set(f, "daily_weather_prepared_for_timestep", false);
+                }
+
+                if (!anyWaterErosion)
+                    throw new Exception("Three-year coupled run produced no water erosion.");
+                if (!anyLandslide)
+                    throw new Exception("Three-year coupled stress run produced no landslide initiation.");
+                if (totalRunoff <= 0.0)
+                    throw new Exception("Three-year coupled run produced no overland flow.");
+
+                File.WriteAllText(Path.Combine(root, "multi_year_coupled_feedback_summary.csv"), summary.ToString());
+                File.WriteAllText(Path.Combine(root, "MULTI_YEAR_COUPLED_FEEDBACK_PASS.txt"),
+                    "MULTI_YEAR_COUPLED_FEEDBACK_PASS" + Environment.NewLine);
+                Console.WriteLine("MULTI_YEAR_COUPLED_FEEDBACK_PASS total_runoff=" + F(totalRunoff) +
+                    " water_erosion=" + (anyWaterErosion ? "yes" : "no") +
+                    " landslide=" + (anyLandslide ? "yes" : "no"));
+            }
+        }
+        finally
+        {
+            File.WriteAllText(cfgPath, originalCfg);
+        }
+    }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -1844,6 +2164,7 @@ public static class LoricaTreedLandslideSmoke
         TestDailyflowGeneratedWaterErosion();
         TestAnnualWaterBalanceGeneratedWaterErosion();
         TestTreedSameYearRootCohesion(true);
+        TestMultiYearCoupledFeedback();
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
