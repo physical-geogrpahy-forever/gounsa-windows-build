@@ -194,6 +194,68 @@ jobs:
           }
           Get-Content (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt')
 
+      - name: Validate calibrated cohesion, unchanged root biomass, and landslide response
+        shell: pwsh
+        run: |
+          @'
+          import csv, json, pathlib
+
+          def read_ascii(path):
+              lines = pathlib.Path(path).read_text(encoding="utf-8").strip().splitlines()
+              header = lines[:6]
+              values = [float(v) for line in lines[6:] for v in line.split()]
+              return header, values
+
+          def read_key_values(path):
+              out = {}
+              for line in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
+                  if "=" in line:
+                      k, v = line.split("=", 1)
+                      out[k.strip()] = v.strip()
+              return out
+
+          base = pathlib.Path("work/landslide_baseline/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output")
+          calibrated = pathlib.Path("work/landslide_test_calibrated/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output")
+          baseline_header, baseline_rootc = read_ascii(pathlib.Path("work/baseline_rootC.asc"))
+          calibrated_header, calibrated_rootc = read_ascii(calibrated / "treed_rootC_areanorm_gC_m2.asc")
+          assert baseline_header == calibrated_header, "Root-C raster header changed after event-scale calibration"
+          assert len(baseline_rootc) == len(calibrated_rootc), "Root-C raster cell count changed"
+          assert all(abs(a-b) < 1e-6 for a,b in zip(baseline_rootc, calibrated_rootc)), "Calibration changed TREED root biomass"
+
+          calibration = json.loads(pathlib.Path("work/calibration/hales2009_wu_calibration.json").read_text(encoding="utf-8"))
+          with open(calibrated / "treed_rootcohesion_summary.csv", newline="", encoding="utf-8") as f:
+              row = next(csv.DictReader(f))
+          target = float(calibration["target_mean_root_cohesion_kPa"])
+          tr_eff = float(calibration["effective_event_Tr_MPa"])
+          observed = float(row["Cr_corrected_mean_kPa"])
+          assert abs(target - 7.6) < 1e-9, target
+          assert abs(observed - target) < 0.05, (observed, target)
+          assert abs(float(row["Tr_MPa"]) - tr_eff) < 1e-9, (row["Tr_MPa"], tr_eff)
+          assert abs(float(row["Cr_raw_mean_kPa"]) - observed) < 1e-8, "Unexpected hidden reduction/multiplier"
+
+          stability = read_key_values(pathlib.Path("work/landslide_test_calibrated/treed_same_year_rootcohesion/TREED_LANDSLIDE_STABILITY_PASS.txt"))
+          assert abs(float(stability["TREED_ROOT_MAP_MEAN_KPA"]) - target) < 0.05
+          assert int(stability["BARE_INITIATIONS"]) > int(stability["TREED_INITIATIONS"])
+          assert float(stability["TREED_MASS_CLOSURE"]) < 1e-6
+          assert float(stability["BARE_MASS_CLOSURE"]) < 1e-6
+
+          with open(pathlib.Path("work/landslide_test_calibrated/treed_same_year_rootcohesion/TREED_LANDSLIDE_STABILITY_SENSITIVITY.csv"), newline="", encoding="utf-8") as f:
+              scenarios = {r["scenario"]: r for r in csv.DictReader(f)}
+          required = {"bare_root", "hales2009_fbm_mean", "hales2009_wu_mean",
+                      "korea2025_pinus_densiflora", "korea2025_pinus_koraiensis",
+                      "korea2025_quercus_mongolica", "hwang2015_uniform_21p6"}
+          assert required.issubset(scenarios), "Missing published root-cohesion sensitivity scenarios"
+          assert int(scenarios["bare_root"]["landslide_initiations"]) > 0
+          print("V09_CALIBRATED_LANDSLIDE_INTEGRATION_PASS")
+          print("baseline_mean_rootC_gC_m2=", sum(baseline_rootc)/len(baseline_rootc))
+          print("fixed_event_Tr_eff_MPa=", tr_eff)
+          print("calibrated_mean_root_cohesion_kPa=", observed)
+          print("TREED_initiations=", stability["TREED_INITIATIONS"])
+          print("bare_root_initiations=", stability["BARE_INITIATIONS"])
+          '@ | Set-Content -Encoding utf8 work/validate_v09_calibration.py
+          python work/validate_v09_calibration.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload process-level landslide outputs
         if: always()
         uses: actions/upload-artifact@v4
