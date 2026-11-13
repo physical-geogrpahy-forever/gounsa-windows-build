@@ -201,6 +201,44 @@ public static class LoricaTreedLandslideSmoke
             }));
         }
         File.WriteAllText(Path.Combine(outputDir, "cell_mass_ledger.csv"), cells.ToString());
+
+        // Preserve the full vertical composition ledger so that the translation
+        // mode can be checked for stratigraphic ordering, not only total mass.
+        double[,,] layerThickness = Get<double[,,]>(f, "layerthickness_m");
+        double[,,,] layerTexture = Get<double[,,,]>(f, "texture_kg");
+        double[,,] layerYoung = Get<double[,,]>(f, "young_SOM_kg");
+        double[,,] layerOld = Get<double[,,]>(f, "old_SOM_kg");
+        double[,,,] layerTransport = Get<double[,,,]>(f, "lay_sediment_in_transport_kg");
+        double[,,] layerYoungTransport = Get<double[,,]>(f, "lay_young_SOM_in_transport_kg");
+        double[,,] layerOldTransport = Get<double[,,]>(f, "lay_old_SOM_in_transport_kg");
+        StringBuilder layerLedger = new StringBuilder();
+        layerLedger.AppendLine("row,col,layer,thickness_m,coarse_kg,sand_kg,silt_kg,clay_kg,fineclay_kg,young_SOM_kg,old_SOM_kg,transport_coarse_kg,transport_sand_kg,transport_silt_kg,transport_clay_kg,transport_fineclay_kg,transport_young_SOM_kg,transport_old_SOM_kg");
+        for (int r = 0; r < nr; r++)
+        for (int c = 0; c < nc; c++)
+        for (int layer = 0; layer < layerThickness.GetLength(2); layer++)
+        {
+            layerLedger.AppendLine(String.Join(",", new string[] {
+                r.ToString(CultureInfo.InvariantCulture),
+                c.ToString(CultureInfo.InvariantCulture),
+                layer.ToString(CultureInfo.InvariantCulture),
+                F(layerThickness[r,c,layer]),
+                F(layerTexture[r,c,layer,0]),
+                F(layerTexture[r,c,layer,1]),
+                F(layerTexture[r,c,layer,2]),
+                F(layerTexture[r,c,layer,3]),
+                F(layerTexture[r,c,layer,4]),
+                F(layerYoung[r,c,layer]),
+                F(layerOld[r,c,layer]),
+                F(layerTransport[r,c,layer,0]),
+                F(layerTransport[r,c,layer,1]),
+                F(layerTransport[r,c,layer,2]),
+                F(layerTransport[r,c,layer,3]),
+                F(layerTransport[r,c,layer,4]),
+                F(layerYoungTransport[r,c,layer]),
+                F(layerOldTransport[r,c,layer])
+            }));
+        }
+        File.WriteAllText(Path.Combine(outputDir, "layer_mass_ledger.csv"), layerLedger.ToString());
     }
 
     static Mother_form BuildCase(string workDir, double rootCohesionKPa, int mixingMode)
@@ -259,18 +297,23 @@ public static class LoricaTreedLandslideSmoke
             {
                 double layerThickness = Math.Min(expectedLayers[layer], remainingDepth);
                 double bottomDepth = topDepth + layerThickness;
+                // Deliberately vary texture by depth: the translation test
+                // must preserve distinct source-layer signatures after routing.
+                double sandFraction = 0.45 - 0.02 * layer;
+                double siltFraction = 0.45 + 0.01 * layer;
+                double clayFraction = 1.0 - sandFraction - siltFraction;
                 double layerBd = CallDouble(
                     f, "bulk_density_calc_kg_m3",
-                    0.0, 0.4, 0.5, 0.1, 0.0, 0.0, 0.0,
+                    0.0, sandFraction, siltFraction, clayFraction, 0.0, 0.0, 0.0,
                     topDepth, bottomDepth);
                 double layerMass = layerBd * 100.0 * layerThickness;
 
                 layers[r,0,layer] = layerThickness;
                 bd[r,0,layer] = layerBd;
                 texture[r,0,layer,0] = 0.0;
-                texture[r,0,layer,1] = 0.4 * layerMass;
-                texture[r,0,layer,2] = 0.5 * layerMass;
-                texture[r,0,layer,3] = 0.1 * layerMass;
+                texture[r,0,layer,1] = sandFraction * layerMass;
+                texture[r,0,layer,2] = siltFraction * layerMass;
+                texture[r,0,layer,3] = clayFraction * layerMass;
                 texture[r,0,layer,4] = 0.0;
 
                 topDepth = bottomDepth;
