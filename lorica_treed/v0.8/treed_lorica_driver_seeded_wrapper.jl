@@ -1,5 +1,5 @@
 # Deterministic wrapper for the LORICA-TREED local-grid driver.
-# TREED's ECA optimizer is stochastic; seed it before loading/running TREED.
+# Each TREED ECA cell receives a deterministic seed derived from this run seed.
 using Random
 
 length(ARGS) >= 2 || error("Usage: julia treed_lorica_driver.jl YEAR_DIR TREED_DIR")
@@ -19,6 +19,7 @@ if isfile(cfg_path)
 end
 
 seed = base_seed + year
+ENV["TREED_RANDOM_SEED"] = string(seed)
 Random.seed!(seed)
 println("TREED_RANDOM_SEED=", seed)
 
