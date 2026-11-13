@@ -370,5 +370,8 @@ jobs:
             work/LORICA/LORICA_main.cs
             work/LORICA/**/*.cs
             work/TREED/src/TREED_model_functions.jl
+            work/TREED_model_functions_serial_ci.jl
+            work/compare_treed_reproducibility.py
+            work/treed_parallel_reproducibility/**
             work/coupling/**
           if-no-files-found: warn
