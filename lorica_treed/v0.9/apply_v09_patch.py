@@ -218,6 +218,42 @@ for old, new, label in mass_replacements:
     if n != 1:
         raise RuntimeError(f"{label}: expected exactly one match, found {n}")
     geomorph_text = geomorph_text.replace(old, new, 1)
+
+# Audit residual material before the existing cleanup block. The current LORICA
+# path logs this condition but subsequently clears the transport arrays; expose
+# the exact mass so the domain-edge accounting can be tested independently.
+old_boundary = 'if (powered_slope_sum == 0) { Debug.WriteLine("there was vertical space to deposit, but no lower space to send sediment to. Sediment left in transport at " + row + " " + col); }'
+new_boundary = """if (powered_slope_sum == 0)
+                            {
+                                double residual_transport_mass_kg = 0.0;
+                                if (ls_mixingmode == 1)
+                                {
+                                    for (int tex = 0; tex < n_texture_classes; tex++)
+                                        residual_transport_mass_kg += sediment_in_transport_kg[row, col, tex];
+                                    residual_transport_mass_kg += young_SOM_in_transport_kg[row, col] + old_SOM_in_transport_kg[row, col];
+                                }
+                                else if (ls_mixingmode == 2)
+                                {
+                                    for (int lay = 0; lay < max_soil_layers; lay++)
+                                    {
+                                        for (int tex = 0; tex < n_texture_classes; tex++)
+                                            residual_transport_mass_kg += lay_sediment_in_transport_kg[row, col, lay, tex];
+                                        residual_transport_mass_kg += lay_young_SOM_in_transport_kg[row, col, lay];
+                                        residual_transport_mass_kg += lay_old_SOM_in_transport_kg[row, col, lay];
+                                    }
+                                }
+                                Console.WriteLine("LS_UNROUTED_RESIDUAL row=" + row +
+                                    " col=" + col +
+                                    " mode=" + ls_mixingmode +
+                                    " mass_kg=" + residual_transport_mass_kg.ToString("R") +
+                                    " deposited_fraction=" + deposited_landslide_fraction.ToString("R") +
+                                    " max_deposition_m=" + maximum_allowed_deposition_m.ToString("R") +
+                                    " available_material_m=" + available_landslide_material_m.ToString("R"));
+                                Debug.WriteLine("there was vertical space to deposit, but no lower space to send sediment to. Sediment left in transport at " + row + " " + col);
+                            }"""
+if geomorph_text.count(old_boundary) != 1:
+    raise RuntimeError(f"boundary residual diagnostic anchor expected once, found {geomorph_text.count(old_boundary)}")
+geomorph_text = geomorph_text.replace(old_boundary, new_boundary, 1)
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
