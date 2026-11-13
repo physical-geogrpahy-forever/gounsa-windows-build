@@ -905,7 +905,7 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "index", new double[25]);
             Call(f, "comb_sort");
             double[,,] waterFlowDirection = new double[5,5,10];
-            waterFlowDirection[0,0,7] = 1.0;
+            waterFlowDirection[0,0,8] = 1.0;
             Set(f, "OFy_m", waterFlowDirection);
             double[,] waterFlowVolume = Get<double[,]>(f, "waterflow_m3");
             waterFlowVolume[0,0] = 1.0;
@@ -921,6 +921,22 @@ public static class LoricaTreedLandslideSmoke
                 Math.Max(1.0, soilBeforeWater);
             double[,] waterErosion = Get<double[,]>(f, "dz_ero_m");
             double[,] waterDeposition = Get<double[,]>(f, "dz_sed_m");
+            double[,,] actualFlow = Get<double[,,]>(f, "OFy_m");
+            double[,] actualDtm = Get<double[,]>(f, "dtm");
+            double[,] actualBulk = Get<double[,]>(f, "bulkdensity");
+            Console.WriteLine(
+                "WATER_TEST_DIAG source_dtm=" + actualDtm[0,0].ToString("R") +
+                " receiver_dtm=" + actualDtm[1,1].ToString("R") +
+                " dh=" + (actualDtm[0,0] - actualDtm[1,1]).ToString("R") +
+                " OFy8=" + actualFlow[0,0,8].ToString("R") +
+                " OFy7=" + actualFlow[0,0,7].ToString("R") +
+                " bulkdensity=" + actualBulk[0,0].ToString("R") +
+                " K_fac=" + Get<double[,]>(f, "K_fac")[0,0].ToString("R") +
+                " dz_ero_source=" + waterErosion[0,0].ToString("R") +
+                " dz_sed_receiver=" + waterDeposition[1,1].ToString("R") +
+                " dz_sed_south=" + waterDeposition[1,0].ToString("R") +
+                " scalar_K=" + Get<double>(f, "erodibility_value_m").ToString("R") +
+                " scalar_bio=" + Get<double>(f, "bio_protection_constant").ToString("R"));
             if (waterErosion[0,0] >= 0.0 || waterDeposition[1,1] <= 0.0)
                 throw new Exception("Daily water-erosion kernel did not erode the source and deposit at the receiver.");
             if (Math.Abs(transportAfterWater - transportAfterReset) >
