@@ -1804,7 +1804,7 @@ public static class LoricaTreedLandslideSmoke
     }
 
 
-    static void TestMultiYearCoupledFeedback()
+    static void TestMultiYearCoupledFeedback(string bedrockPolicy)
     {
         string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
         if (String.IsNullOrWhiteSpace(couplingDir))
@@ -1812,7 +1812,11 @@ public static class LoricaTreedLandslideSmoke
         string cfgPath = Path.Combine(couplingDir, "TREED_coupling.cfg");
         if (!File.Exists(cfgPath)) throw new FileNotFoundException("TREED coupling config missing.", cfgPath);
         string originalCfg = File.ReadAllText(cfgPath);
-        string root = Path.Combine(OutputRoot, "multi_year_coupled_feedback_3yr");
+        string root = Path.Combine(OutputRoot, "multi_year_coupled_feedback_3yr" +
+            (bedrockPolicy == "legacy" ? "" : "_zero_coupling"));
+        int runNumber = bedrockPolicy == "legacy" ? 9003 : 9004;
+        if (bedrockPolicy != "legacy" && bedrockPolicy != "zero_coupling")
+            throw new Exception("Unexpected multi-year substrate policy: " + bedrockPolicy);
         if (Directory.Exists(root)) Directory.Delete(root, true);
         Directory.CreateDirectory(root);
 
@@ -1823,6 +1827,7 @@ public static class LoricaTreedLandslideSmoke
             List<string> cfgLines = File.ReadAllLines(cfgPath).ToList();
             string[] overrides = new string[] {
                 "hwang_root_cohesion_multiplier=0.4473684210526316",
+                "treed_bare_bedrock_policy=" + bedrockPolicy,
                 "landslide_event_mode=explicit_event",
                 "landslide_event_rainfall_mm=60",
                 "landslide_event_duration_h=6"
@@ -1848,7 +1853,7 @@ public static class LoricaTreedLandslideSmoke
             using (Mother_form f = BuildConvergentCase(root, 1, false))
             {
                 const int nr = 5, nc = 5, days = 365;
-                Set(f, "run_number", 9003);
+                Set(f, "run_number", runNumber);
                 Set(f, "workdir", root);
                 Set(f, "t_intervene", 0);
                 Set(f, "daily_weather_prepared_for_timestep", false);
@@ -1911,7 +1916,7 @@ public static class LoricaTreedLandslideSmoke
                 }
 
                 StringBuilder summary = new StringBuilder();
-                summary.AppendLine("year,annual_precipitation_mm,mean_temperature_C,mean_rootC_gC_m2,max_rootC_change_gC_m2,mean_FPC,mean_LAI,mean_root_cohesion_kPa,mean_ET_m,overland_flow_sum_m,water_erosion_thickness_sum_m,water_deposition_thickness_sum_m,landslide_initiations,landslide_erosion_thickness_sum_m,landslide_deposition_thickness_sum_m,water_mass_closure,landslide_mass_closure,mean_soil_depth_m,mean_DTM_m,traits_restart_bytes,threshold_status_cells,physical_eroded_cells,landslide_continuation_cells,landslide_deposition_cells,persistent_before_kg,persistent_after_kg");
+                summary.AppendLine("year,annual_precipitation_mm,mean_temperature_C,mean_rootC_gC_m2,max_rootC_change_gC_m2,mean_FPC,mean_LAI,mean_root_cohesion_kPa,mean_ET_m,overland_flow_sum_m,water_erosion_thickness_sum_m,water_deposition_thickness_sum_m,landslide_initiations,landslide_erosion_thickness_sum_m,landslide_deposition_thickness_sum_m,water_mass_closure,landslide_mass_closure,mean_soil_depth_m,mean_DTM_m,traits_restart_bytes,threshold_status_cells,physical_eroded_cells,landslide_continuation_cells,landslide_deposition_cells,persistent_before_kg,persistent_after_kg,soil_free_cells,raw_rootC_on_soilfree_mean,effective_rootC_on_soilfree_mean,max_effective_fpc_on_soilfree");
 
                 int[] annualRain = new int[] { 730, 900, 600 };
                 int[] annualTemp = new int[] { 10, 11, 12 };
@@ -1966,7 +1971,7 @@ public static class LoricaTreedLandslideSmoke
                     Call(f, "prepare_daily_weather_for_current_timestep");
                     Call(f, "run_treed_coupling");
 
-                    string exchangeRoot = Path.Combine(root, "TREED_exchange_run_9003");
+                    string exchangeRoot = Path.Combine(root, "TREED_exchange_run_" + runNumber);
                     string yearDir = Path.Combine(exchangeRoot, (year + 1).ToString("D4", CultureInfo.InvariantCulture));
                     string outputDir = Path.Combine(yearDir, "output");
                     string rootCPath = Path.Combine(outputDir, "treed_rootC_areanorm_gC_m2.asc");
@@ -1978,6 +1983,36 @@ public static class LoricaTreedLandslideSmoke
                     double[,] rootC = ReadAsciiGrid(rootCPath);
                     double[,] fpc = ReadAsciiGrid(fpcPath);
                     double[,] lai = ReadAsciiGrid(laiPath);
+                    double[,] effectiveRootC = ReadAsciiGrid(Path.Combine(outputDir, "treed_effective_rootC_gC_m2.asc"));
+                    double[,] effectiveFPC = ReadAsciiGrid(Path.Combine(outputDir, "treed_effective_fpc.asc"));
+                    double[,] inputSoilDepth = ReadAsciiGrid(Path.Combine(yearDir, "input/soildepth.asc"));
+                    int soilFreeCells = 0;
+                    double soilFreeRawRootCSum = 0.0;
+                    double soilFreeEffectiveRootCSum = 0.0;
+                    double soilFreeEffectiveFpcMax = 0.0;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    {
+                        bool noSoil = inputSoilDepth[r,col] <= 0.0;
+                        if (noSoil)
+                        {
+                            soilFreeCells++;
+                            soilFreeRawRootCSum += rootC[r,col];
+                            soilFreeEffectiveRootCSum += effectiveRootC[r,col];
+                            soilFreeEffectiveFpcMax = Math.Max(soilFreeEffectiveFpcMax, effectiveFPC[r,col]);
+                        }
+                        if (bedrockPolicy == "zero_coupling" && noSoil)
+                        {
+                            if (Math.Abs(effectiveRootC[r,col]) > 1e-8 ||
+                                Math.Abs(effectiveFPC[r,col]) > 1e-8)
+                                throw new Exception("No-soil grid retained coupled vegetation support.");
+                        }
+                        else if (Math.Abs(effectiveRootC[r,col] - rootC[r,col]) > 1e-5 ||
+                                 Math.Abs(effectiveFPC[r,col] - Math.Max(0.0, Math.Min(1.0, fpc[r,col]))) > 1e-5)
+                        {
+                            throw new Exception("Substrate policy altered a normally supported cell.");
+                        }
+                    }
                     double rootCMean = 0.0, fpcMean = 0.0, laiMean = 0.0, rootChangeMax = 0.0;
                     for (int r = 0; r < nr; r++)
                     for (int col = 0; col < nc; col++)
@@ -2064,7 +2099,7 @@ public static class LoricaTreedLandslideSmoke
                         throw new Exception("Initiation diagnostic counted non-eroding cells.");
                     if ((slideErosion <= 1e-10) != (physicallyErodedCells == 0))
                         throw new Exception("Landslide erosion raster and eroded-cell diagnostic disagree.");
-                    if (year > 0 && (initiations != 0 || slideErosion > 1e-10))
+                    if (bedrockPolicy == "legacy" && year > 0 && (initiations != 0 || slideErosion > 1e-10))
                         throw new Exception("Later synthetic years should have no newly eroded landslide soil.");
                     if (year == 1 && (slideDeposition <= 0.0 || persistentBeforeSlide <= 0.0))
                         throw new Exception("Second-year deposition must consume previous event's persistent mass.");
@@ -2100,6 +2135,9 @@ public static class LoricaTreedLandslideSmoke
                     string yearOutput = Path.Combine(root, "year_" + (year + 1).ToString("D2", CultureInfo.InvariantCulture));
                     Directory.CreateDirectory(yearOutput);
                     WriteAscii(Path.Combine(yearOutput, "rootC_gC_m2.asc"), rootC);
+                    WriteAscii(Path.Combine(yearOutput, "effective_rootC_gC_m2.asc"), effectiveRootC);
+                    WriteAscii(Path.Combine(yearOutput, "effective_FPC.asc"), effectiveFPC);
+                    WriteAscii(Path.Combine(yearOutput, "TREED_input_soildepth_m.asc"), inputSoilDepth);
                     WriteAscii(Path.Combine(yearOutput, "FPC.asc"), fpc);
                     WriteAscii(Path.Combine(yearOutput, "LAI.asc"), lai);
                     WriteAscii(Path.Combine(yearOutput, "root_cohesion_kPa.asc"), rootMap);
@@ -2126,9 +2164,15 @@ public static class LoricaTreedLandslideSmoke
                         physicallyErodedCells.ToString(CultureInfo.InvariantCulture),
                         continuations.ToString(CultureInfo.InvariantCulture),
                         depositionalStatuses.ToString(CultureInfo.InvariantCulture),
-                        F(persistentBeforeSlide), F(persistentAfterSlide)
+                        F(persistentBeforeSlide), F(persistentAfterSlide),
+                        soilFreeCells.ToString(CultureInfo.InvariantCulture),
+                        F(soilFreeCells > 0 ? soilFreeRawRootCSum / soilFreeCells : 0.0),
+                        F(soilFreeCells > 0 ? soilFreeEffectiveRootCSum / soilFreeCells : 0.0),
+                        F(soilFreeEffectiveFpcMax)
                     }));
                     Console.WriteLine("MULTI_YEAR_EVENT year=" + (year + 1) +
+                        " policy=" + bedrockPolicy +
+                        " soil_free_cells=" + soilFreeCells +
                         " physical_initiations=" + initiations +
                         " threshold_status=" + thresholdStatusCells +
                         " eroded_cells=" + physicallyErodedCells +
@@ -2202,7 +2246,8 @@ public static class LoricaTreedLandslideSmoke
         TestDailyflowGeneratedWaterErosion();
         TestAnnualWaterBalanceGeneratedWaterErosion();
         TestTreedSameYearRootCohesion(true);
-        TestMultiYearCoupledFeedback();
+        TestMultiYearCoupledFeedback("legacy");
+        TestMultiYearCoupledFeedback("zero_coupling");
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
