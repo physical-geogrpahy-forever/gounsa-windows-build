@@ -260,7 +260,7 @@ geomorph_text = geomorph_text.replace(old_boundary, new_boundary, 1)
 # situation_C, so it must be audited separately.
 ab_anchor = """                        //so, all cells under this cell have received the sediment in transport and OM in transport that they need.
                         //We will work on those cells when it's their turn but not now.
-                        //for now, we are done with this cell and it does no longer have sediment in transport:
+                        //for now, we are done with this cell, and it does no longer have sediment in transport:
 """
 ab_diag = ab_anchor + """                        if (ls_mixingmode == 2)
                         {
