@@ -2058,6 +2058,22 @@ public static class LoricaTreedLandslideSmoke
                         throw new Exception("Original decadal Ks should not change in year 2.");
                     if (year == 1 && ksMode == "annual" && ksChangedCells == 0)
                         throw new Exception("Annual Ks did not respond to the first-year soil disturbance.");
+                    if (ksMode == "annual")
+                    {
+                        // The effective substrate floor is shared with the
+                        // opt-in bare-bedrock policy (1 micrometre). This
+                        // verifies that tiny residual mass cannot create
+                        // substantial hydraulic capacity on zero-soil cells.
+                        double[,] currentDepth = ReadAsciiGrid(Path.Combine(
+                            root, "TREED_exchange_run_" + runNumber,
+                            (year + 1).ToString("D4", CultureInfo.InvariantCulture),
+                            "input", "soildepth.asc"));
+                        for (int rr = 0; rr < nr; rr++)
+                        for (int cc = 0; cc < nc; cc++)
+                            if (currentDepth[rr,cc] <= 1e-6 && ksAfter[rr,cc] > 1e-12)
+                                throw new Exception("Numerically bare soil retained positive annual Ks: " +
+                                    rr + "," + cc + " year=" + (year + 1));
+                    }
                     double[,,] flow = Get<double[,,]>(f, "OFy_m");
                     double[,] runoff = new double[nr,nc];
                     double runoffSum = 0.0;
