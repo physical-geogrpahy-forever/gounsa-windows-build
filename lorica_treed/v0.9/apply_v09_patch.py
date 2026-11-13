@@ -164,7 +164,64 @@ new_event = """                    rain_value_m = rain_m[row, col]; // annual pr
                     rain_intensity_m_d *= n;"""
 replace_once(geomorph, old_event, new_event, "explicit storm event intensity")
 
-# 7. Add explicit defaults without changing the legacy model behaviour.
+# 7. In situation C, deposit_slid_mass_mm1/mm2 has already subtracted the
+# deposited fraction from the transport arrays. Multiplying the residual arrays
+# by (1 - deposited_fraction) again loses that fraction a second time.
+# This affects both fully mixed and layer-preserving transport.
+geomorph_text = geomorph.read_text(encoding="utf-8-sig")
+mass_replacements = [
+    (
+        "sediment_in_transport_kg[row + i, col + j, tex] += distribution_fraction * undeposited_landslide_fraction * sediment_in_transport_kg[row, col, tex];",
+        "sediment_in_transport_kg[row + i, col + j, tex] += distribution_fraction * sediment_in_transport_kg[row, col, tex];",
+        "mixed mineral residual routing",
+    ),
+    (
+        "young_SOM_in_transport_kg[row + i, col + j] += distribution_fraction * undeposited_landslide_fraction * young_SOM_in_transport_kg[row, col];",
+        "young_SOM_in_transport_kg[row + i, col + j] += distribution_fraction * young_SOM_in_transport_kg[row, col];",
+        "mixed young SOM residual routing",
+    ),
+    (
+        "old_SOM_in_transport_kg[row + i, col + j] += distribution_fraction * undeposited_landslide_fraction * old_SOM_in_transport_kg[row, col];",
+        "old_SOM_in_transport_kg[row + i, col + j] += distribution_fraction * old_SOM_in_transport_kg[row, col];",
+        "mixed old SOM residual routing",
+    ),
+    (
+        """lay_sediment_in_transport_kg[row + i, col + j, lay, tex] +=
+                                                                    distribution_fraction * undeposited_landslide_fraction *
+                                                                    lay_sediment_in_transport_kg[row, col, lay, tex];""",
+        """lay_sediment_in_transport_kg[row + i, col + j, lay, tex] +=
+                                                                    distribution_fraction *
+                                                                    lay_sediment_in_transport_kg[row, col, lay, tex];""",
+        "layered mineral residual routing",
+    ),
+    (
+        """lay_young_SOM_in_transport_kg[row + i, col + j, lay] +=
+                                                                distribution_fraction * undeposited_landslide_fraction *
+                                                                lay_young_SOM_in_transport_kg[row, col, lay];""",
+        """lay_young_SOM_in_transport_kg[row + i, col + j, lay] +=
+                                                                distribution_fraction *
+                                                                lay_young_SOM_in_transport_kg[row, col, lay];""",
+        "layered young SOM residual routing",
+    ),
+    (
+        """lay_old_SOM_in_transport_kg[row + i, col + j, lay] +=
+                                                                distribution_fraction * undeposited_landslide_fraction *
+                                                                lay_old_SOM_in_transport_kg[row, col, lay];""",
+        """lay_old_SOM_in_transport_kg[row + i, col + j, lay] +=
+                                                                distribution_fraction *
+                                                                lay_old_SOM_in_transport_kg[row, col, lay];""",
+        "layered old SOM residual routing",
+    ),
+]
+for old, new, label in mass_replacements:
+    n = geomorph_text.count(old)
+    if n != 1:
+        raise RuntimeError(f"{label}: expected exactly one match, found {n}")
+    geomorph_text = geomorph_text.replace(old, new, 1)
+geomorph.write_text(geomorph_text, encoding="utf-8")
+print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
+
+# 8. Add explicit defaults without changing the legacy model behaviour.
 cfg_paths = [ROOT / "coupling/TREED_coupling.cfg"]
 cfg_paths += sorted((ROOT / "coupling/scenarios").glob("*.cfg"))
 for path in cfg_paths:
