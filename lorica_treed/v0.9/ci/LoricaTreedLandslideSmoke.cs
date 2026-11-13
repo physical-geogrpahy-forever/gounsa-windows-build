@@ -1010,6 +1010,126 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+
+    static void TestDailyflowGeneratedWaterErosion()
+    {
+        string root = Path.Combine(OutputRoot, "dailyflow_generated_water_erosion");
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        using (Mother_form f = BuildConvergentCase(root, 1, false))
+        {
+            const int nr = 5, nc = 5;
+            double[,] dtm = new double[nr,nc];
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+                dtm[r,col] = 110.0;
+
+            // A single source cell (1,1) has one lower neighbour (0,0),
+            // which lies on the open model boundary. All other cells have
+            // no rainfall excess, so the actual dailyflow routine generates
+            // one controlled overland-flow path.
+            dtm[1,1] = 100.0;
+            dtm[0,0] = 90.0;
+            Set(f, "dtm", dtm);
+            Set(f, "t", 0);
+            Set(f, "t_intervene", 0);
+            Set(f, "index", new double[nr * nc]);
+            Set(f, "rowcol_index", new string[nr * nc]);
+            Call(f, "comb_sort");
+
+            Set(f, "OFy_m", new double[nr,nc,10]);
+            Set(f, "Ks_topsoil_m_h", new double[nr,nc]);
+            Set(f, "Iy", new double[nr,nc]);
+            Set(f, "pond_y", new double[nr,nc]);
+            Set(f, "total_outflow_y", new double[nr,nc]);
+            Set(f, "waterflow_m3", new double[nr,nc]);
+            Set(f, "evapotranspiration", new double[nr,nc]);
+            Set(f, "infil", new double[nr,nc]);
+            Set(f, "sum_water_erosion", new double[nr,nc]);
+            Set(f, "dz_ero_m", new double[nr,nc]);
+            Set(f, "dz_sed_m", new double[nr,nc]);
+            Set(f, "lake_sed_m", new double[nr,nc]);
+            Set(f, "K_fac", new double[nr,nc]);
+            Set(f, "bio_protection", new double[nr,nc]);
+
+            double[,] ks = Get<double[,]>(f, "Ks_topsoil_m_h");
+            double[,] kfac = Get<double[,]>(f, "K_fac");
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                ks[r,col] = 0.01;   // rainfall is absorbed in non-source cells
+                kfac[r,col] = 1e-6;
+            }
+            ks[1,1] = 0.0;          // source generates runoff
+            ks[0,0] = 0.0;          // boundary receiver carries inflow out
+
+            Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
+            Set(f, "water_ero_active", true);
+            Set(f, "erodibility_value_m", 1e-6);
+            Set(f, "bio_protection_constant", 0.0);
+            Set(f, "rock_protection_constant", 0.0);
+            Set(f, "constant_selective_transcap", 0.0);
+            Set(f, "erosion_threshold_kg", 0.0);
+            Set(f, "m", 0.5);
+            Set(f, "n", 1.0);
+            Set(f, "rain_value_m", 0.01);
+            Set(f, "evap_value_m", 0.0);
+            Set(f, "infil_value_m", 0.0);
+            Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
+            Get<CheckBox>(f, "only_waterflow_checkbox").Checked = false;
+            Get<CheckBox>(f, "daily_water").Checked = false;
+            Get<CheckBox>(f, "version_lux_checkbox").Checked = false;
+
+            double soilBefore = TotalSoilMass(f);
+
+            // Actual LORICA runoff routing: 10 mm rainfall over 6 h.
+            Call(f, "dailyflow", 0.01, 6.0, 0, 0, 0.0);
+            double[,,] flow = Get<double[,,]>(f, "OFy_m");
+            if (flow[1,1,1] <= 0.0)
+                throw new Exception("dailyflow() did not generate the expected source-to-boundary flow direction.");
+
+            // Actual daily water-erosion and sediment-routing kernel.
+            Call(f, "calculate_water_ero_sed_daily");
+            double soilAfter = TotalSoilMass(f);
+            double transportAfter = TotalTransportMass(f);
+            double soilLoss = soilBefore - soilAfter;
+            double closure = Math.Abs(soilLoss - transportAfter) / Math.Max(1.0, soilBefore);
+            double[,] erosion = Get<double[,]>(f, "dz_ero_m");
+            if (erosion[1,1] >= 0.0)
+                throw new Exception("dailyflow-generated water erosion did not erode its source cell.");
+            if (transportAfter <= 0.0)
+                throw new Exception("dailyflow-generated sediment did not reach the open boundary.");
+            if (closure > 1e-6)
+                throw new Exception("dailyflow-generated water-erosion export did not close mass: " + closure.ToString("R"));
+
+            string summary =
+                "source_flow_dir_1_m=" + flow[1,1,1].ToString("R") + Environment.NewLine +
+                "soil_before_kg=" + soilBefore.ToString("R") + Environment.NewLine +
+                "soil_after_kg=" + soilAfter.ToString("R") + Environment.NewLine +
+                "soil_loss_kg=" + soilLoss.ToString("R") + Environment.NewLine +
+                "boundary_transport_kg=" + transportAfter.ToString("R") + Environment.NewLine +
+                "relative_mass_closure=" + closure.ToString("R") + Environment.NewLine +
+                "source_erosion_m=" + erosion[1,1].ToString("R") + Environment.NewLine;
+            File.WriteAllText(Path.Combine(root, "dailyflow_water_erosion_summary.txt"), summary);
+            WriteAscii(Path.Combine(root, "dtm_m.asc"), Get<double[,]>(f, "dtm"));
+            WriteAscii(Path.Combine(root, "flow_direction_1_m.asc"), new double[,] {
+                { flow[0,0,1], flow[0,1,1], flow[0,2,1], flow[0,3,1], flow[0,4,1] },
+                { flow[1,0,1], flow[1,1,1], flow[1,2,1], flow[1,3,1], flow[1,4,1] },
+                { flow[2,0,1], flow[2,1,1], flow[2,2,1], flow[2,3,1], flow[2,4,1] },
+                { flow[3,0,1], flow[3,1,1], flow[3,2,1], flow[3,3,1], flow[3,4,1] },
+                { flow[4,0,1], flow[4,1,1], flow[4,2,1], flow[4,3,1], flow[4,4,1] }
+            });
+            WriteAscii(Path.Combine(root, "water_erosion_m.asc"), erosion);
+
+            Console.WriteLine(
+                "DAILYFLOW_WATER_EROSION_PASS source_flow_dir1_m=" + flow[1,1,1].ToString("R") +
+                " soil_loss_kg=" + soilLoss.ToString("R") +
+                " boundary_transport_kg=" + transportAfter.ToString("R") +
+                " closure=" + closure.ToString("R"));
+        }
+    }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -1040,6 +1160,7 @@ public static class LoricaTreedLandslideSmoke
         Test2DClosedSinkResidualCase("closed_sink_residual_translation", 2);
         TestResidualPersistenceAcrossTimesteps("residual_persistence_complete", 1);
         TestResidualPersistenceAcrossTimesteps("residual_persistence_translation", 2);
+        TestDailyflowGeneratedWaterErosion();
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
