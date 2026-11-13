@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - lorica-treed-v0.9-30yr-coupling-audit
+      - lorica-treed-v0.9-mass-audit
     paths:
       - 'lorica_treed/v0.9/**'
       - '.github/workflows/lorica-treed-v09-landslide-test.yml'
@@ -48,6 +49,10 @@ jobs:
           Select-String -Path work/LORICA/Functions/treed_coupling.cs -Pattern 'explicit_event|treed_landslide_event_intensity_m_d'
           Write-Host '=== v0.9 pre-hydrology rainfall update ==='
           Select-String -Path work/LORICA/LORICA_main.cs -Pattern 'update_time_varying_rainfall_for_current_timestep'
+          Write-Host '=== residual-fraction routing sites after patch ==='
+          Select-String -Path work/LORICA/Functions/geomorph.cs -Pattern 'undeposited_landslide_fraction' -Context 2,2
+          Write-Host '=== landslide mixing radio fields ==='
+          Get-ChildItem work/LORICA -Recurse -Filter *.cs | Select-String -Pattern 'ls_mix_radio_' | ForEach-Object { $_.Line.Trim() }
 
       - name: Run existing v0.5 Python regression suite
         shell: pwsh
@@ -112,4 +117,7 @@ jobs:
           name: lorica-treed-v09-landslide-process-${{ github.run_number }}
           path: |
             work/landslide_test/**
+            work/LORICA/Functions/geomorph.cs
+            work/LORICA/Functions/treed_coupling.cs
+            work/LORICA/Functions/initialise_update.cs
           if-no-files-found: warn
