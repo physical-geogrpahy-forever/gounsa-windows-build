@@ -196,7 +196,7 @@ public static class LoricaTreedLandslideSmoke
         File.WriteAllText(Path.Combine(outputDir, "cell_mass_ledger.csv"), cells.ToString());
     }
 
-    static Mother_form BuildCase(string workDir, double rootCohesionKPa)
+    static Mother_form BuildCase(string workDir, double rootCohesionKPa, int mixingMode)
     {
         Mother_form f = new Mother_form();
         const int nr = 5, nc = 1, nodata = -9999;
@@ -288,7 +288,10 @@ public static class LoricaTreedLandslideSmoke
         Get<TextBox>(f, "text_ls_rel_rain_intens").Text = "0.1";
         Get<TextBox>(f, "minimum_slope_for_movement_tan_textbox").Text = "0.7";
         Get<TextBox>(f, "runout_ratio_textbox").Text = "0.4";
-        Get<RadioButton>(f, "ls_mix_radio_1").Checked = true;
+        if (mixingMode != 1 && mixingMode != 2) throw new ArgumentOutOfRangeException("mixingMode");
+        Get<RadioButton>(f, "ls_mix_radio_1").Checked = (mixingMode == 1);
+        Get<RadioButton>(f, "ls_mix_radio_2").Checked = (mixingMode == 2);
+        Console.WriteLine("LS_MODE_SELECTED=" + mixingMode);
         foreach (FieldInfo rf in f.GetType().GetFields(BF).Where(x =>
             x.FieldType == typeof(RadioButton) &&
             x.Name.IndexOf("ls_mix_radio", StringComparison.OrdinalIgnoreCase) >= 0))
@@ -337,13 +340,13 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
-    static void TestRootCohesionCase(string rootName, double rootC, bool expectFailure)
+    static void TestRootCohesionCase(string rootName, double rootC, bool expectFailure, int mixingMode)
     {
         string root = Path.Combine(OutputRoot, rootName);
         if (Directory.Exists(root)) Directory.Delete(root, true);
         Directory.CreateDirectory(root);
 
-        using (Mother_form f = BuildCase(root, rootC))
+        using (Mother_form f = BuildCase(root, rootC, mixingMode))
         {
             Dictionary<string,string> cfg = new Dictionary<string,string>();
             cfg["landslide_event_mode"] = "explicit_event";
@@ -405,6 +408,7 @@ public static class LoricaTreedLandslideSmoke
             Console.WriteLine(
                 "ROOT_CASE=" + rootName +
                 " TrCr_kPa=" + rootC.ToString("R") +
+                " mixing_mode=" + mixingMode +
                 " critical_rain_m_day=" + topCritical.ToString("R") +
                 " initiations=" + initiations +
                 " erosion_m=" + erosionAbs.ToString("R") +
@@ -428,9 +432,14 @@ public static class LoricaTreedLandslideSmoke
         // The 60 mm / 6 h storm is 10 mm/h = 0.24 m/day.
         // Root cohesion of 0 and 4.3 kPa should permit failure on the synthetic
         // 45-degree, 1-m soil slope; 7.6 kPa should stabilize it.
-        TestRootCohesionCase("bare", 0.0, true);
-        TestRootCohesionCase("intermediate", 4.3, true);
-        TestRootCohesionCase("high", 7.6, false);
+        TestRootCohesionCase("bare_complete", 0.0, true, 1);
+        TestRootCohesionCase("intermediate_complete", 4.3, true, 1);
+        TestRootCohesionCase("high_complete", 7.6, false, 1);
+
+        // Active alternative: layer-preserving translation mode.
+        TestRootCohesionCase("bare_translation", 0.0, true, 2);
+        TestRootCohesionCase("intermediate_translation", 4.3, true, 2);
+        TestRootCohesionCase("high_translation", 7.6, false, 2);
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
