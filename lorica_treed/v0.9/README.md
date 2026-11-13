@@ -17,6 +17,7 @@ The v0.5 LORICA source already contains a rainfall-triggered shallow-landslide r
 1. **Zero critical-rainfall trigger:** LORICA assigns crrain_m_d = 0 to unconditionally unstable cells, but the initiation condition previously required crrain_m_d > 0. Such cells were therefore excluded from failure. The condition now accepts crrain_m_d >= 0 while still excluding negative NoData values.
 2. **Rainfall time-series order:** the annual rainfall record was being updated in the geomorphic section after the same year's daily water balance. v0.9 updates the annual total and rain_m raster at the beginning of each timestep, before daily weather preparation, TREED, and LORICA hydrology.
 3. **Root-cohesion diagnostic reset:** calc_and_write_ls_rasters() previously allocated a fresh zero-valued root-cohesion array before writing diagnostics. It now preserves the TREED-provided raster and only allocates it if missing or dimensionally inconsistent.
+4. **Landslide residual-mass loss:** after the deposition routine had already subtracted the deposited fraction from the transport arrays, the remaining transport was multiplied by the undeposited fraction a second time before routing. This discarded part of the landslide mass. v0.9 now routes the residual arrays directly by the downstream distribution fraction for both fully mixed and layer-preserving modes.
 
 ## Explicit event rainfall
 
@@ -47,11 +48,11 @@ The test checks:
 - intermediate root cohesion produces a finite critical rainfall and event-triggered failure;
 - higher root cohesion stabilizes the same synthetic slope;
 - soil depth and DEM change when failure occurs;
-- soil mass plus transported mass closes;
+- soil mass plus transported mass closes to numerical tolerance;
 - diagnostic output preserves the TREED root-cohesion raster;
 - annual rainfall time-series values are updated before hydrology.
 
-This is a process-kernel test, not yet a 30-year catchment simulation or field validation.
+The first process run exposed an 8.33% mass deficit in the original deposition-routing code. The residual-fraction correction above is now included; the CI must be rerun and the mass-closure assertion must pass before proceeding.\n\nThis is a process-kernel test, not yet a 30-year catchment simulation or field validation.
 
 ## What remains before a 30-year landscape-evolution run
 
