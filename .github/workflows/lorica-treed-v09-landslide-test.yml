@@ -1,14 +1,16 @@
-name: LORICA-TREED v0.9 landslide process test
+name: LORICA-TREED v0.10 multi-year coupled process test
 
 on:
   push:
     branches:
       - lorica-treed-v0.9-30yr-coupling-audit
       - lorica-treed-v0.9-mass-audit
+      - lorica-treed-v0.10-multiyear-audit
     paths:
       - 'lorica_treed/v0.7/**'
       - 'lorica_treed/v0.8/**'
       - 'lorica_treed/v0.9/**'
+      - 'lorica_treed/v0.10/**'
       - '.github/workflows/lorica-treed-v09-landslide-test.yml'
   workflow_dispatch:
 
@@ -17,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: lorica-treed-v09-landslide-${{ github.ref }}
+  group: lorica-treed-v010-multiyear-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -41,7 +43,7 @@ jobs:
       - name: Cache Julia depot
         uses: julia-actions/cache@v2
         with:
-          cache-name: lorica-treed-v09-windows-julia-1.11.6
+          cache-name: lorica-treed-v010-windows-julia-1.11.6
 
       - name: Extract exact v0.5 LORICA-TREED source
         shell: pwsh
@@ -87,7 +89,7 @@ jobs:
 
           $coupling = Join-Path $PWD 'work/coupling'
           Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
-          Copy-Item (Join-Path $PWD 'lorica_treed/v0.8/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
+          Copy-Item (Join-Path $PWD 'lorica_treed/v0.10/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
 
           $cfgSource = Join-Path $coupling 'scenarios/01_original_treed_control.cfg'
           $cfg = [System.IO.File]::ReadAllText($cfgSource)
@@ -146,15 +148,15 @@ jobs:
           if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
           Write-Host 'LORICA_V09_BUILD_OK'
 
-      - name: Compile landslide process harness
+      - name: Compile v0.10 multi-year process harness
         shell: pwsh
         working-directory: work/LORICA
         run: |
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
           if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
-          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedLandslideSmoke.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v0.9\ci\LoricaTreedLandslideSmoke.cs
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedMultiYearSmoke.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v0.10\ci\LoricaTreedMultiYearSmoke.cs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if (-not (Test-Path bin/Release/LoricaTreedLandslideSmoke.exe)) { throw 'Landslide harness not produced' }
+          if (-not (Test-Path bin/Release/LoricaTreedMultiYearSmoke.exe)) { throw 'Multi-year harness not produced' }
 
       - name: Generate uncalibrated baseline TREED root-C raster
         shell: pwsh
@@ -166,7 +168,7 @@ jobs:
           $env:JULIA_NUM_THREADS = '1'
           $env:LORICA_TREED_BASELINE_ONLY = '1'
           New-Item -ItemType Directory -Force -Path $baselineOut | Out-Null
-          & .\LoricaTreedLandslideSmoke.exe $baselineOut
+          & .\LoricaTreedMultiYearSmoke.exe $baselineOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $baselineOut 'LORICA_TREED_V09_BASELINE_ROOTC_PASS.txt'))) {
             throw 'LORICA v0.9 baseline root-C marker missing'
@@ -187,7 +189,7 @@ jobs:
           Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
           Write-Host 'V09_FIXED_EVENT_SCALE_TR_CALIBRATION_READY'
 
-      - name: Run calibrated root-cohesion and event-landslide process tests
+      - name: Run calibrated v0.9 process suite and v0.10 two-year coupling
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
@@ -200,9 +202,13 @@ jobs:
           & .\LoricaTreedLandslideSmoke.exe $testOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt'))) {
-            throw 'LORICA v0.9 calibrated landslide smoke marker missing'
+            throw 'LORICA v0.9 process-suite marker missing'
+          }
+          if (-not (Test-Path (Join-Path $testOut 'treed_multiyear_coupling/LORICA_TREED_V010_MULTYEAR_PASS.txt'))) {
+            throw 'LORICA v0.10 multi-year integration marker missing'
           }
           Get-Content (Join-Path $testOut 'LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt')
+          Get-Content (Join-Path $testOut 'treed_multiyear_coupling/LORICA_TREED_V010_MULTYEAR_PASS.txt')
 
       - name: Validate calibrated cohesion, unchanged root biomass, and landslide response
         shell: pwsh
@@ -262,6 +268,39 @@ jobs:
           print("calibrated_mean_root_cohesion_kPa=", observed)
           print("TREED_initiations=", stability["TREED_INITIATIONS"])
           print("bare_root_initiations=", stability["BARE_INITIATIONS"])
+
+          multi = pathlib.Path("work/landslide_test_calibrated/treed_multiyear_coupling")
+          with open(multi / "annual_state.csv", newline="", encoding="utf-8") as f:
+              annual_rows = list(csv.DictReader(f))
+          assert len(annual_rows) == 2, "Expected two coupled annual states"
+          for row in annual_rows:
+              assert float(row["ET_formula_max_error"]) < 1e-10
+              assert float(row["root_formula_max_error"]) < 1e-8
+              assert float(row["FPC_ET_max_error"]) < 1e-8
+              assert float(row["climate_max_error"]) < 1e-8
+              assert float(row["water_balance_source_flow_m"]) > 0
+              assert float(row["water_erosion_soil_loss_kg"]) > 0
+              assert float(row["water_erosion_transport_kg"]) > 0
+              assert float(row["water_erosion_mass_closure"]) < 1e-6
+              assert float(row["landslide_mass_closure"]) < 1e-6
+              assert float(row["year2_input_DTM_error_m"]) < 1e-8
+              assert float(row["year2_input_soildepth_error_m"]) < 1e-8
+          audit = multi / "TREED_exchange_run_9003" / "TREED_driver_audit.csv"
+          with open(audit, newline="", encoding="utf-8") as f:
+              audit_rows = list(csv.DictReader(f))
+          assert len(audit_rows) == 2
+          assert audit_rows[0]["restart_present_before"] == "false"
+          assert audit_rows[0]["restart_present_after"] == "true"
+          assert audit_rows[1]["restart_present_before"] == "true"
+          assert audit_rows[1]["restart_present_after"] == "true"
+          assert len((multi / "TREED_exchange_run_9003" / "TREED_rootcohesion_timeseries.csv").read_text(encoding="utf-8").splitlines()) == 3
+          assert len((multi / "soil_state.csv").read_text(encoding="utf-8").splitlines()) == 51
+          print("V010_TWO_YEAR_TREED_LORICA_COUPLING_PASS")
+          print("year1_rootC_mean=", annual_rows[0]["rootC_mean_gC_m2"])
+          print("year2_rootC_mean=", annual_rows[1]["rootC_mean_gC_m2"])
+          print("year2_rootC_max_change=", annual_rows[1]["rootC_max_year_change_gC_m2"])
+          print("year1_water_mass_closure=", annual_rows[0]["water_erosion_mass_closure"])
+          print("year2_water_mass_closure=", annual_rows[1]["water_erosion_mass_closure"])
           '@ | Set-Content -Encoding utf8 work/validate_v09_calibration.py
           python work/validate_v09_calibration.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -270,7 +309,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lorica-treed-v09-landslide-process-${{ github.run_number }}
+          name: lorica-treed-v010-multiyear-coupling-${{ github.run_number }}
           path: |
             work/baseline_rootC.asc
             work/calibration/**
