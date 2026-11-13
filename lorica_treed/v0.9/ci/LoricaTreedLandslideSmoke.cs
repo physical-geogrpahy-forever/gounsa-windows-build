@@ -837,6 +837,8 @@ public static class LoricaTreedLandslideSmoke
         {
             Get<TextBox>(f, "runout_ratio_textbox").Text = "20.0";
             Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
+            Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
+            Set(f, "waterflow_m3", new double[5,5]);
 
             Dictionary<string,string> cfg = new Dictionary<string,string>();
             cfg["landslide_event_mode"] = "explicit_event";
