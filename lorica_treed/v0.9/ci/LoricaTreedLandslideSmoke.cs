@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization;
+using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -77,6 +79,121 @@ public static class LoricaTreedLandslideSmoke
         foreach (double v in ly) total += v;
         foreach (double v in lo) total += v;
         return total;
+    }
+
+    static double SoilMassAt(Mother_form f, int r, int c)
+    {
+        double[,,,] tex = Get<double[,,,]>(f, "texture_kg");
+        double[,,] y = Get<double[,,]>(f, "young_SOM_kg");
+        double[,,] o = Get<double[,,]>(f, "old_SOM_kg");
+        double total = 0.0;
+        for (int l = 0; l < tex.GetLength(2); l++)
+        {
+            for (int k = 0; k < tex.GetLength(3); k++) total += tex[r,c,l,k];
+            total += y[r,c,l] + o[r,c,l];
+        }
+        return total;
+    }
+
+    static double TransportMassAt(Mother_form f, int r, int c)
+    {
+        double[,,] sed = Get<double[,,]>(f, "sediment_in_transport_kg");
+        double[,] y = Get<double[,]>(f, "young_SOM_in_transport_kg");
+        double[,] o = Get<double[,]>(f, "old_SOM_in_transport_kg");
+        double[,,,] lay = Get<double[,,,]>(f, "lay_sediment_in_transport_kg");
+        double[,,] ly = Get<double[,,]>(f, "lay_young_SOM_in_transport_kg");
+        double[,,] lo = Get<double[,,]>(f, "lay_old_SOM_in_transport_kg");
+        double total = y[r,c] + o[r,c];
+        for (int k = 0; k < sed.GetLength(2); k++) total += sed[r,c,k];
+        for (int l = 0; l < lay.GetLength(2); l++)
+        {
+            for (int k = 0; k < lay.GetLength(3); k++) total += lay[r,c,l,k];
+            total += ly[r,c,l] + lo[r,c,l];
+        }
+        return total;
+    }
+
+    static string F(double value)
+    {
+        return value.ToString("R", CultureInfo.InvariantCulture);
+    }
+
+    static void WriteAscii(string path, double[,] grid)
+    {
+        int nr = grid.GetLength(0);
+        int nc = grid.GetLength(1);
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("ncols         " + nc);
+        sb.AppendLine("nrows         " + nr);
+        sb.AppendLine("xllcorner     0");
+        sb.AppendLine("yllcorner     0");
+        sb.AppendLine("cellsize      10");
+        sb.AppendLine("NODATA_value  -9999");
+        for (int r = 0; r < nr; r++)
+        {
+            for (int c = 0; c < nc; c++)
+            {
+                if (c > 0) sb.Append(' ');
+                double v = grid[r,c];
+                sb.Append(Double.IsNaN(v) || Double.IsInfinity(v) ? "-9999" : F(v));
+            }
+            sb.AppendLine();
+        }
+        File.WriteAllText(path, sb.ToString());
+    }
+
+    static void WriteDiagnostics(
+        string outputDir, Mother_form f, string scenario, double rootC, double criticalRain,
+        int initiations, double erosionSum, double depositionSum,
+        double massBefore, double massAfter, double transport, double closure)
+    {
+        int nr = Get<int>(f, "nr");
+        int nc = Get<int>(f, "nc");
+        double[,] soil = new double[nr,nc];
+        double[,] moving = new double[nr,nc];
+        for (int r = 0; r < nr; r++)
+        for (int c = 0; c < nc; c++)
+        {
+            soil[r,c] = SoilMassAt(f, r, c);
+            moving[r,c] = TransportMassAt(f, r, c);
+        }
+
+        WriteAscii(Path.Combine(outputDir, "soil_mass_kg.asc"), soil);
+        WriteAscii(Path.Combine(outputDir, "transport_mass_kg.asc"), moving);
+        WriteAscii(Path.Combine(outputDir, "soil_depth_m.asc"), Get<double[,]>(f, "soildepth_m"));
+        WriteAscii(Path.Combine(outputDir, "slide_erosion_m.asc"), Get<double[,]>(f, "ero_slid_m"));
+        WriteAscii(Path.Combine(outputDir, "slide_deposit_m.asc"), Get<double[,]>(f, "sed_slid_m"));
+        WriteAscii(Path.Combine(outputDir, "root_cohesion_kPa.asc"), Get<double[,]>(f, "root_cohesion_kPa_new"));
+        WriteAscii(Path.Combine(outputDir, "critical_rain_m_d.asc"), Get<double[,]>(f, "crrain_m_d"));
+        WriteAscii(Path.Combine(outputDir, "dtm_m.asc"), Get<double[,]>(f, "dtm"));
+
+        double closureAbs = Math.Abs(massBefore - massAfter - transport);
+        string summary =
+            "scenario,root_cohesion_kPa,critical_rain_m_day,initiations,erosion_thickness_sum_m,deposition_thickness_sum_m,soil_mass_before_kg,soil_mass_after_kg,transport_mass_after_kg,closure_abs_kg,closure_relative\n" +
+            String.Join(",", new string[] {
+                scenario, F(rootC), F(criticalRain), initiations.ToString(CultureInfo.InvariantCulture),
+                F(erosionSum), F(depositionSum), F(massBefore), F(massAfter), F(transport),
+                F(closureAbs), F(closure)
+            }) + "\n";
+        File.WriteAllText(Path.Combine(outputDir, "mass_balance.csv"), summary);
+
+        StringBuilder cells = new StringBuilder();
+        cells.AppendLine("row,col,soil_mass_kg,transport_mass_kg,soil_depth_m,erosion_m,deposition_m,root_cohesion_kPa,critical_rain_m_day");
+        double[,] depth = Get<double[,]>(f, "soildepth_m");
+        double[,] erosion = Get<double[,]>(f, "ero_slid_m");
+        double[,] deposition = Get<double[,]>(f, "sed_slid_m");
+        double[,] root = Get<double[,]>(f, "root_cohesion_kPa_new");
+        double[,] critical = Get<double[,]>(f, "crrain_m_d");
+        for (int r = 0; r < nr; r++)
+        for (int c = 0; c < nc; c++)
+        {
+            cells.AppendLine(String.Join(",", new string[] {
+                r.ToString(CultureInfo.InvariantCulture), c.ToString(CultureInfo.InvariantCulture),
+                F(soil[r,c]), F(moving[r,c]), F(depth[r,c]), F(erosion[r,c]),
+                F(deposition[r,c]), F(root[r,c]), F(critical[r,c])
+            }));
+        }
+        File.WriteAllText(Path.Combine(outputDir, "cell_mass_ledger.csv"), cells.ToString());
     }
 
     static Mother_form BuildCase(string workDir, double rootCohesionKPa)
@@ -172,6 +289,10 @@ public static class LoricaTreedLandslideSmoke
         Get<TextBox>(f, "minimum_slope_for_movement_tan_textbox").Text = "0.7";
         Get<TextBox>(f, "runout_ratio_textbox").Text = "0.4";
         Get<RadioButton>(f, "ls_mix_radio_1").Checked = true;
+        foreach (FieldInfo rf in f.GetType().GetFields(BF).Where(x =>
+            x.FieldType == typeof(RadioButton) &&
+            x.Name.IndexOf("ls_mix_radio", StringComparison.OrdinalIgnoreCase) >= 0))
+            Console.WriteLine("LS_MODE_FIELD=" + rf.Name);
         Directory.CreateDirectory(workDir);
         return f;
     }
@@ -264,6 +385,7 @@ public static class LoricaTreedLandslideSmoke
             double massAfter = TotalSoilMass(f);
             double transport = TotalTransportMass(f);
             double massClosure = Math.Abs(massBefore - massAfter - transport) / Math.Max(1.0, massBefore);
+            WriteDiagnostics(root, f, rootName, rootC, topCritical, initiations, erosionAbs, depositionSum, massBefore, massAfter, transport, massClosure);
 
             if (expectFailure)
             {
@@ -287,6 +409,9 @@ public static class LoricaTreedLandslideSmoke
                 " initiations=" + initiations +
                 " erosion_m=" + erosionAbs.ToString("R") +
                 " deposition_m=" + depositionSum.ToString("R") +
+                " mass_before_kg=" + massBefore.ToString("R") +
+                " mass_after_kg=" + massAfter.ToString("R") +
+                " transport_after_kg=" + transport.ToString("R") +
                 " mass_closure=" + massClosure.ToString("R"));
         }
     }
