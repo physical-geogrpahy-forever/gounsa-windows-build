@@ -266,6 +266,92 @@ jobs:
           python work/validate_v09_calibration.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Audit original threaded ECA reproducibility
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $modelFunctions = Join-Path $work 'TREED/src/TREED_model_functions.jl'
+          $modelSource = [System.IO.File]::ReadAllText($modelFunctions)
+          Copy-Item $modelFunctions (Join-Path $work 'TREED_model_functions_serial_ci.jl') -Force
+
+          # Restore only the original ECA optimization loop. The following
+          # evolution loop remains serial as in the vendored TREED source.
+          $serialLoop = 'for i = 1:length(lookup(traits_start.H, X))'
+          $threadedLoop = 'Threads.@threads for i = 1:length(lookup(traits_start.H, X))'
+          $first = $modelSource.IndexOf($serialLoop, [StringComparison]::Ordinal)
+          $second = $modelSource.IndexOf($serialLoop, $first + $serialLoop.Length, [StringComparison]::Ordinal)
+          if ($first -lt 0 -or $second -lt 0) { throw 'Expected ECA and evolution loops were not found in TREED source' }
+          $modelSource = $modelSource.Substring(0, $first) + $threadedLoop + $modelSource.Substring($first + $serialLoop.Length)
+          [System.IO.File]::WriteAllText($modelFunctions, $modelSource, (New-Object System.Text.UTF8Encoding($false)))
+
+          $parallelRoot = Join-Path $work 'treed_parallel_reproducibility'
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:LORICA_TREED_BASELINE_ONLY = '1'
+          foreach ($threads in @('1', '4')) {
+            foreach ($repeat in @(1, 2)) {
+              $env:JULIA_NUM_THREADS = $threads
+              $runOut = Join-Path $parallelRoot ("threads_" + $threads + "/run_" + $repeat)
+              New-Item -ItemType Directory -Force -Path $runOut | Out-Null
+              Write-Host ("=== ORIGINAL_THREADED_ECA threads=" + $threads + " repeat=" + $repeat + " ===")
+              & .\LoricaTreedLandslideSmoke.exe $runOut
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              $rootC = Join-Path $runOut 'treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output/treed_rootC_areanorm_gC_m2.asc'
+              if (-not (Test-Path $rootC)) { throw "Threaded TREED root-C output missing: $rootC" }
+            }
+          }
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+
+          @'
+          import json, pathlib, sys
+
+          root = pathlib.Path("work/treed_parallel_reproducibility")
+          report = {"source_mode": "original Threads.@threads ECA loop", "thread_counts": {}}
+          failed = False
+
+          def read_ascii(path):
+              lines = path.read_text(encoding="utf-8-sig").strip().splitlines()
+              return lines[:6], [float(v) for line in lines[6:] for v in line.split()]
+
+          for threads in ("1", "4"):
+              a = root / f"threads_{threads}/run_1/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output"
+              b = root / f"threads_{threads}/run_2/treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output"
+              if not a.is_dir() or not b.is_dir():
+                  raise SystemExit(f"Missing threaded TREED output directory for {threads} threads")
+              names_a = sorted(p.name for p in a.iterdir() if p.is_file())
+              names_b = sorted(p.name for p in b.iterdir() if p.is_file())
+              same_names = names_a == names_b
+              same_bytes = same_names and all((a / name).read_bytes() == (b / name).read_bytes() for name in names_a)
+              header_a, values_a = read_ascii(a / "treed_rootC_areanorm_gC_m2.asc")
+              header_b, values_b = read_ascii(b / "treed_rootC_areanorm_gC_m2.asc")
+              max_abs = max((abs(x-y) for x, y in zip(values_a, values_b)), default=0.0)
+              mean_a = sum(values_a) / len(values_a)
+              mean_b = sum(values_b) / len(values_b)
+              identical = same_bytes and header_a == header_b and len(values_a) == len(values_b) and max_abs == 0.0
+              report["thread_counts"][threads] = {
+                  "output_files_identical": same_bytes,
+                  "rootC_identical": identical,
+                  "rootC_max_abs_difference_gC_m2": max_abs,
+                  "run1_mean_rootC_gC_m2": mean_a,
+                  "run2_mean_rootC_gC_m2": mean_b,
+                  "files_run1": names_a,
+                  "files_run2": names_b,
+              }
+              print(f"THREADS={threads} OUTPUT_FILES_IDENTICAL={same_bytes} ROOTC_MAX_ABS_DIFF={max_abs:.12g}")
+              if not identical:
+                  failed = True
+
+          report["all_threaded_repeats_identical"] = not failed
+          out = root / "threaded_reproducibility_report.json"
+          out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+          print("THREADED_REPRODUCIBILITY_REPORT=" + str(out))
+          if failed:
+              raise SystemExit("Original threaded TREED ECA is not reproducible across identical seeded repeats")
+          print("ORIGINAL_THREADED_ECA_REPRODUCIBILITY_PASS")
+          '@ | Set-Content -Encoding utf8 (Join-Path $work 'compare_treed_reproducibility.py')
+          python (Join-Path $work 'compare_treed_reproducibility.py')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload process-level landslide outputs
         if: always()
         uses: actions/upload-artifact@v4
