@@ -1150,6 +1150,8 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "t", 1);                 // avoid annual solar/Ks recalculation in this isolated test
             Set(f, "t_intervene", 0);
             Set(f, "daily_weather_prepared_for_timestep", false);
+            Set(f, "index", new double[nr * nc]);
+            Set(f, "rowcol_index", new string[nr * nc]);
             Set(f, "rain_value_m", 0.01);
             Set(f, "temp_value_C", 10);
 
