@@ -899,6 +899,19 @@ replace_once(
     "if (t % 10 == 0 || treed_refresh_ks_each_year) { update_Ks(); }",
     "refresh Ks annually only in opted-in TREED coupling scenario",
 )
+
+# Numerically tiny soil residuals are not a porous topsoil layer.
+# This threshold matches the existing zero_coupling substrate audit (1 µm).
+# Only the opt-in annual refresh uses this floor; legacy Ks is unchanged.
+replace_once(
+    hydro,
+    "                    if (double.IsNaN(Ks_topsoil_m_h[row, col]))",
+    """                    if (treed_refresh_ks_each_year && soildepth_m[row, col] <= 1e-6)
+                        Ks_topsoil_m_h[row, col] = 0.0;
+
+                    if (double.IsNaN(Ks_topsoil_m_h[row, col]))""",
+    "numerically bare soil cannot retain hydraulic conductivity from trace mass",
+)
 replace_once(
     coupling,
     '                "treed_bare_bedrock_policy=" + bedrockMode + Environment.NewLine +',
