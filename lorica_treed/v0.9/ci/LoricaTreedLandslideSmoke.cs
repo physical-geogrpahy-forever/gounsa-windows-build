@@ -156,6 +156,26 @@ public static class LoricaTreedLandslideSmoke
         return value.ToString("R", CultureInfo.InvariantCulture);
     }
 
+    static double[,] ReadAsciiGrid(string path)
+    {
+        string[] lines = File.ReadAllLines(path);
+        if (lines.Length < 7) throw new Exception("Invalid ESRI ASCII raster: " + path);
+        string[] h0 = lines[0].Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+        string[] h1 = lines[1].Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+        int nc = Int32.Parse(h0[1], CultureInfo.InvariantCulture);
+        int nr = Int32.Parse(h1[1], CultureInfo.InvariantCulture);
+        if (lines.Length < 6 + nr) throw new Exception("Truncated ESRI ASCII raster: " + path);
+        double[,] a = new double[nr,nc];
+        for (int r = 0; r < nr; r++)
+        {
+            string[] p = lines[6 + r].Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            if (p.Length != nc) throw new Exception("ESRI ASCII column count mismatch: " + path);
+            for (int col = 0; col < nc; col++)
+                a[r,col] = Double.Parse(p[col], CultureInfo.InvariantCulture);
+        }
+        return a;
+    }
+
     static void WriteAscii(string path, double[,] grid)
     {
         int nr = grid.GetLength(0);
@@ -1364,6 +1384,152 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+
+    static void TestTreedSameYearRootCohesion()
+    {
+        string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
+        if (String.IsNullOrWhiteSpace(couplingDir) ||
+            !File.Exists(Path.Combine(couplingDir, "TREED_coupling.cfg")))
+            throw new Exception("Actual TREED coupling directory/config was not provided to the process test.");
+
+        string root = Path.Combine(OutputRoot, "treed_same_year_rootcohesion");
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        using (Mother_form f = BuildConvergentCase(root, 1, false))
+        {
+            const int nr = 5, nc = 5, days = 365;
+            Set(f, "t", 0);
+            Set(f, "run_number", 9002);
+            Set(f, "workdir", root);
+            Set(f, "daily_weather_prepared_for_timestep", false);
+            Set(f, "rain_value_m", 0.73);
+            Set(f, "temp_value_C", 10.0);
+            Set(f, "veg_correction_factor", new double[nr,nc]);
+            Set(f, "aridity_vegetation", new double[nr,nc]);
+
+            int[] precipitation = new int[days];
+            int[] duration = new int[days];
+            int[] tmin = new int[days];
+            int[] tavg = new int[days];
+            int[] tmax = new int[days];
+            for (int day = 0; day < days; day++)
+            {
+                precipitation[day] = 2; // 2 mm/day; 730 mm/year
+                duration[day] = 6;
+                tmin[day] = 5;
+                tavg[day] = 10;
+                tmax[day] = 15;
+            }
+            Set(f, "P_all", precipitation);
+            Set(f, "D_all", duration);
+            Set(f, "Tmin_all", tmin);
+            Set(f, "Tavg_all", tavg);
+            Set(f, "Tmax_all", tmax);
+            Get<TextBox>(f, "daily_n").Text = "1";
+            Get<CheckBox>(f, "check_scaling_daily_weather").Checked = false;
+            Get<CheckBox>(f, "check_time_rain").Checked = false;
+
+            // Prepare the actual LORICA daily weather first. run_treed_coupling()
+            // must export these same-year arrays to the TREED monthly climate file.
+            Call(f, "prepare_daily_weather_for_current_timestep");
+            double[] py = Get<double[]>(f, "Py");
+            int[] tavgy = Get<int[]>(f, "Tavgy");
+
+            Call(f, "run_treed_coupling");
+
+            string exchangeRoot = Path.Combine(root, "TREED_exchange_run_9002");
+            string yearDir = Path.Combine(exchangeRoot, "0001");
+            string inputDir = Path.Combine(yearDir, "input");
+            string outputDir = Path.Combine(yearDir, "output");
+            string rootCPath = Path.Combine(outputDir, "treed_rootC_areanorm_gC_m2.asc");
+            string fpcPath = Path.Combine(outputDir, "treed_fpc.asc");
+            string laiPath = Path.Combine(outputDir, "treed_lai.asc");
+            string climatePath = Path.Combine(inputDir, "treed_climate_monthly.csv");
+            string summaryPath = Path.Combine(outputDir, "treed_rootcohesion_summary.csv");
+            if (!File.Exists(rootCPath) || !File.Exists(fpcPath) ||
+                !File.Exists(laiPath) || !File.Exists(climatePath) ||
+                !File.Exists(summaryPath))
+                throw new Exception("Actual TREED roundtrip did not produce all required output rasters and audit files.");
+
+            double[,] rootC = ReadAsciiGrid(rootCPath);
+            double[,] fpc = ReadAsciiGrid(fpcPath);
+            double[,] rootCohesion = Get<double[,]>(f, "root_cohesion_kPa_new");
+            double[,] cover = Get<double[,]>(f, "aridity_vegetation");
+            double[,] et = Get<double[,]>(f, "veg_correction_factor");
+            const double TrMpa = 17.284220625;
+            const double fCarbon = 0.47;
+            const double rhoRoot = 435.3;
+            const double K = 1.2;
+            double maxFormulaError = 0.0;
+            double maxCoverError = 0.0;
+            double maxEtError = 0.0;
+            double rootCMax = 0.0;
+            double coverMax = 0.0;
+            int validCells = 0;
+
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                if (rootC[r,col] == -9999.0 || fpc[r,col] == -9999.0) continue;
+                double expectedRootCohesion = Math.Max(0.0,
+                    K * (TrMpa * 1e6) * ((Math.Max(0.0, rootC[r,col]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
+                double expectedEt = 1.0 + Math.Max(0.0, Math.Min(1.0, fpc[r,col])) * (0.85 - 1.0);
+                maxFormulaError = Math.Max(maxFormulaError, Math.Abs(rootCohesion[r,col] - expectedRootCohesion));
+                maxCoverError = Math.Max(maxCoverError, Math.Abs(cover[r,col] - fpc[r,col]));
+                maxEtError = Math.Max(maxEtError, Math.Abs(et[r,col] - expectedEt));
+                rootCMax = Math.Max(rootCMax, rootC[r,col]);
+                coverMax = Math.Max(coverMax, fpc[r,col]);
+                validCells++;
+            }
+
+            if (validCells != nr * nc)
+                throw new Exception("TREED output contains unexpected nodata cells in the local test domain.");
+            if (rootCMax <= 0.0 || coverMax <= 0.0)
+                throw new Exception("Actual TREED run returned no positive root carbon or vegetation cover.");
+            if (maxFormulaError > 1e-8 || maxCoverError > 1e-8 || maxEtError > 1e-8)
+                throw new Exception("TREED-to-LORICA root cohesion/FPC/ET transfer failed its numerical audit.");
+
+            // Confirm that the monthly climate sent to TREED is the same-year
+            // aggregation of LORICA's prepared daily arrays.
+            string[] climateLines = File.ReadAllLines(climatePath);
+            if (climateLines.Length != 13)
+                throw new Exception("TREED same-year climate file must contain 12 monthly records.");
+            int day0 = 0;
+            double maxClimateError = 0.0;
+            for (int mo = 0; mo < 12; mo++)
+            {
+                double pmm = 0.0, tmean = 0.0;
+                for (int d = 0; d < month[mo]; d++)
+                {
+                    pmm += py[day0 + d] * 1000.0;
+                    tmean += tavgy[day0 + d];
+                }
+                tmean /= month[mo];
+                string[] fields = climateLines[mo + 1].Split(',');
+                double actualT = Double.Parse(fields[1], CultureInfo.InvariantCulture);
+                double actualP = Double.Parse(fields[2], CultureInfo.InvariantCulture);
+                maxClimateError = Math.Max(maxClimateError, Math.Abs(actualT - tmean));
+                maxClimateError = Math.Max(maxClimateError, Math.Abs(actualP - pmm));
+                day0 += month[mo];
+            }
+            if (maxClimateError > 1e-8)
+                throw new Exception("TREED monthly climate does not match the same-year LORICA daily weather.");
+
+            string marker = Path.Combine(root, "TREED_SAME_YEAR_ROOTCOHESION_PASS.txt");
+            File.WriteAllText(marker,
+                "TREED_ACTUAL_JULIA_TO_LORICA_CSHARP=PASS" + Environment.NewLine +
+                "valid_cells=" + validCells.ToString(CultureInfo.InvariantCulture) + Environment.NewLine +
+                "rootC_max_gC_m2=" + rootCMax.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "FPC_max=" + coverMax.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "max_Hwang_formula_error_kPa=" + maxFormulaError.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "max_FPC_transfer_error=" + maxCoverError.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "max_ET_factor_error=" + maxEtError.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
+                "max_same_year_climate_error=" + maxClimateError.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine);
+            Console.WriteLine("TREED_SAME_YEAR_ROOTCOHESION_PASS " + File.ReadAllText(marker).Replace(Environment.NewLine, " "));
+        }
+    }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -1396,6 +1562,7 @@ public static class LoricaTreedLandslideSmoke
         TestResidualPersistenceAcrossTimesteps("residual_persistence_translation", 2);
         TestDailyflowGeneratedWaterErosion();
         TestAnnualWaterBalanceGeneratedWaterErosion();
+        TestTreedSameYearRootCohesion();
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
