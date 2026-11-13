@@ -844,12 +844,8 @@ public static class LoricaTreedLandslideSmoke
             // Prepare the exact daily water-erosion kernel for one small,
             // convergent flow path: (0,0) -> (1,1). The landslide residual
             // remains in the separate layer-resolved storage arrays.
-            double[,,] waterFlowDirection = new double[5,5,10];
-            waterFlowDirection[0,0,8] = 1.0;
-            Set(f, "OFy_m", waterFlowDirection);
-            double[] cellIndex = new double[25];
-            for (int i = 0; i < cellIndex.Length; i++) cellIndex[i] = 1.0;
-            Set(f, "index", cellIndex);
+            Set(f, "rowcol_index", new string[25]);
+            Set(f, "t_intervene", 0);
             Set(f, "waterflow_m3", new double[5,5]);
             Set(f, "evapotranspiration", new double[5,5]);
             Set(f, "infil", new double[5,5]);
@@ -903,6 +899,16 @@ public static class LoricaTreedLandslideSmoke
                 throw new Exception("Residual landslide material was lost by initialise_every(): before=" +
                     transportAfter1.ToString("R") + ", after=" + transportAfterReset.ToString("R"));
 
+            // initialise_every() clears the overland-flow direction raster;
+            // rebuild the one-cell flow path afterwards, as the annual
+            // hydrology/water-erosion preparation does in the real timestep.
+            Call(f, "comb_sort");
+            double[,,] waterFlowDirection = new double[5,5,10];
+            waterFlowDirection[0,0,8] = 1.0;
+            Set(f, "OFy_m", waterFlowDirection);
+            double[,] waterFlowVolume = Get<double[,]>(f, "waterflow_m3");
+            waterFlowVolume[0,0] = 1.0;
+
             // Run the actual LORICA daily water-erosion routine between the
             // landslide events. A small amount of material moves from (0,0)
             // into the interior receiver (1,1), where it deposits.
@@ -922,8 +928,9 @@ public static class LoricaTreedLandslideSmoke
             if (waterErosionClosure > 1e-6)
                 throw new Exception("Water-erosion substep failed soil-mass closure: " + waterErosionClosure.ToString("R"));
 
-            // Recompute the next timestep's stability field, then allow the stored
-            // residual to deposit/route again after the water-erosion substep.
+            // Refresh the cell order after the water-erosion DEM update, then
+            // recompute the next timestep's stability field.
+            Call(f, "comb_sort");
             Call(f, "calc_and_write_ls_rasters");
             double massBefore2 = TotalSoilMass(f) + TotalTransportMass(f);
             Call(f, "calculate_slide_new");
