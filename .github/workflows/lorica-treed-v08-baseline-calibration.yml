@@ -66,6 +66,8 @@ jobs:
           $s = $s.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
           $s = [System.Text.RegularExpressions.Regex]::Replace($s, '(?m)^using Images\r?\n', '')
           [System.IO.File]::WriteAllText($p, $s, (New-Object System.Text.UTF8Encoding($false)))
+          Copy-Item work/coupling/treed_lorica_driver.jl work/coupling/treed_lorica_driver_core.jl -Force
+          Copy-Item lorica_treed/v0.8/treed_lorica_driver_seeded_wrapper.jl work/coupling/treed_lorica_driver.jl -Force
 
       - name: Instantiate TREED Julia environment
         shell: pwsh
@@ -102,6 +104,7 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item work/coupling/scenarios/01_original_treed_control.cfg work/coupling/TREED_coupling.cfg -Force
+          Add-Content -Encoding ascii work/coupling/TREED_coupling.cfg 'treed_random_seed=20261113'
           New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
           New-Item -ItemType Directory -Force -Path work/baseline | Out-Null
           New-Item -ItemType Directory -Force -Path work/calibrated | Out-Null
@@ -110,6 +113,8 @@ jobs:
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
+          $env:JULIA_NUM_THREADS='1'
+          $env:TREED_RANDOM_SEED='20261113'
           $coupling = (Resolve-Path ../../../coupling).Path
           $baseline = (Resolve-Path ../../../baseline).Path
           & .\LoricaTreedRoundtripSmoke.exe $coupling $baseline
@@ -131,6 +136,8 @@ jobs:
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
+          $env:JULIA_NUM_THREADS='1'
+          $env:TREED_RANDOM_SEED='20261113'
           $coupling = (Resolve-Path ../../../coupling).Path
           $calibrated = (Resolve-Path ../../../calibrated).Path
           & .\LoricaTreedRoundtripSmoke.exe $coupling $calibrated
