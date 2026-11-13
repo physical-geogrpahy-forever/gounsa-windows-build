@@ -88,6 +88,23 @@ public static class LoricaTreedLandslideSmoke
         return total;
     }
 
+    static double TotalTransientWaterTransportMassAtBoundary(Mother_form f)
+    {
+        double[,,] sed = Get<double[,,]>(f, "sediment_in_transport_kg");
+        double[,] y = Get<double[,]>(f, "young_SOM_in_transport_kg");
+        double[,] o = Get<double[,]>(f, "old_SOM_in_transport_kg");
+        int nr = sed.GetLength(0), nc = sed.GetLength(1);
+        double total = 0.0;
+        for (int r = 0; r < nr; r++)
+        for (int col = 0; col < nc; col++)
+        {
+            if (r != 0 && col != 0 && r != nr - 1 && col != nc - 1) continue;
+            total += y[r,col] + o[r,col];
+            for (int k = 0; k < sed.GetLength(2); k++) total += sed[r,col,k];
+        }
+        return total;
+    }
+
     static double TotalPersistentLandslideMass(Mother_form f)
     {
         // v0.9 stores landslide residuals in layer-resolved arrays for both
@@ -849,30 +866,89 @@ public static class LoricaTreedLandslideSmoke
 
         using (Mother_form f = BuildConvergentCase(root, mixingMode, true))
         {
+            const int nr = 5, nc = 5, days = 365;
             Get<TextBox>(f, "runout_ratio_textbox").Text = "20.0";
+            Get<TextBox>(f, "text_ls_rel_rain_intens").Text = "1";
+            Get<TextBox>(f, "daily_n").Text = "1";
             Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
             Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
             Get<CheckBox>(f, "only_waterflow_checkbox").Checked = false;
-            Get<CheckBox>(f, "daily_water").Checked = false;
+            Get<CheckBox>(f, "daily_water").Checked = true;
+            Get<CheckBox>(f, "check_scaling_daily_weather").Checked = false;
+            Get<CheckBox>(f, "check_time_rain").Checked = false;
+            Get<CheckBox>(f, "version_lux_checkbox").Checked = false;
 
-            // Prepare the exact daily water-erosion kernel for one small,
-            // convergent flow path: (0,0) -> (1,1). The landslide residual
-            // remains in the separate layer-resolved storage arrays.
-            Set(f, "rowcol_index", new string[25]);
+            Set(f, "t", 1);
             Set(f, "t_intervene", 0);
-            Set(f, "waterflow_m3", new double[5,5]);
-            Set(f, "evapotranspiration", new double[5,5]);
-            Set(f, "infil", new double[5,5]);
-            Set(f, "sum_water_erosion", new double[5,5]);
-            Set(f, "dz_ero_m", new double[5,5]);
-            Set(f, "dz_sed_m", new double[5,5]);
-            Set(f, "lake_sed_m", new double[5,5]);
-            Set(f, "K_fac", new double[5,5]);
-            Set(f, "bio_protection", new double[5,5]);
-            double[,] waterK = Get<double[,]>(f, "K_fac");
-            for (int r = 0; r < 5; r++)
-            for (int col = 0; col < 5; col++)
-                waterK[r,col] = 1e-6;
+            Set(f, "daily_weather_prepared_for_timestep", false);
+            Set(f, "index", new double[nr * nc]);
+            Set(f, "rowcol_index", new string[nr * nc]);
+            Set(f, "rain_value_m", 0.01);
+            Set(f, "temp_value_C", 10);
+            Set(f, "evap_value_m", 0.0);
+            Set(f, "infil_value_m", 0.0);
+
+            // One controlled 10-mm / 6-h rainfall event in the 365-day
+            // weather record. The remaining days are dry.
+            int[] precipitation = new int[days];
+            int[] duration = new int[days];
+            int[] tmin = new int[days];
+            int[] tavg = new int[days];
+            int[] tmax = new int[days];
+            precipitation[0] = 10;
+            duration[0] = 6;
+            for (int day = 0; day < days; day++)
+            {
+                tmin[day] = 5;
+                tavg[day] = 10;
+                tmax[day] = 15;
+            }
+            Set(f, "P_all", precipitation);
+            Set(f, "D_all", duration);
+            Set(f, "Tmin_all", tmin);
+            Set(f, "Tavg_all", tavg);
+            Set(f, "Tmax_all", tmax);
+
+            Set(f, "OFy_m", new double[nr,nc,10]);
+            Set(f, "waterflow_m3", new double[nr,nc]);
+            Set(f, "Ks_topsoil_m_h", new double[nr,nc]);
+            Set(f, "Ks_min_mh", 0.0001);
+            Set(f, "Ra_rcm", new double[nr,nc,12]);
+            Set(f, "veg_correction_factor", new double[nr,nc]);
+            Set(f, "ETay", new double[nr,nc]);
+            Set(f, "ET0y", new double[nr,nc]);
+            Set(f, "Iy", new double[nr,nc]);
+            Set(f, "pond_y", new double[nr,nc]);
+            Set(f, "outflow_y", new double[nr,nc]);
+            Set(f, "waterfactor", new double[nr,nc]);
+            Set(f, "total_outflow_y", new double[nr,nc]);
+            Set(f, "aridity_vegetation", new double[nr,nc]);
+            Set(f, "evapotranspiration", new double[nr,nc]);
+            Set(f, "infil", new double[nr,nc]);
+            Set(f, "sum_water_erosion", new double[nr,nc]);
+            Set(f, "dz_ero_m", new double[nr,nc]);
+            Set(f, "dz_sed_m", new double[nr,nc]);
+            Set(f, "lake_sed_m", new double[nr,nc]);
+            Set(f, "K_fac", new double[nr,nc]);
+            Set(f, "bio_protection", new double[nr,nc]);
+
+            double[,] ks = Get<double[,]>(f, "Ks_topsoil_m_h");
+            double[,] kfac = Get<double[,]>(f, "K_fac");
+            double[,] veg = Get<double[,]>(f, "veg_correction_factor");
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                ks[r,col] = 0.01;       // all non-source cells absorb rainfall excess
+                kfac[r,col] = 1e-6;
+                veg[r,col] = 1.0;
+            }
+            ks[0,0] = 0.0;              // the stable NW cell generates runoff
+            double[,,] radiation = Get<double[,,]>(f, "Ra_rcm");
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            for (int mo = 0; mo < 12; mo++)
+                radiation[r,col,mo] = 1e-6;
+
             Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
             Set(f, "water_ero_active", true);
             Set(f, "erodibility_value_m", 1e-6);
@@ -882,9 +958,6 @@ public static class LoricaTreedLandslideSmoke
             Set(f, "erosion_threshold_kg", 0.0);
             Set(f, "m", 0.5);
             Set(f, "n", 1.0);
-            Set(f, "rain_value_m", 0.0);
-            Set(f, "evap_value_m", 0.0);
-            Set(f, "infil_value_m", 0.0);
 
             Dictionary<string,string> cfg = new Dictionary<string,string>();
             cfg["landslide_event_mode"] = "explicit_event";
@@ -893,9 +966,15 @@ public static class LoricaTreedLandslideSmoke
             Call(f, "configure_treed_landslide_event", cfg);
 
             // Event 1 creates residual material at the closed central sink.
+            // Follow the same layer-maintenance and stability sequence used
+            // by every_timestep() before calculating the landslide event.
             double massBefore1 = TotalSoilMass(f);
-            Call(f, "calc_and_write_ls_rasters");
+            Call(f, "soil_update_split_and_combine_layers");
+            Call(f, "comb_sort");
+            Call(f, "ini_slope");
+            Call(f, "calculate_critical_rain");
             Call(f, "calculate_slide_new");
+            Call(f, "soil_update_split_and_combine_layers");
             double soilAfter1 = TotalSoilMass(f);
             double transportAfter1 = TotalPersistentLandslideMass(f);
             double totalAfter1 = soilAfter1 + transportAfter1;
@@ -903,67 +982,65 @@ public static class LoricaTreedLandslideSmoke
             if (transportAfter1 <= 1e-6 || closure1 > 1e-6)
                 throw new Exception("Event 1 did not produce a closed, mass-balanced residual store.");
 
-            // This is the actual annual reset routine used before water erosion.
-            // It clears the transient mixed transport arrays and runout state.
-            // Persistent landslide-only storage must survive this call.
+            // Annual hydrology runs before initialise_every() in the actual
+            // LORICA timestep. It generates OFy_m from the 365-day weather.
+            Call(f, "water_balance");
+            double[,,] annualFlow = Get<double[,,]>(f, "OFy_m");
+            double sourceFlow = annualFlow[0,0,2] + annualFlow[0,0,7] + annualFlow[0,0,8];
+            if (sourceFlow <= 0.0)
+                throw new Exception("Annual water_balance() did not generate flow from the source cell.");
+
+            // Match every_timestep(): water balance -> annual reset -> sort
+            // -> daily erosion -> layer split/combine.
             Call(f, "initialise_every");
+            Call(f, "comb_sort");
             double transportAfterReset = TotalPersistentLandslideMass(f);
             if (Math.Abs(transportAfterReset - transportAfter1) >
                 Math.Max(1e-6, transportAfter1 * 1e-10))
-                throw new Exception("Residual landslide material was lost by initialise_every(): before=" +
-                    transportAfter1.ToString("R") + ", after=" + transportAfterReset.ToString("R"));
+                throw new Exception("Residual landslide material was lost by initialise_every().");
 
-            // initialise_every() clears the overland-flow direction raster;
-            // rebuild the one-cell flow path afterwards, as the annual
-            // hydrology/water-erosion preparation does in the real timestep.
-            Set(f, "index", new double[25]);
-            Call(f, "comb_sort");
-            double[,,] waterFlowDirection = new double[5,5,10];
-            waterFlowDirection[0,0,8] = 1.0;
-            Set(f, "OFy_m", waterFlowDirection);
-            double[,] waterFlowVolume = Get<double[,]>(f, "waterflow_m3");
-            waterFlowVolume[0,0] = 1.0;
-
-            // Run the actual LORICA daily water-erosion routine between the
-            // landslide events. A small amount of material moves from (0,0)
-            // into the interior receiver (1,1), where it deposits.
             double soilBeforeWater = TotalSoilMass(f);
             Call(f, "calculate_water_ero_sed_daily");
             double soilAfterWater = TotalSoilMass(f);
             double transportAfterWater = TotalPersistentLandslideMass(f);
-            double waterErosionClosure = Math.Abs(soilBeforeWater - soilAfterWater) /
-                Math.Max(1.0, soilBeforeWater);
             double[,] waterErosion = Get<double[,]>(f, "dz_ero_m");
             double[,] waterDeposition = Get<double[,]>(f, "dz_sed_m");
-            double[,,] actualFlow = Get<double[,,]>(f, "OFy_m");
-            double[,] actualDtm = Get<double[,]>(f, "dtm");
-            double[,,] actualBulk = Get<double[,,]>(f, "bulkdensity");
+            double boundaryExport = TotalTransientWaterTransportMassAtBoundary(f);
+            double soilLoss = soilBeforeWater - soilAfterWater;
+            double waterErosionClosure = Math.Abs(soilLoss - boundaryExport) /
+                Math.Max(1.0, soilBeforeWater);
             double staleWaterTransportArrays = TotalTransportMass(f) - transportAfterWater;
-            Console.WriteLine(
-                "WATER_TEST_DIAG source_dtm=" + actualDtm[0,0].ToString("R") +
-                " receiver_dtm=" + actualDtm[1,1].ToString("R") +
-                " dh=" + (actualDtm[0,0] - actualDtm[1,1]).ToString("R") +
-                " OFy8=" + actualFlow[0,0,8].ToString("R") +
-                " bulkdensity=" + actualBulk[0,0,0].ToString("R") +
-                " K_fac=" + Get<double[,]>(f, "K_fac")[0,0].ToString("R") +
-                " dz_ero_source=" + waterErosion[0,0].ToString("R") +
-                " dz_sed_receiver=" + waterDeposition[1,1].ToString("R") +
-                " persistent_landslide_kg=" + transportAfterWater.ToString("R") +
-                " stale_water_transport_arrays_kg=" + staleWaterTransportArrays.ToString("R"));
+
             if (waterErosion[0,0] >= 0.0 || waterDeposition[1,1] <= 0.0)
-                throw new Exception("Daily water-erosion kernel did not erode the source and deposit at the receiver.");
+                throw new Exception("Annual hydrology did not produce source erosion and interior receiver deposition.");
             if (Math.Abs(transportAfterWater - transportAfterReset) >
                 Math.Max(1e-6, transportAfterReset * 1e-10))
-                throw new Exception("Water erosion changed the separately stored landslide residual.");
+                throw new Exception("Daily water erosion changed the persistent landslide residual.");
             if (waterErosionClosure > 1e-6)
-                throw new Exception("Water-erosion substep failed soil-mass closure: " + waterErosionClosure.ToString("R"));
+                throw new Exception("Annual water-erosion export failed soil-mass closure: " + waterErosionClosure.ToString("R"));
 
-            // Refresh the cell order after the water-erosion DEM update, then
-            // recompute the next timestep's stability field.
+            // Match the two layer-maintenance calls in the main timestep
+            // (after water erosion and immediately before landsliding).
+            double soilBeforeLayerMaintenance = TotalSoilMass(f);
+            Call(f, "soil_update_split_and_combine_layers");
+            Call(f, "soil_update_split_and_combine_layers");
+            double soilAfterLayerMaintenance = TotalSoilMass(f);
+            double layerMaintenanceClosure = Math.Abs(soilBeforeLayerMaintenance - soilAfterLayerMaintenance) /
+                Math.Max(1.0, soilBeforeLayerMaintenance);
+            if (layerMaintenanceClosure > 1e-10)
+                throw new Exception("Soil layer split/combine changed total soil mass: " + layerMaintenanceClosure.ToString("R"));
+            if (Math.Abs(TotalPersistentLandslideMass(f) - transportAfter1) >
+                Math.Max(1e-6, transportAfter1 * 1e-10))
+                throw new Exception("Soil layer maintenance changed persistent landslide residual mass.");
+
+            // Main timestep landslide order: sort, initialise slope parameters,
+            // calculate critical rainfall, move the residual, then maintain layers.
             Call(f, "comb_sort");
-            Call(f, "calc_and_write_ls_rasters");
+            Call(f, "ini_slope");
+            Call(f, "calculate_critical_rain");
             double massBefore2 = TotalSoilMass(f) + TotalPersistentLandslideMass(f);
             Call(f, "calculate_slide_new");
+            Call(f, "soil_update_split_and_combine_layers");
 
             double soilAfter2 = TotalSoilMass(f);
             double transportAfter2 = TotalPersistentLandslideMass(f);
@@ -971,8 +1048,8 @@ public static class LoricaTreedLandslideSmoke
             double closure2 = Math.Abs(massBefore2 - totalAfter2) / Math.Max(1.0, massBefore2);
             double[,] deposition2 = Get<double[,]>(f, "sed_slid_m");
             double depositionSum2 = 0.0;
-            for (int r = 0; r < 5; r++)
-            for (int col = 0; col < 5; col++)
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
                 depositionSum2 += deposition2[r,col];
 
             if (deposition2[2,2] <= 0.0 || depositionSum2 <= 0.0)
@@ -989,24 +1066,28 @@ public static class LoricaTreedLandslideSmoke
                 depositionSum2, massBefore2, soilAfter2, transportAfter2, closure2);
 
             string persistence =
-                "stage,soil_mass_kg,persistent_landslide_mass_kg,stale_water_transport_arrays_kg,total_physical_mass_kg,relative_closure\n" +
-                "event1," + F(soilAfter1) + "," + F(transportAfter1) + ",0," + F(totalAfter1) + "," + F(closure1) + "\n" +
-                "after_initialise_every," + F(soilAfter1) + "," + F(transportAfterReset) + ",0," + F(soilAfter1 + transportAfterReset) + "," + F(Math.Abs(totalAfter1 - (soilAfter1 + transportAfterReset)) / Math.Max(1.0,totalAfter1)) + "\n" +
-                "after_water_erosion," + F(soilAfterWater) + "," + F(transportAfterWater) + "," + F(staleWaterTransportArrays) + "," + F(soilAfterWater + transportAfterWater) + "," + F(waterErosionClosure) + "\n" +
-                "event2," + F(soilAfter2) + "," + F(transportAfter2) + ",0," + F(totalAfter2) + "," + F(closure2) + "\n";
+                "stage,soil_mass_kg,persistent_landslide_mass_kg,boundary_water_export_kg,stale_water_transport_arrays_kg,total_physical_mass_kg,relative_closure\n" +
+                "event1," + F(soilAfter1) + "," + F(transportAfter1) + ",0,0," + F(totalAfter1) + "," + F(closure1) + "\n" +
+                "after_annual_reset," + F(soilAfter1) + "," + F(transportAfterReset) + ",0,0," + F(soilAfter1 + transportAfterReset) + "," + F(Math.Abs(totalAfter1 - (soilAfter1 + transportAfterReset)) / Math.Max(1.0,totalAfter1)) + "\n" +
+                "after_annual_water_erosion," + F(soilAfterWater) + "," + F(transportAfterWater) + "," + F(boundaryExport) + "," + F(staleWaterTransportArrays) + "," + F(soilAfterWater + transportAfterWater) + "," + F(waterErosionClosure) + "\n" +
+                "after_layer_maintenance," + F(soilAfterLayerMaintenance) + "," + F(TotalPersistentLandslideMass(f)) + "," + F(boundaryExport) + "," + F(staleWaterTransportArrays) + "," + F(soilAfterLayerMaintenance + TotalPersistentLandslideMass(f)) + "," + F(layerMaintenanceClosure) + "\n" +
+                "event2," + F(soilAfter2) + "," + F(transportAfter2) + ",0,0," + F(totalAfter2) + "," + F(closure2) + "\n";
             File.WriteAllText(Path.Combine(root, "residual_persistence.csv"), persistence);
 
             Console.WriteLine(
                 "ROOT_CASE=" + scenario +
                 " mixing_mode=" + mixingMode +
-                " transport_event1_kg=" + transportAfter1.ToString("R") +
-                " transport_after_reset_kg=" + transportAfterReset.ToString("R") +
-                " transport_after_water_kg=" + transportAfterWater.ToString("R") +
-                " water_erosion_closure=" + waterErosionClosure.ToString("R") +
-                " transport_event2_kg=" + transportAfter2.ToString("R") +
-                " deposition_event2_m=" + depositionSum2.ToString("R") +
-                " closure_event1=" + closure1.ToString("R") +
-                " closure_event2=" + closure2.ToString("R"));
+                " event1_residual_kg=" + transportAfter1.ToString("R") +
+                " annual_flow_depth_m=" + sourceFlow.ToString("R") +
+                " water_erosion_soil_loss_kg=" + soilLoss.ToString("R") +
+                " boundary_export_kg=" + boundaryExport.ToString("R") +
+                " interior_deposition_m=" + waterDeposition[1,1].ToString("R") +
+                " persistent_after_water_kg=" + transportAfterWater.ToString("R") +
+                " layer_maintenance_closure=" + layerMaintenanceClosure.ToString("R") +
+                " event2_residual_kg=" + transportAfter2.ToString("R") +
+                " event2_deposition_m=" + depositionSum2.ToString("R") +
+                " water_closure=" + waterErosionClosure.ToString("R") +
+                " event2_closure=" + closure2.ToString("R"));
         }
     }
 
