@@ -783,6 +783,16 @@ geomorph_text = geomorph_text.replace(dtm_anchor, mixed_store + dtm_anchor, 1)
 geomorph.write_text(geomorph_text, encoding="utf-8")
 print("LORICA_V09_LANDSLIDE_MASS_ROUTING_PATCH_APPLIED")
 
+# 7e. Correct the water-erosion outlet test: grid index 0 is a valid
+# boundary cell, not an out-of-domain coordinate. The previous <= 0 test
+# falsely exported sediment from valid cells one cell inside the domain.
+replace_once(
+    geomorph,
+    "if ((row + i) >= nr | (row + i) <= 0 | (col + j) >= nc | (col + j) <= 0)",
+    "if ((row + i) >= nr | (row + i) < 0 | (col + j) >= nc | (col + j) < 0)",
+    "water-erosion outlet boundary off-by-one",
+)
+
 # 8. Add explicit defaults without changing the legacy model behaviour.
 cfg_paths = [ROOT / "coupling/TREED_coupling.cfg"]
 cfg_paths += sorted((ROOT / "coupling/scenarios").glob("*.cfg"))
