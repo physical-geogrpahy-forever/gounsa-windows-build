@@ -63,21 +63,33 @@ The process test checks:
 
 ## Verified results
 
-The process-kernel regression history below remains valid. The latest TREED-to-LORICA integration run is GitHub Actions **#64**, commit \`e8cea549ca52b0294b62f5e61db0b57eb5132288\`.
+The latest end-to-end Windows integration run is GitHub Actions **#77** ([run #77](https://github.com/physical-geogrpahy-forever/gounsa-windows-build/actions/runs/43437639072)), commit `d468661dcc8a0af3d8d5b594001a0e7d763033d7`. It extracts the exact v0.5 source bundle, applies the v0.9 LORICA fixes and per-cell TREED ECA seed patch, compiles the actual C# project, and runs the TREED–LORICA landslide test.
 
-- Windows LORICA compilation: passed; no compiler errors.
+- Windows LORICA compilation: passed.
 - Existing v0.5 Python regression suite: passed.
-- TREED Julia module instantiation and loading: passed.
-- Same-year LORICA daily climate to TREED monthly climate transfer: maximum numerical difference \(4.26 \times 10^{-14}\).
-- Actual TREED root-carbon, FPC, and LAI outputs were read by LORICA; the Hwang Eq. (5), FPC, and ET-factor transfer checks passed with zero recorded formula/transfer error.
-- Baseline and calibrated root-carbon rasters were byte-identical (SHA-256 \`25dfa6519125f2f39f81a178875c2e3684b86450fa73bdbca770a7b3ab51a41d\`); mean root C was \(1181.8501\;gC\,m^{-2}\).
-- The fixed event-scale effective tensile parameter was \(T_{r,eff}=1.09637\;MPa\), inverse-calibrated to a mean root cohesion of 7.6 kPa. This is a model calibration coefficient, not a measured species tensile strength.
-- The actual spatial root-cohesion raster had mean 7.6000 kPa, minimum 7.5568 kPa, and maximum 7.7615 kPa.
+- TREED Julia environment instantiation and module loading: passed.
+- Actual TREED root-carbon, FPC, and LAI outputs were read by LORICA; the Hwang Eq. (5), FPC, and ET-factor transfer checks passed.
+- Baseline and calibrated root-carbon rasters were byte-identical (SHA-256 `7c69e323337009fe53b247496ad679e3926a4c9ec8571df9fff463a19fdba17e`); mean root C was `1181.40304199 gC/m²`.
+- The fixed event-scale effective tensile parameter was `Tr_eff = 1.09678319 MPa`, inverse-calibrated to mean root cohesion of 7.6 kPa. This is a calibration coefficient, not a measured root tensile strength.
+- The actual spatial root-cohesion raster had mean 7.6000 kPa, minimum 7.5624 kPa, and maximum 7.7640 kPa.
 - Under the same 60 mm / 6 h event, the TREED-root case produced 0 initiations and 0 m summed erosion; the paired bare-root case produced 24 initiations and 24 m summed erosion.
-- Relative mass-closure error was 0 for the TREED-root case and \(2.38 \times 10^{-15}\) for the bare-root case.
-- The root-cohesion sensitivity sequence (0, 3.4, 7.6, 9.0, 9.1, 12.9, and 21.6 kPa) was monotonic in unstable-cell count and initiation count.
+- Relative mass-closure error was 0 for the TREED-root case and `2.38 × 10⁻¹⁵` for the bare-root case.
+- The root-cohesion sensitivity scenarios (0, 3.4, 7.6, 9.0, 9.1, 12.9, and 21.6 kPa) showed the expected threshold response: 24 initiations at 0 and 3.4 kPa, and 0 at 7.6 kPa or above.
 
-Run #63 failed because independently threaded TREED ECA optimizations produced different root-carbon rasters. #64 serializes only the cell loop in the CI copy of TREED's optimization routine, while retaining the original objective function and model equations. The baseline and calibrated root-carbon rasters then matched byte-for-byte, and the full integration validation passed. This CI-only determinism patch does not alter the TREED source bundle or production model equations.
+### TREED ECA reproducibility
+
+The #72 audit exposed a real thread-count dependence in the original ECA call: repeated runs were identical within each fixed thread count, but 1-thread and 4-thread runs produced different root-carbon rasters. The earlier CI-only serialization workaround was therefore superseded.
+
+The v0.9 patch now derives a unique deterministic seed for each grid cell from the run seed and linear cell index, then passes it into `Metaheuristics.Options(seed=...)` for both `fixed_original` and `adaptive_experimental` root-allocation branches. The original `Threads.@threads` loop, ECA objective, iteration count, and TREED ecological equations are retained.
+
+GitHub Actions #77 repeated the 5×5 run twice with 1 thread and twice with 4 threads:
+
+- All 15 TREED output files were byte-identical within each thread count.
+- All 15 TREED output files were also byte-identical between 1 and 4 threads.
+- Maximum cellwise root-carbon difference across thread counts: **0 gC/m²**.
+- Mean root carbon in all four runs: **1181.40304199 gC/m²**.
+
+This establishes deterministic TREED output for the tested 5×5 case across the tested thread counts. It does not by itself establish cross-version or cross-platform bitwise reproducibility.
 
 ## 2-D convergent hillslope and closed-sink tests
 
@@ -159,7 +171,7 @@ This is a process-kernel verification on synthetic 1-D and 5×5 2-D terrain. The
 
 ## Next verification stage
 
-1. **Completed in #64:** verify same-year TREED root carbon/FPC transfer and the resulting root-cohesion effect in LORICA's critical-rainfall and landslide routines. The same-year climate transfer and vegetation-to-ET coefficient were also checked; a full annual water-balance run with TREED-derived ET remains part of the next gate.
+1. **Completed in #77:** verify same-year TREED root carbon/FPC transfer, per-cell ECA reproducibility across 1- and 4-thread execution, and the resulting root-cohesion effect in LORICA's critical-rainfall and landslide routines. The same-year climate transfer and vegetation-to-ET coefficient were also checked; a full annual water-balance run with TREED-derived ET remains part of the next gate.
 2. Run a short multi-year 2-D LORICA–TREED case with the actual annual order: TREED update, daily water balance, water erosion, and rainfall-triggered landslide. Record DEM, soil depth/mass, layer composition, root cohesion, and transport ledgers at every year.
 3. Only after that test passes, expand to the 30-year coupling audit.
 
