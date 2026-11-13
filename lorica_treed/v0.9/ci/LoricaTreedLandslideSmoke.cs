@@ -1512,7 +1512,7 @@ public static class LoricaTreedLandslideSmoke
                 double actualP = Double.Parse(fields[2], CultureInfo.InvariantCulture);
                 maxClimateError = Math.Max(maxClimateError, Math.Abs(actualT - tmean));
                 maxClimateError = Math.Max(maxClimateError, Math.Abs(actualP - pmm));
-                day0 += month[mo];
+                day0 += monthDays[mo];
             }
             if (maxClimateError > 1e-8)
                 throw new Exception("TREED monthly climate does not match the same-year LORICA daily weather.");
