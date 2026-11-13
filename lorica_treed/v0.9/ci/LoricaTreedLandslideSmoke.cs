@@ -1130,6 +1130,154 @@ public static class LoricaTreedLandslideSmoke
         }
     }
 
+
+    static void TestAnnualWaterBalanceGeneratedWaterErosion()
+    {
+        string root = Path.Combine(OutputRoot, "annual_water_balance_generated_erosion");
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        using (Mother_form f = BuildConvergentCase(root, 1, false))
+        {
+            const int nr = 5, nc = 5, days = 365;
+            double[,] dtm = new double[nr,nc];
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+                dtm[r,col] = 110.0;
+            dtm[1,1] = 100.0;
+            dtm[0,0] = 90.0;
+            Set(f, "dtm", dtm);
+            Set(f, "t", 1);                 // avoid annual solar/Ks recalculation in this isolated test
+            Set(f, "t_intervene", 0);
+            Set(f, "daily_weather_prepared_for_timestep", false);
+            Set(f, "rain_value_m", 0.01);
+            Set(f, "temp_value_C", 10);
+
+            int[] precipitation = new int[days];
+            int[] duration = new int[days];
+            int[] tmin = new int[days];
+            int[] tavg = new int[days];
+            int[] tmax = new int[days];
+            precipitation[0] = 10;          // one 10-mm rainfall event
+            duration[0] = 6;                // over six hours
+            for (int day = 0; day < days; day++)
+            {
+                tmin[day] = 5;
+                tavg[day] = 10;
+                tmax[day] = 15;
+            }
+            Set(f, "P_all", precipitation);
+            Set(f, "D_all", duration);
+            Set(f, "Tmin_all", tmin);
+            Set(f, "Tavg_all", tavg);
+            Set(f, "Tmax_all", tmax);
+            Get<TextBox>(f, "daily_n").Text = "1";
+            Get<CheckBox>(f, "check_scaling_daily_weather").Checked = false;
+            Get<CheckBox>(f, "check_time_rain").Checked = false;
+            Get<CheckBox>(f, "daily_water").Checked = true;
+            Get<CheckBox>(f, "Water_ero_checkbox").Checked = true;
+            Get<CheckBox>(f, "Landslide_checkbox").Checked = true;
+            Get<CheckBox>(f, "only_waterflow_checkbox").Checked = false;
+            Get<CheckBox>(f, "version_lux_checkbox").Checked = false;
+
+            Set(f, "OFy_m", new double[nr,nc,10]);
+            Set(f, "waterflow_m3", new double[nr,nc]);
+            Set(f, "Ks_topsoil_m_h", new double[nr,nc]);
+            Set(f, "Ks_min_mh", 0.0001);
+            Set(f, "Ra_rcm", new double[nr,nc,12]);
+            Set(f, "veg_correction_factor", new double[nr,nc]);
+            Set(f, "ETay", new double[nr,nc]);
+            Set(f, "ET0y", new double[nr,nc]);
+            Set(f, "Iy", new double[nr,nc]);
+            Set(f, "pond_y", new double[nr,nc]);
+            Set(f, "outflow_y", new double[nr,nc]);
+            Set(f, "waterfactor", new double[nr,nc]);
+            Set(f, "total_outflow_y", new double[nr,nc]);
+            Set(f, "aridity_vegetation", new double[nr,nc]);
+            Set(f, "evapotranspiration", new double[nr,nc]);
+            Set(f, "infil", new double[nr,nc]);
+            Set(f, "sum_water_erosion", new double[nr,nc]);
+            Set(f, "dz_ero_m", new double[nr,nc]);
+            Set(f, "dz_sed_m", new double[nr,nc]);
+            Set(f, "lake_sed_m", new double[nr,nc]);
+            Set(f, "K_fac", new double[nr,nc]);
+            Set(f, "bio_protection", new double[nr,nc]);
+
+            double[,] ks = Get<double[,]>(f, "Ks_topsoil_m_h");
+            double[,] ra = Get<double[,,]>(f, "Ra_rcm").GetLength(0) == nr
+                ? new double[nr,nc] : new double[nr,nc];
+            double[,] kfac = Get<double[,]>(f, "K_fac");
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            {
+                ks[r,col] = 0.01;           // non-source cells absorb the rainfall
+                kfac[r,col] = 1e-6;
+                Get<double[,]>(f, "veg_correction_factor")[r,col] = 1.0;
+            }
+            ks[1,1] = 0.0;                  // runoff source
+            ks[0,0] = 0.0;                  // boundary receiver
+            double[,,] radiation = Get<double[,,]>(f, "Ra_rcm");
+            for (int r = 0; r < nr; r++)
+            for (int col = 0; col < nc; col++)
+            for (int mo = 0; mo < 12; mo++)
+                radiation[r,col,mo] = 1e-6;
+
+            Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
+            Set(f, "water_ero_active", true);
+            Set(f, "erodibility_value_m", 1e-6);
+            Set(f, "bio_protection_constant", 0.0);
+            Set(f, "rock_protection_constant", 0.0);
+            Set(f, "constant_selective_transcap", 0.0);
+            Set(f, "erosion_threshold_kg", 0.0);
+            Set(f, "m", 0.5);
+            Set(f, "n", 1.0);
+
+            // Actual annual water-balance routine prepares daily weather and
+            // accumulates daily overland-flow directions into OFy_m.
+            Call(f, "water_balance");
+            double[,,] annualFlow = Get<double[,,]>(f, "OFy_m");
+            double sourceFlow = annualFlow[1,1,1];
+            if (sourceFlow <= 0.0)
+                throw new Exception("water_balance() did not generate annual source-to-boundary overland flow.");
+
+            // Match every_timestep(): annual hydrology first, then annual reset,
+            // cell re-sort, and daily sediment-erosion kernel.
+            Call(f, "initialise_every");
+            Set(f, "index", new double[nr * nc]);
+            Call(f, "comb_sort");
+            double soilBefore = TotalSoilMass(f);
+            Call(f, "calculate_water_ero_sed_daily");
+            double soilAfter = TotalSoilMass(f);
+            double transportAfter = TotalTransportMass(f);
+            double soilLoss = soilBefore - soilAfter;
+            double closure = Math.Abs(soilLoss - transportAfter) / Math.Max(1.0, soilBefore);
+            double[,] erosion = Get<double[,]>(f, "dz_ero_m");
+
+            if (erosion[1,1] >= 0.0)
+                throw new Exception("Annual water-balance flow did not erode the source cell.");
+            if (transportAfter <= 0.0)
+                throw new Exception("Annual water-balance sediment did not reach the open boundary.");
+            if (closure > 1e-6)
+                throw new Exception("Annual water-balance water-erosion mass closure failed: " + closure.ToString("R"));
+
+            string summary =
+                "annual_rainfall_m=" + Get<double>(f, "rain_value_m").ToString("R") + Environment.NewLine +
+                "source_flow_direction_m=" + sourceFlow.ToString("R") + Environment.NewLine +
+                "soil_before_kg=" + soilBefore.ToString("R") + Environment.NewLine +
+                "soil_after_kg=" + soilAfter.ToString("R") + Environment.NewLine +
+                "soil_loss_kg=" + soilLoss.ToString("R") + Environment.NewLine +
+                "boundary_transport_kg=" + transportAfter.ToString("R") + Environment.NewLine +
+                "relative_mass_closure=" + closure.ToString("R") + Environment.NewLine +
+                "source_erosion_m=" + erosion[1,1].ToString("R") + Environment.NewLine;
+            File.WriteAllText(Path.Combine(root, "annual_water_balance_erosion_summary.txt"), summary);
+            Console.WriteLine(
+                "ANNUAL_WATER_BALANCE_EROSION_PASS source_flow_m=" + sourceFlow.ToString("R") +
+                " soil_loss_kg=" + soilLoss.ToString("R") +
+                " boundary_transport_kg=" + transportAfter.ToString("R") +
+                " closure=" + closure.ToString("R"));
+        }
+    }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -1161,6 +1309,7 @@ public static class LoricaTreedLandslideSmoke
         TestResidualPersistenceAcrossTimesteps("residual_persistence_complete", 1);
         TestResidualPersistenceAcrossTimesteps("residual_persistence_translation", 2);
         TestDailyflowGeneratedWaterErosion();
+        TestAnnualWaterBalanceGeneratedWaterErosion();
 
         File.WriteAllText(Path.Combine(OutputRoot, "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS.txt"),
             "LORICA_TREED_V09_LANDSLIDE_SMOKE_PASS" + Environment.NewLine);
