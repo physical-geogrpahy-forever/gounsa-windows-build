@@ -78,18 +78,37 @@ The first process run reported an 8.333% mass deficit. After correcting residual
 
 Detailed ledgers and the run-by-run diagnosis are in [MASS_BALANCE_AUDIT.md](MASS_BALANCE_AUDIT.md).
 
+
+## Cross-timestep residual transport verification
+
+The source audit found that the original annual reset cleared the fully mixed transport arrays, while the layer-preserving arrays survived without their runout state being reconstructed. A single-event mass balance therefore did not establish persistence into the next timestep.
+
+v0.9 now uses the layer-resolved landslide arrays as landslide-only persistent storage for fully mixed residuals as well. At the beginning of the next landslide calculation, the stored mass is restored to the selected mixing mode and its runout thickness is reconstructed from the PTF-derived transported mass. This keeps the residual separate from the transient mixed arrays shared with water erosion.
+
+GitHub Actions #27 tested both mixing modes through two successive events, explicitly calling LORICA's \`initialise_every()\` between them:
+
+| Check | Fully mixed | Layer-preserving |
+|---|---:|---:|
+| Residual after event 1 | 1,252,616.880 kg | 1,252,553.992 kg |
+| Residual after \`initialise_every()\` | unchanged | unchanged |
+| Residual after event 2 | 1,179,501.647 kg | 1,179,316.162 kg |
+| Event 2 deposition depth | 0.500 m | 0.500 m |
+| Event 2 relative mass error | \(1.16\times10^{-16}\) | \(2.32\times10^{-16}\) |
+
+This verifies persistence through the annual reset routine and remobilization/deposition in a second event in the synthetic closed-basin test. It does not yet execute the full water-erosion process between events or demonstrate multi-decadal catchment behavior.
+
 ## Scope boundary
 
-This is a process-kernel verification on a synthetic 1-D slope. It is **not** a 2-D catchment validation, a 30-year landscape-evolution run, or field validation. It also does not validate the spatial accuracy of TREED root biomass or the Hwang et al. (2015) biomass-to-cohesion transfer for a specific site.
+This is a process-kernel verification on synthetic 1-D and 5×5 2-D terrain, including two sequential events with the annual reset routine between them. It is **not** a catchment validation, a 30-year landscape-evolution run, or field validation. It also does not validate the spatial accuracy of TREED root biomass or the Hwang et al. (2015) biomass-to-cohesion transfer for a specific site.
 
 ## Next verification stage
 
 Before a 30-year run:
 
-1. Run a 2-D convergent-slope test with multiple upslope source cells and an explicitly defined outlet/closed boundary.
-2. Verify annual TREED root-biomass changes are passed into the same year's landslide calculation.
+1. Run the 2-D multi-event test with the actual water-erosion routine enabled between landslide events, not only its annual reset routine.
+2. Verify annual TREED root-biomass changes are passed into the same year's landslide calculation and that the persistent residual remains independent of water-erosion transport.
 3. Test event rainfall together with the daily water-balance state and document the steady-state transmissivity assumption.
-4. Run a short multi-year 2-D case with water erosion and landsliding enabled; inspect DEM, soil mass, layer composition, and transport ledgers at every event.
+4. Run a short multi-year 2-D LORICA–TREED case; inspect DEM, soil mass, layer composition, root cohesion, and transport ledgers at every event.
 5. Only then expand to the 30-year coupling audit.
 
 No taproot geometry, fire module, or unverified root architecture is introduced in v0.9. Root reinforcement remains based on TREED area-normalized fine + coarse root biomass and the Hwang et al. (2015) biomass-to-cohesion relationship.
