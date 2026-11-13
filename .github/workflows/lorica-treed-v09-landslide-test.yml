@@ -393,7 +393,7 @@ jobs:
             work/LORICA/Functions/hydro.cs
             work/LORICA/LORICA_main.cs
             work/LORICA/**/*.cs
-            work/TREED/src/TREED_model_functions.jl
+            work/TREED/src/**
             work/TREED/Project.toml
             work/TREED/Manifest.toml
             work/TREED/src/TREED_physiological_functions.jl
