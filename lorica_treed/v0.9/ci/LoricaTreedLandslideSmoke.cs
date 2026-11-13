@@ -1526,6 +1526,8 @@ public static class LoricaTreedLandslideSmoke
             Call(f, "configure_treed_landslide_event", eventCfg);
 
             double[,] treedRootMap = (double[,])rootCohesion.Clone();
+            double[,] treedEtMap = (double[,])Get<double[,]>(f, "veg_correction_factor").Clone();
+            double[,] treedCoverMap = (double[,])Get<double[,]>(f, "aridity_vegetation").Clone();
             double rootMean = 0.0, rootMin = Double.PositiveInfinity, rootMax = Double.NegativeInfinity;
             for (int r = 0; r < nr; r++)
             for (int col = 0; col < nc; col++)
@@ -1589,6 +1591,8 @@ public static class LoricaTreedLandslideSmoke
             using (Mother_form bare = BuildConvergentCase(Path.Combine(root, "bare_root_control"), 1, false))
             {
                 Set(bare, "root_cohesion_kPa_new", new double[nr,nc]);
+                Set(bare, "veg_correction_factor", (double[,])treedEtMap.Clone());
+                Set(bare, "aridity_vegetation", (double[,])treedCoverMap.Clone());
                 Call(bare, "configure_treed_landslide_event", eventCfg);
                 double bareMassBefore = TotalSoilMass(bare);
                 Call(bare, "calc_and_write_ls_rasters");
@@ -1610,6 +1614,79 @@ public static class LoricaTreedLandslideSmoke
                 throw new Exception("TREED root cohesion did not reduce landslide initiation and erosion relative to the paired bare-root control.");
             if (bareMassClosure > 1e-6)
                 throw new Exception("Bare-root control landslide mass closure failed: " + bareMassClosure.ToString("R"));
+
+            // Sweep explicit reduction factors without changing the production
+            // configuration. The 21.6-kPa case reproduces Hwang et al. (2015)'s
+            // spatially uniform Wu-method comparison value.
+            double[] reductionFactors = new double[] {
+                0.0, 0.025, 0.05, 0.075, 0.10, 21.6 / rootMean, 0.20, 0.40, 0.67, 1.0
+            };
+            StringBuilder sensitivityCsv = new StringBuilder();
+            sensitivityCsv.AppendLine("reduction_factor,mean_root_cohesion_kPa,unstable_threshold_cells,landslide_initiations,erosion_m,relative_mass_closure,min_critical_rain_m_d,max_critical_rain_m_d");
+            int previousUnstableCells = Int32.MaxValue;
+            int previousInitiations = Int32.MaxValue;
+            for (int fi = 0; fi < reductionFactors.Length; fi++)
+            {
+                double factor = reductionFactors[fi];
+                string factorLabel = factor.ToString("0.000000", CultureInfo.InvariantCulture).Replace(".", "_");
+                string sensitivityDir = Path.Combine(root, "root_cohesion_sensitivity", factorLabel);
+                using (Mother_form sens = BuildConvergentCase(sensitivityDir, 1, false))
+                {
+                    double[,] scaledRootMap = new double[nr,nc];
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                        scaledRootMap[r,col] = treedRootMap[r,col] * factor;
+                    Set(sens, "root_cohesion_kPa_new", scaledRootMap);
+                    Set(sens, "veg_correction_factor", (double[,])treedEtMap.Clone());
+                    Set(sens, "aridity_vegetation", (double[,])treedCoverMap.Clone());
+                    Call(sens, "configure_treed_landslide_event", eventCfg);
+
+                    double massBefore = TotalSoilMass(sens);
+                    Call(sens, "calc_and_write_ls_rasters");
+                    double[,] critical = Get<double[,]>(sens, "crrain_m_d");
+                    int unstableCells = 0;
+                    double minCritical = Double.PositiveInfinity;
+                    double maxCritical = Double.NegativeInfinity;
+                    for (int r = 0; r < nr; r++)
+                    for (int col = 0; col < nc; col++)
+                    {
+                        double v = critical[r,col];
+                        if (v >= 0.0)
+                        {
+                            unstableCells++;
+                            minCritical = Math.Min(minCritical, v);
+                            maxCritical = Math.Max(maxCritical, v);
+                        }
+                    }
+
+                    Call(sens, "calculate_slide_new");
+                    int initiations = Get<int>(sens, "landslide_initiation_cells");
+                    double erosion = SumAbs(Get<double[,]>(sens, "ero_slid_m"));
+                    double massAfter = TotalSoilMass(sens);
+                    double transport = TotalTransportMass(sens);
+                    double closure = Math.Abs(massBefore - massAfter - transport) / Math.Max(1.0, massBefore);
+                    if (closure > 1e-6)
+                        throw new Exception("Root-cohesion sensitivity mass closure failed at factor " + factor.ToString("R") + ": " + closure.ToString("R"));
+                    if (unstableCells > previousUnstableCells || initiations > previousInitiations)
+                        throw new Exception("Root-cohesion sensitivity was not monotonic at factor " + factor.ToString("R"));
+                    previousUnstableCells = unstableCells;
+                    previousInitiations = initiations;
+
+                    double meanCr = rootMean * factor;
+                    if (Double.IsPositiveInfinity(minCritical)) minCritical = -9999.0;
+                    if (Double.IsNegativeInfinity(maxCritical)) maxCritical = -9999.0;
+                    sensitivityCsv.AppendLine(String.Join(",",
+                        factor.ToString("R", CultureInfo.InvariantCulture),
+                        meanCr.ToString("R", CultureInfo.InvariantCulture),
+                        unstableCells.ToString(CultureInfo.InvariantCulture),
+                        initiations.ToString(CultureInfo.InvariantCulture),
+                        erosion.ToString("R", CultureInfo.InvariantCulture),
+                        closure.ToString("R", CultureInfo.InvariantCulture),
+                        minCritical.ToString("R", CultureInfo.InvariantCulture),
+                        maxCritical.ToString("R", CultureInfo.InvariantCulture)));
+                }
+            }
+            File.WriteAllText(Path.Combine(root, "TREED_LANDSLIDE_STABILITY_SENSITIVITY.csv"), sensitivityCsv.ToString());
 
             string stabilitySummary =
                 "TREED_ROOT_MAP_MEAN_KPA=" + rootMean.ToString("R", CultureInfo.InvariantCulture) + Environment.NewLine +
