@@ -42,7 +42,7 @@ jobs:
       - name: Cache Julia depot (v0.8 calibrated roundtrip)
         uses: julia-actions/cache@v2
         with:
-          cache-name: lorica-treed-v08-windows-julia-1.11.6
+          cache-name: lorica-treed-v05-windows-julia-1.11.6
 
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
