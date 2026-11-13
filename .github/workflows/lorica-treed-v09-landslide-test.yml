@@ -120,4 +120,7 @@ jobs:
             work/LORICA/Functions/geomorph.cs
             work/LORICA/Functions/treed_coupling.cs
             work/LORICA/Functions/initialise_update.cs
+            work/LORICA/Functions/soil.cs
+            work/LORICA/Functions/hydro.cs
+            work/LORICA/LORICA_main.cs
           if-no-files-found: warn
