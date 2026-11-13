@@ -43,7 +43,7 @@ jobs:
       - name: Cache Julia depot
         uses: julia-actions/cache@v2
         with:
-          cache-name: lorica-treed-v010-windows-julia-1.11.6
+          cache-name: lorica-treed-v09-windows-julia-1.11.6
 
       - name: Extract exact v0.5 LORICA-TREED source
         shell: pwsh
