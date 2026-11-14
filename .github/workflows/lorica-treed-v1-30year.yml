@@ -1,0 +1,231 @@
+name: LORICA-TREED v1.0 30-year native timestep run
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.0-30year
+    paths:
+      - 'lorica_treed/v0.7/**'
+      - 'lorica_treed/v0.9/**'
+      - 'lorica_treed/v1.0/**'
+      - '.github/workflows/lorica-treed-v1-30year.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lorica-treed-v1-30year-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  thirty-year-native-loop:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout Gounsa
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Cache Julia depot
+        uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v1-30year-windows-julia-1.11.6
+
+      - name: Extract exact v0.5 LORICA-TREED source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+
+      - name: Apply current v0.9 and v1.0 coupling patch
+        shell: pwsh
+        run: |
+          python lorica_treed/v0.9/apply_v09_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host 'NATIVE_EVERY_TIMESTEP_TREED_HOOK='
+          Select-String -Path work/LORICA/LORICA_main.cs -Pattern 'run_treed_coupling|every_timestep'
+          Write-Host 'ANNUAL_KS_AND_BEDROCK_POLICY='
+          Select-String -Path work/LORICA/Functions/treed_coupling.cs,work/LORICA/Functions/hydro.cs -Pattern 'treed_bare_bedrock_policy|treed_ks_refresh_mode|treed_refresh_ks_each_year'
+
+      - name: Prepare deterministic annual TREED driver
+        shell: pwsh
+        run: |
+          $treedModule = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $source = [System.IO.File]::ReadAllText($treedModule)
+          $source = $source.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $source = [System.Text.RegularExpressions.Regex]::Replace($source, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($treedModule, $source, (New-Object System.Text.UTF8Encoding($false)))
+
+          $modelFunctions = Join-Path $PWD 'work/TREED/src/TREED_model_functions.jl'
+          $modelSource = [System.IO.File]::ReadAllText($modelFunctions)
+          $parallelLoop = 'Threads.@threads for i = 1:length(lookup(traits_start.H, X))'
+          if (-not $modelSource.Contains($parallelLoop)) { throw 'TREED ECA optimization loop anchor missing' }
+          $modelSource = $modelSource.Replace($parallelLoop, 'for i = 1:length(lookup(traits_start.H, X))')
+          [System.IO.File]::WriteAllText($modelFunctions, $modelSource, (New-Object System.Text.UTF8Encoding($false)))
+
+          $coupling = Join-Path $PWD 'work/coupling'
+          Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
+          Copy-Item (Join-Path $PWD 'lorica_treed/v1.0/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
+
+          $cfgSource = Join-Path $coupling 'scenarios/01_original_treed_control.cfg'
+          $cfg = [System.IO.File]::ReadAllText($cfgSource)
+          $cfg = $cfg.Replace('driver_path=treed_lorica_driver.jl', 'driver_path=treed_lorica_driver_seeded_wrapper.jl')
+          if ($cfg -notmatch '(?m)^treed_random_seed=') { $cfg += [Environment]::NewLine + 'treed_random_seed=20261113' + [Environment]::NewLine }
+          [System.IO.File]::WriteAllText((Join-Path $coupling 'TREED_coupling.cfg'), $cfg, (New-Object System.Text.UTF8Encoding($false)))
+          Write-Host 'TREED_30_YEAR_DRIVER_READY'
+
+      - name: Instantiate TREED Julia environment
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Load TREED Julia module
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Restore and compile LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe not produced' }
+          Write-Host 'LORICA_V1_0_BUILD_OK'
+
+      - name: Compile 30-year native-loop runner
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.0\ci\LoricaTreedThirtyYear.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LoricaTreedThirtyYear.exe)) { throw '30-year runner not produced' }
+
+      - name: Generate the unchanged TREED root-carbon baseline
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $baselineOut = Join-Path $work 'landslide_baseline'
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS = '1'
+          $env:LORICA_TREED_BASELINE_ONLY = '1'
+          New-Item -ItemType Directory -Force -Path $baselineOut | Out-Null
+          & .\LoricaTreedThirtyYear.exe $baselineOut
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path (Join-Path $baselineOut 'LORICA_TREED_V09_BASELINE_ROOTC_PASS.txt'))) {
+            throw 'TREED baseline root-carbon marker missing'
+          }
+          $rootC = Join-Path $baselineOut 'treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output/treed_rootC_areanorm_gC_m2.asc'
+          if (-not (Test-Path $rootC)) { throw 'Baseline TREED root-C raster missing' }
+          Copy-Item $rootC (Join-Path $work 'baseline_rootC.asc') -Force
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+          Write-Host 'V1_0_BASELINE_ROOTC_READY'
+
+      - name: Calibrate one fixed event-scale Tr from the baseline
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
+          python lorica_treed/v0.7/calibrate_event_cohesion.py work/baseline_rootC.asc work/coupling/TREED_coupling.cfg hales2009_wu_mean work/calibration/TREED_coupling_hales2009_wu.cfg work/calibration/hales2009_wu_calibration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
+          Get-Content work/calibration/hales2009_wu_calibration.json
+
+      - name: Run 30 consecutive native LORICA timesteps with TREED
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $runOut = Join-Path $work 'thirty_year_run'
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS = '1'
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $runOut | Out-Null
+          & .\LoricaTreedThirtyYear.exe $runOut
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $marker = Join-Path $runOut 'thirty_year_normal_timestep/LORICA_TREED_V1_0_30_YEAR_NORMAL_TIMESTEP_PASS.txt'
+          if (-not (Test-Path $marker)) { throw '30-year native timestep marker missing' }
+          Get-Content $marker
+
+      - name: Validate 30-year state and mass ledgers
+        shell: pwsh
+        run: |
+          @'
+          import csv, pathlib
+
+          root = pathlib.Path("work/thirty_year_run/thirty_year_normal_timestep")
+          with (root / "annual_state.csv").open(newline="", encoding="utf-8") as f:
+              rows = list(csv.DictReader(f))
+          with (root / "soil_layers.csv").open(newline="", encoding="utf-8") as f:
+              layers = list(csv.DictReader(f))
+          assert len(rows) == 30, len(rows)
+          assert len(layers) == 30 * 5 * 5 * 10, len(layers)
+          assert [int(r["year"]) for r in rows] == list(range(1, 31))
+          assert max(float(r["mass_closure"]) for r in rows) < 1e-6
+          assert max(float(r["treed_input_DTM_error_m"]) for r in rows) <= 5.1e-7
+          assert max(float(r["treed_input_soildepth_error_m"]) for r in rows) <= 5.1e-7
+          assert max(float(r["layer_depth_error_m"]) for r in rows) <= 1e-5
+          assert any(float(r["water_erosion_sum_m"]) > 0 for r in rows)
+          assert any(int(r["landslide_initiations"]) > 0 or float(r["landslide_erosion_sum_m"]) > 0 for r in rows)
+          assert any(float(r["persistent_after_kg"]) > 0 for r in rows)
+          assert any(float(r["max_DTM_change_m"]) > 0 for r in rows)
+          audit = root / "TREED_exchange_run_9030" / "TREED_driver_audit.csv"
+          with audit.open(newline="", encoding="utf-8") as f:
+              driver = list(csv.DictReader(f))
+          assert len(driver) == 30
+          assert driver[0]["restart_present_before"] == "false"
+          assert all(r["restart_present_after"] == "true" for r in driver)
+          assert all(driver[i]["restart_present_before"] == "true" for i in range(1, 30))
+          ts = root / "TREED_exchange_run_9030" / "TREED_rootcohesion_timeseries.csv"
+          assert len(ts.read_text(encoding="utf-8").splitlines()) == 31
+          assert len(list(root.glob("year_*"))) == 30
+          print("V1_0_30_YEAR_NATIVE_TIMESTEP_VALIDATION_PASS")
+          print("years=", len(rows), "soil_layer_records=", len(layers))
+          print("max_mass_closure=", max(float(r["mass_closure"]) for r in rows))
+          print("max_DTM_exchange_error_m=", max(float(r["treed_input_DTM_error_m"]) for r in rows))
+          print("max_soil_exchange_error_m=", max(float(r["treed_input_soildepth_error_m"]) for r in rows))
+          print("total_water_erosion=", sum(float(r["water_erosion_sum_m"]) for r in rows))
+          print("total_landslide_erosion=", sum(float(r["landslide_erosion_sum_m"]) for r in rows))
+          '@ | Set-Content -Encoding utf8 work/validate_30_year.py
+          python work/validate_30_year.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload 30-year model outputs and source audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-treed-v1-0-30-year-${{ github.run_number }}
+          path: |
+            work/baseline_rootC.asc
+            work/calibration/**
+            work/thirty_year_run/**
+            work/LORICA/Functions/geomorph.cs
+            work/LORICA/Functions/treed_coupling.cs
+            work/LORICA/Functions/hydro.cs
+            work/LORICA/Functions/soil.cs
+            work/LORICA/LORICA_main.cs
+            work/TREED/src/TREED_model_functions.jl
+            work/coupling/**
+          if-no-files-found: warn
