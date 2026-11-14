@@ -102,6 +102,12 @@ jobs:
           julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
       - name: Restore and compile LORICA
         shell: pwsh
         working-directory: work/LORICA
