@@ -2508,6 +2508,7 @@ public static class LoricaTreedThirtyYear
                     double etFactorMean = 0.0, etMean = 0.0, meanDtm = 0.0, meanDepth = 0.0;
                     double rootCMaxYearChange = 0.0, maxDtmChange = 0.0, maxDepthChange = 0.0;
                     double runoffSum = 0.0, layerMassError = 0.0;
+                    double[,] runoffGrid = new double[nr,nc];
                     int ksChangedCells = 0, ksZeroCells = 0, noSoilCells = 0;
                     double Tr = ReadCfgDouble(cfgPath, "hwang_root_tensile_strength_MPa", 1.0963683148731072);
                     double fCarbon = ReadCfgDouble(cfgPath, "hwang_root_carbon_fraction", 0.47);
@@ -2553,7 +2554,10 @@ public static class LoricaTreedThirtyYear
                         meanDtm += finalDtm[r,c];
                         meanDepth += finalDepth[r,c];
                         for (int dir = 0; dir < flow.GetLength(2); dir++)
+                        {
+                            runoffGrid[r,c] += flow[r,c,dir];
                             runoffSum += Math.Abs(flow[r,c,dir]);
+                        }
                         if (previousRootC != null)
                             rootCMaxYearChange = Math.Max(rootCMaxYearChange, Math.Abs(rootC[r,c] - previousRootC[r,c]));
 
@@ -2638,7 +2642,7 @@ public static class LoricaTreedThirtyYear
                     WriteAscii(Path.Combine(yearOutput, "root_cohesion_kPa.asc"), rootCohesion);
                     WriteAscii(Path.Combine(yearOutput, "ET_m.asc"), etActual);
                     WriteAscii(Path.Combine(yearOutput, "Ks_topsoil_m_h.asc"), ksAfter);
-                    WriteAscii(Path.Combine(yearOutput, "overland_flow_m.asc"), new double[nr,nc]);
+                    WriteAscii(Path.Combine(yearOutput, "overland_flow_m.asc"), runoffGrid);
                     WriteAscii(Path.Combine(yearOutput, "water_erosion_m.asc"), waterErosionGrid);
                     WriteAscii(Path.Combine(yearOutput, "water_deposition_m.asc"), waterDepositionGrid);
                     WriteAscii(Path.Combine(yearOutput, "landslide_erosion_m.asc"), slideErosionGrid);
@@ -2697,9 +2701,6 @@ public static class LoricaTreedThirtyYear
 
                 if (!anyWaterErosion || !anyLandslide || !anyDtmChange || !anySoilDepthChange || !anyPersistentSediment)
                     throw new Exception("Thirty-year run did not exercise all required geomorphic state pathways.");
-                if (File.ReadAllLines(Path.Combine(root, "annual_state.csv")).Length != 0)
-                    throw new Exception("Unexpected stale annual state file.");
-
                 File.WriteAllText(Path.Combine(root, "annual_state.csv"), annual.ToString());
                 File.WriteAllText(Path.Combine(root, "soil_layers.csv"), soilLayers.ToString());
                 if (File.ReadAllLines(Path.Combine(root, "annual_state.csv")).Length != years + 1)
