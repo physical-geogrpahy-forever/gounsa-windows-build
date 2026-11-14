@@ -1,13 +1,15 @@
-name: LORICA-TREED v1.0 30-year native timestep run
+name: LORICA-TREED v1.1 formula wiring and 30-year native timestep run
 
 on:
   push:
     branches:
       - lorica-treed-v1.0-30year
+      - lorica-treed-v1.1-erosion-wiring-audit
     paths:
       - 'lorica_treed/v0.7/**'
       - 'lorica_treed/v0.9/**'
       - 'lorica_treed/v1.0/**'
+      - 'lorica_treed/v1.1/**'
       - '.github/workflows/lorica-treed-v1-30year.yml'
   workflow_dispatch:
 
@@ -15,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: lorica-treed-v1-30year-${{ github.ref }}
+  group: lorica-treed-v1-1-30year-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,7 +41,7 @@ jobs:
       - name: Cache Julia depot
         uses: julia-actions/cache@v2
         with:
-          cache-name: lorica-treed-v1-30year-windows-julia-1.11.6
+          cache-name: lorica-treed-v1-1-30year-windows-julia-1.11.6
 
       - name: Extract exact v0.5 LORICA-TREED source
         shell: pwsh
@@ -48,10 +50,10 @@ jobs:
           tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
           if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
 
-      - name: Apply current v0.9 and v1.0 coupling patch
+      - name: Apply v1.1 erosion-parameter wiring patch
         shell: pwsh
         run: |
-          python lorica_treed/v0.9/apply_v09_patch.py work
+          python lorica_treed/v1.1/apply_v11_formula_patch.py work
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Write-Host 'NATIVE_EVERY_TIMESTEP_TREED_HOOK='
           Select-String -Path work/LORICA/LORICA_main.cs -Pattern 'run_treed_coupling|every_timestep'
@@ -125,7 +127,7 @@ jobs:
         run: |
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
           if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
-          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.0\ci\LoricaTreedThirtyYear.cs
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaTreedThirtyYear.cs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path bin/Release/LoricaTreedThirtyYear.exe)) { throw '30-year runner not produced' }
 
@@ -171,7 +173,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $runOut | Out-Null
           & .\LoricaTreedThirtyYear.exe $runOut
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $marker = Join-Path $runOut 'thirty_year_normal_timestep/LORICA_TREED_V1_0_30_YEAR_NORMAL_TIMESTEP_PASS.txt'
+          $marker = Join-Path $runOut 'thirty_year_normal_timestep/LORICA_TREED_V1_1_30_YEAR_NORMAL_TIMESTEP_PASS.txt'
           if (-not (Test-Path $marker)) { throw '30-year native timestep marker missing' }
           Get-Content $marker
 
@@ -207,7 +209,7 @@ jobs:
           ts = root / "TREED_exchange_run_9030" / "TREED_rootcohesion_timeseries.csv"
           assert len(ts.read_text(encoding="utf-8").splitlines()) == 31
           assert len(list(root.glob("year_*"))) == 30
-          print("V1_0_30_YEAR_NATIVE_TIMESTEP_VALIDATION_PASS")
+          print("V1_1_30_YEAR_NATIVE_TIMESTEP_VALIDATION_PASS")
           print("years=", len(rows), "soil_layer_records=", len(layers))
           print("max_mass_closure=", max(float(r["mass_closure"]) for r in rows))
           print("max_DTM_exchange_error_m=", max(float(r["treed_input_DTM_error_m"]) for r in rows))
@@ -222,7 +224,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lorica-treed-v1-0-30-year-${{ github.run_number }}
+          name: lorica-treed-v1-1-30-year-${{ github.run_number }}
           path: |
             work/baseline_rootC.asc
             work/calibration/**
