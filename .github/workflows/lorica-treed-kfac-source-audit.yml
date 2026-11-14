@@ -1,0 +1,50 @@
+name: LORICA K-factor source audit
+
+on:
+  push:
+    branches:
+      - lorica-treed-kfac-source-audit
+    paths:
+      - '.github/workflows/lorica-treed-kfac-source-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit-k-factor:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract original LORICA-TREED source
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+
+      - name: Audit all K-factor and erosion parameter assignments
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem work/LORICA -Recurse -File -Include *.cs
+          $patterns = 'K_fac|erodibility_value_m|parameter_K_textbox|advection_erodibility|bio_protection'
+          $hits = $files | Select-String -Pattern $patterns -Context 3,3
+          $hits | ForEach-Object {
+            "FILE: $($_.Path)"
+            "LINE: $($_.LineNumber)"
+            $_.Context.PreContext
+            $_.Line
+            $_.Context.PostContext
+            "----"
+          } | Set-Content -Encoding utf8 work/kfac_source_audit.txt
+          if (-not (Test-Path work/kfac_source_audit.txt)) { throw 'K-factor audit output missing' }
+          Write-Host 'K_FACTOR_SOURCE_AUDIT_COMPLETE'
+          Get-Content work/kfac_source_audit.txt
+
+      - name: Upload source audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-kfac-source-audit
+          path: work/kfac_source_audit.txt
+          if-no-files-found: error
