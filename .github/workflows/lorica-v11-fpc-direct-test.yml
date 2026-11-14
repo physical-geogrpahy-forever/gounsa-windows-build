@@ -1,0 +1,76 @@
+name: LORICA v1.1 actual erosion FPC controlled test
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.1-fpc-direct-test
+    paths:
+      - '.github/workflows/lorica-v11-fpc-direct-test.yml'
+      - 'lorica_treed/v1.1/ci/LoricaFpcDirectTest.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-actual-sediment-response:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Extract original LORICA and patch v1.1
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          python lorica_treed/v1.1/apply_v11_formula_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Compile patched LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Compile test runner and actual-sediment harness
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaTreedThirtyYear.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $csc /nologo /target:exe /out:bin/Release/LoricaFpcDirectTest.exe /reference:bin/Release/LORICA.exe /reference:bin/Release/LoricaTreedThirtyYear.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaFpcDirectTest.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run actual LORICA source erosion test
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          & .\LoricaFpcDirectTest.exe fpc_direct_test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path 'fpc_direct_test/fpc_direct_sensitivity.csv')) { throw 'Sensitivity CSV missing' }
+          Get-Content 'fpc_direct_test/fpc_direct_sensitivity.csv'
+
+      - name: Upload sensitivity CSV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-v11-fpc-direct-controlled
+          path: work/LORICA/bin/Release/fpc_direct_test/fpc_direct_sensitivity.csv
+          if-no-files-found: warn
