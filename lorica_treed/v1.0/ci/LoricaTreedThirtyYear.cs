@@ -2525,7 +2525,7 @@ public static class LoricaTreedThirtyYear
                         maxDtmChange = Math.Max(maxDtmChange, Math.Abs(finalDtm[r,c] - preDtm[r,c]));
                         maxDepthChange = Math.Max(maxDepthChange, Math.Abs(finalDepth[r,c] - preDepth[r,c]));
                         double expectedRootCohesion = reduction * multiplier * Math.Max(0.0,
-                            K * (Tr * 1e6) * ((Math.Max(0.0, rootC[r,c]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
+                            K * (Tr * 1e6) * ((Math.Max(0.0, effectiveRootC[r,c]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
                         double expectedEt = 1.0 + Math.Max(0.0, Math.Min(1.0, effectiveFpc[r,c])) * (0.85 - 1.0);
                         maxRootFormulaError = Math.Max(maxRootFormulaError, Math.Abs(rootCohesion[r,c] - expectedRootCohesion));
                         maxEtFactorError = Math.Max(maxEtFactorError, Math.Abs(etFactor[r,c] - expectedEt));
