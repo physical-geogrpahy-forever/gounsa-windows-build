@@ -20,6 +20,7 @@ if isfile(cfg_path)
 end
 
 seed = base_seed + year
+ENV["TREED_RANDOM_SEED"] = string(seed)
 Random.seed!(seed)
 traitdir = joinpath(exchange_root, "traits")
 restart_path = joinpath(traitdir, "traits_restart.jld2")
