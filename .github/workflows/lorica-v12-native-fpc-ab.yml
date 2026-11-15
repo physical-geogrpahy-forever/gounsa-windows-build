@@ -1,13 +1,14 @@
-name: LORICA-TREED v1.2 FPC A-B with native sediment export ledger
+name: LORICA-TREED v1.3 sediment routing conservation and FPC A-B
 
 on:
   push:
     branches:
-      - lorica-treed-v1.2-export-ledger
+      - lorica-treed-v1.3-transport-accum
     paths:
       - '.github/workflows/lorica-v12-native-fpc-ab.yml'
       - 'lorica_treed/v1.1/ci/LoricaTreedThirtyYear.cs'
       - 'lorica_treed/v1.2/**'
+      - 'lorica_treed/v1.3/**'
   workflow_dispatch:
 
 permissions:
@@ -57,6 +58,8 @@ jobs:
           python lorica_treed/v1.1/apply_v11_formula_patch.py work
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python lorica_treed/v1.2/instrument_water_export.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python lorica_treed/v1.3/fix_downstream_sediment_accumulation.py work
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prepare deterministic TREED driver from original source
