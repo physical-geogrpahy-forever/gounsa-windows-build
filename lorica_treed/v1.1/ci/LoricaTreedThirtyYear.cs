@@ -2842,10 +2842,10 @@ public static class LoricaTreedThirtyYear
         int nErrors = 0;
         foreach (double slope in new double[] { 10.0, 20.0, 30.0, 40.0 })
         foreach (double rootKpa in new double[] { 0.0, 2.0, 5.0, 8.0 })
-        foreach (double storm in new double[] { 0.0, 10.0, 30.0, 60.0 })
+        foreach (double storm in new double[] { 0.0, 0.25, 0.5, 1.0, 1.5, 10.0, 30.0, 60.0 })
         {
             string dir = Path.Combine(root, "s" + ((int)slope).ToString("D2") +
-                "_r" + ((int)rootKpa).ToString("D2") + "_p" + ((int)storm).ToString("D2"));
+                "_r" + ((int)rootKpa).ToString("D2") + "_p" + ((int)Math.Round(storm*1000.0)).ToString("D5"));
             Directory.CreateDirectory(dir);
             try
             {
@@ -2903,7 +2903,7 @@ public static class LoricaTreedThirtyYear
         }
         File.WriteAllText(Path.Combine(root,"native_landslide_threshold_sweep.csv"),ledger.ToString());
         Console.WriteLine("LORICA_NATIVE_SWEEP_FINISHED passed=" + nSuccess + " failed=" + nErrors);
-        if(nErrors > 0 || nSuccess != 64)
+        if(nErrors > 0 || nSuccess != 128)
             throw new Exception("Native LORICA sweep failed: passed=" + nSuccess + " failed=" + nErrors);
     }
 
@@ -2918,7 +2918,7 @@ public static class LoricaTreedThirtyYear
             TestNativeLandslideThresholdSweep();
             TestDailyflowGeneratedWaterErosion();
             File.WriteAllText(Path.Combine(OutputRoot,"LORICA_V14_NATIVE_PHYSICAL_VALIDATION_PASS.txt"),
-                "64 native parameter combinations + native open-boundary runoff test passed" + Environment.NewLine);
+                "128 native parameter combinations + native open-boundary runoff test passed" + Environment.NewLine);
             Console.WriteLine("LORICA_V14_NATIVE_PHYSICAL_VALIDATION_PASS");
             return;
         }
