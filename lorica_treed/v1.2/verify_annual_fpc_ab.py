@@ -32,14 +32,14 @@ def nearly(a, b, atol=1e-9, rtol=1e-9):
 
 
 def main(root, out):
-    a = root / "lorica-v12-ab-beta0"
-    b = root / "lorica-v12-ab-beta2"
+    a = root / "lorica-v13-30year-beta0"
+    b = root / "lorica-v13-30year-beta2"
     out.mkdir(parents=True, exist_ok=True)
     for name, dir_ in [("beta0", a), ("beta2", b)]:
         assert dir_.is_dir(), (name, dir_)
     A = table(a / "annual_state.csv")
     B = table(b / "annual_state.csv")
-    assert len(A) == len(B) == 3, (len(A), len(B))
+    assert len(A) == len(B) == 30, (len(A), len(B))
     compare_rows = []
     for i, (x, y) in enumerate(zip(A, B), 1):
         assert int(x["year"]) == int(y["year"]) == i
@@ -84,9 +84,9 @@ def main(root, out):
     assert changed_cells > 0, "No change in real per-cell erosion raster"
     for d in (a, b):
         layers = table(d/"soil_layers.csv")
-        assert len(layers) == 3*5*5*10, len(layers)
+        assert len(layers) == len(A)*5*5*10, len(layers)
         audit = table(d/"TREED_driver_audit.csv")
-        assert len(audit) == 3 and audit[0]["restart_present_before"] == "false"
+        assert len(audit) == len(A) and audit[0]["restart_present_before"] == "false"
         assert all(x["restart_present_after"] == "true" for x in audit)
         assert all(x["restart_present_before"] == "true" for x in audit[1:])
         assert (d/"LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS.txt").is_file()
@@ -97,9 +97,34 @@ def main(root, out):
         w=csv.DictWriter(f,fieldnames=list(compare_rows[0]))
         w.writeheader()
         w.writerows(compare_rows)
+    # The 30-year test must genuinely contain each year’s spatial outputs;
+    # do not mistake an early-aborted run for a completed model.
+    for d in (a, b):
+        assert len(list(d.glob("year_*"))) == len(A), ("missing year directories",d)
+        assert (d/"year_30"/"water_erosion_m.asc").is_file(), ("year 30 erosion raster missing",d)
+        assert (d/"year_30"/"TREED_FPC.asc").is_file(), ("year 30 FPC raster missing",d)
+    blocks=[]
+    for start in range(0,len(A),5):
+        ar=A[start:start+5]
+        br=B[start:start+5]
+        ea=sum(float(x["water_erosion_sum_m"]) for x in ar)
+        eb=sum(float(y["water_erosion_sum_m"]) for y in br)
+        blocks.append({
+            "years":f"{start+1}-{start+len(ar)}",
+            "erosion_beta0_sum_m":ea,
+            "erosion_beta2_sum_m":eb,
+            "reduction_pct":100*(1-eb/ea) if ea>0 else None,
+            "FPC_beta0_end":float(ar[-1]["FPC_mean"]),
+            "FPC_beta2_end":float(br[-1]["FPC_mean"]),
+            "max_mass_closure":max(float(z["mass_closure"]) for z in ar+br)
+        })
+    with (out/"five_year_blocks.csv").open("w",newline="",encoding="utf-8") as fh:
+        w=csv.DictWriter(fh,fieldnames=list(blocks[0]))
+        w.writeheader()
+        w.writerows(blocks)
     info = {
         "status": "PASS",
-        "years":3,
+        "years":len(A),
         "grid":"5x5 @ 10 m; original synthetic convergent case",
         "test_scope":"Actual patched LORICA every_timestep with annual TREED Julia coupling",
         "only_treatment":"bio_protection_configured beta=0 versus beta=2",
@@ -111,18 +136,19 @@ def main(root, out):
         "year1_changed_erosion_cells":changed_cells,
         "total_erosion_beta0_sum_thickness_m":sum(float(x["water_erosion_sum_m"]) for x in A),
         "total_erosion_beta2_sum_thickness_m":sum(float(x["water_erosion_sum_m"]) for x in B),
+        "five_year_blocks":blocks,
         "max_mass_closure":max(float(x["mass_closure"]) for x in A+B),
         "total_water_export_beta0_kg":sum(float(x["explicit_water_export_kg"]) for x in A),
         "total_water_export_beta2_kg":sum(float(x["explicit_water_export_kg"]) for x in B),
         "caveats":["K=1e-4 selected for sensitivity, not empirical calibration",
                    "Erosion metric sums cellwise thickness: not mass or volume",
-                   "Synthetic 5x5 domain and 3-year validation only",
+                   "Synthetic 5x5 domain and 30-year validation only",
                    "Conservation includes explicit LORICA daily exported water sediment mass",
-                   "Not a 30-year treatment evaluation or field prediction"]
+                   "Not a field-calibrated treatment prediction"]
     }
     (out/"annual_fpc_ab_verification.json").write_text(json.dumps(info,indent=2,ensure_ascii=False),encoding="utf-8")
     print(json.dumps(info,indent=2))
-    print("GOUNSA_LORICA_V12_ANNUAL_FPC_AB_PASS")
+    print("GOUNSA_LORICA_V13_30YEAR_FPC_AB_PASS")
 
 
 if __name__ == "__main__":
