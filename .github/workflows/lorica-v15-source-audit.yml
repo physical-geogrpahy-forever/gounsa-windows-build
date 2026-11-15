@@ -33,6 +33,7 @@ jobs:
           cp work/coupling/scenarios/01_original_treed_control.cfg report/coupling/
           cp work/LORICA/Functions/treed_coupling.cs report/LORICA/
           cp work/LORICA/Functions/geomorph.cs report/LORICA/
+          cp work/LORICA/LORICA_main.cs report/LORICA/
           cp lorica_treed/v1.0/treed_lorica_driver_seeded_wrapper.jl report/coupling/
           python3 - <<'PY'
           import pathlib,re,json
