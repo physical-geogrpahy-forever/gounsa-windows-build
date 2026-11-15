@@ -1,9 +1,9 @@
-name: LORICA-TREED v1.2 native annual FPC beta0/beta2 A-B
+name: LORICA-TREED v1.2 FPC A-B with native sediment export ledger
 
 on:
   push:
     branches:
-      - lorica-treed-v1.2-annual-fpc-ab
+      - lorica-treed-v1.2-export-ledger
     paths:
       - '.github/workflows/lorica-v12-native-fpc-ab.yml'
       - 'lorica_treed/v1.1/ci/LoricaTreedThirtyYear.cs'
@@ -55,6 +55,8 @@ jobs:
           tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
           if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
           python lorica_treed/v1.1/apply_v11_formula_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python lorica_treed/v1.2/instrument_water_export.py work
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prepare deterministic TREED driver from original source
