@@ -2463,7 +2463,7 @@ public static class LoricaTreedThirtyYear
                 }
 
                 StringBuilder annual = new StringBuilder();
-                annual.AppendLine("year,annual_precip_mm,mean_temperature_C,rootC_mean_gC_m2,rootC_max_year_change_gC_m2,root_cohesion_mean_kPa,FPC_mean,LAI_mean,ET_factor_mean,ET_mean_m,runoff_sum_m,water_erosion_sum_m,water_deposition_sum_m,landslide_initiations,landslide_erosion_sum_m,landslide_deposition_sum_m,persistent_before_kg,persistent_after_kg,soil_mass_kg,transport_mass_kg,mass_closure,mean_soil_depth_m,mean_DTM_m,max_DTM_change_m,max_soil_depth_change_m,treed_input_DTM_error_m,treed_input_soildepth_error_m,layer_depth_error_m,ks_changed_cells,ks_zero_cells,legacy_mass_closure,boundary_export_kg,unclassified_transient_kg");
+                annual.AppendLine("year,annual_precip_mm,mean_temperature_C,rootC_mean_gC_m2,rootC_max_year_change_gC_m2,root_cohesion_mean_kPa,FPC_mean,LAI_mean,ET_factor_mean,ET_mean_m,runoff_sum_m,water_erosion_sum_m,water_deposition_sum_m,landslide_initiations,landslide_erosion_sum_m,landslide_deposition_sum_m,persistent_before_kg,persistent_after_kg,soil_mass_kg,transport_mass_kg,mass_closure,mean_soil_depth_m,mean_DTM_m,max_DTM_change_m,max_soil_depth_change_m,treed_input_DTM_error_m,treed_input_soildepth_error_m,layer_depth_error_m,ks_changed_cells,ks_zero_cells,legacy_mass_closure,boundary_transient_export_kg,unclassified_transient_kg,explicit_water_export_kg");
                 StringBuilder soilLayers = new StringBuilder();
                 soilLayers.AppendLine("year,row,col,layer,thickness_m,bulk_density_kg_m3,sand_fraction,silt_fraction,clay_fraction,young_SOM_kg,old_SOM_kg,mineral_mass_kg");
                 double[,] previousRootC = null;
@@ -2683,8 +2683,13 @@ public static class LoricaTreedThirtyYear
                     double soilMassAfter = TotalSoilMass(f);
                     double transportMassAfter = TotalTransportMass(f);
                     double boundaryExportAfter = TotalTransientWaterTransportMassAtBoundary(f);
+                    double explicitWaterExportAfter = Get<double>(f, "treed_water_sediment_export_kg");
                     double unclassifiedTransientAfter = transportMassAfter - persistentAfter - boundaryExportAfter;
-                    double systemMassAfter = soilMassAfter + persistentAfter + boundaryExportAfter;
+                    // Use the real accumulated out-of-domain water-sediment
+                    // flux computed inside the native geomorph routine. It
+                    // may have been cleared from transient transport arrays
+                    // by the following landslide and layer updates.
+                    double systemMassAfter = soilMassAfter + persistentAfter + explicitWaterExportAfter;
                     double massClosure = Math.Abs(systemMassBefore - systemMassAfter) / Math.Max(1.0, systemMassBefore);
                     double legacyMassClosure = Math.Abs(totalSoilBefore + totalTransportBefore -
                         (soilMassAfter + transportMassAfter)) /
@@ -2697,6 +2702,7 @@ public static class LoricaTreedThirtyYear
                         " transientBefore=" + F(transientBefore) +
                         " previousExportBoundary=" + F(previousExportBoundaryBefore) +
                         " boundaryExportAfter=" + F(boundaryExportAfter) +
+                        " explicitWaterExportAfter=" + F(explicitWaterExportAfter) +
                         " unclassifiedTransientAfter=" + F(unclassifiedTransientAfter) +
                         " legacyClosure=" + F(legacyMassClosure) +
                         " exportAdjustedClosure=" + F(massClosure));
@@ -2756,7 +2762,7 @@ public static class LoricaTreedThirtyYear
                         F(massClosure), F(meanDepth), F(meanDtm), F(maxDtmChange), F(maxDepthChange),
                         F(maxDtmInputError), F(maxDepthInputError), F(maxLayerDepthError),
                         ksChangedCells.ToString(CultureInfo.InvariantCulture), ksZeroCells.ToString(CultureInfo.InvariantCulture),
-                        F(legacyMassClosure), F(boundaryExportAfter), F(unclassifiedTransientAfter)
+                        F(legacyMassClosure), F(boundaryExportAfter), F(unclassifiedTransientAfter), F(explicitWaterExportAfter)
                     }));
 
                     Console.WriteLine("LORICA_TREED_30YR_YEAR=" + (year + 1) +
