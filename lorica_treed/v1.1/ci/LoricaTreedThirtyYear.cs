@@ -2828,12 +2828,100 @@ public static class LoricaTreedThirtyYear
         }
     }
 
+
+    // v1.4: actual native LORICA sensitivity sweep with unchanged geomorphic
+    // kernels. Every point gets a fresh, one-metre PTF-consistent soil profile.
+    // No annual TREED execution is needed for this deterministic isolation test.
+    static void TestNativeLandslideThresholdSweep()
+    {
+        string root = Path.Combine(OutputRoot, "native_landslide_threshold_sweep");
+        Directory.CreateDirectory(root);
+        StringBuilder ledger = new StringBuilder();
+        ledger.AppendLine("slope_deg,event_mm,event_hours,root_kPa,critical_rain_m_day,critical_status,actual_slope_deg,initiations,erosion_sum_m,deposition_sum_m,residual_transport_kg,mass_closure,status");
+        int nSuccess = 0;
+        int nErrors = 0;
+        foreach (double slope in new double[] { 10.0, 20.0, 30.0, 40.0 })
+        foreach (double rootKpa in new double[] { 0.0, 2.0, 5.0, 8.0 })
+        foreach (double storm in new double[] { 0.0, 10.0, 30.0, 60.0 })
+        {
+            string dir = Path.Combine(root, "s" + ((int)slope).ToString("D2") +
+                "_r" + ((int)rootKpa).ToString("D2") + "_p" + ((int)storm).ToString("D2"));
+            Directory.CreateDirectory(dir);
+            try
+            {
+                using (Mother_form f = BuildCase(dir, rootKpa, 1))
+                {
+                    double[,] dtm = Get<double[,]>(f, "dtm");
+                    double dz = 10.0 * Math.Tan(slope * Math.PI / 180.0);
+                    for (int r=0;r<5;r++) dtm[r,0] = 100.0 - r*dz;
+                    Set(f, "dtm", dtm);
+
+                    Dictionary<string,string> cfg = new Dictionary<string,string>();
+                    cfg["landslide_event_mode"] = "explicit_event";
+                    cfg["landslide_event_rainfall_mm"] = (storm == 0.0 ? 1.0 : storm).ToString(CultureInfo.InvariantCulture);
+                    cfg["landslide_event_duration_h"] = "6";
+                    Call(f, "configure_treed_landslide_event", cfg);
+                    // Exact zero is a no-rainfall boundary test; the production
+                    // config parser intentionally rejects zero-mm positive events.
+                    if (storm == 0.0) Set(f, "treed_landslide_event_intensity_m_d", 0.0);
+                    double before = TotalSoilMass(f);
+                    Call(f, "calc_and_write_ls_rasters");
+                    double[,] threshold = Get<double[,]>(f, "crrain_m_d");
+                    double[,] actualSlope = Get<double[,]>(f, "stslope_radians");
+                    double critical = threshold[0,0];
+                    double computedSlope = actualSlope[0,0]*180.0/Math.PI;
+                    string criticalStatus = critical < -1000.0 ? "always_stable" :
+                        critical <= 1e-12 ? "unconditional_failure" : "finite_threshold";
+                    Call(f, "calculate_slide_new");
+                    int count = Get<int>(f, "landslide_initiation_cells");
+                    double erosion = SumAbs(Get<double[,]>(f, "ero_slid_m"));
+                    double deposition = SumAbs(Get<double[,]>(f, "sed_slid_m"));
+                    double after = TotalSoilMass(f);
+                    double trans = TotalTransportMass(f);
+                    double closure = Math.Abs(before - after - trans)/Math.Max(1.0,before);
+                    string status = (closure <= 1e-6 && (storm != 0.0 || count == 0) &&
+                        !Double.IsNaN(critical) && !Double.IsNaN(erosion)) ? "PASS" : "FAIL";
+                    ledger.AppendLine(String.Join(",",new string[] { F(slope),F(storm),"6",F(rootKpa),F(critical),
+                        criticalStatus,F(computedSlope),count.ToString(CultureInfo.InvariantCulture),
+                        F(erosion),F(deposition),F(trans),F(closure),status }));
+                    if(status == "PASS") nSuccess++; else nErrors++;
+                    Console.WriteLine("LORICA_NATIVE_SWEEP slope=" + F(slope) +
+                        " root_kPa=" + F(rootKpa) + " storm_mm=" + F(storm) +
+                        " critical=" + F(critical) + " initiations=" + count +
+                        " mass_closure=" + F(closure) + " status=" + status);
+                }
+            }
+            catch (Exception e)
+            {
+                nErrors++;
+                string type = e.GetType().Name;
+                ledger.AppendLine(String.Join(",",new string[] {F(slope),F(storm),"6",F(rootKpa),
+                    "NaN","exception","NaN","-1","NaN","NaN","NaN","NaN","ERROR_" + type}));
+                Console.WriteLine("LORICA_NATIVE_SWEEP_ERROR slope=" + F(slope) +
+                    " root_kPa=" + F(rootKpa) + " storm_mm=" + F(storm) + " error=" + e);
+            }
+        }
+        File.WriteAllText(Path.Combine(root,"native_landslide_threshold_sweep.csv"),ledger.ToString());
+        Console.WriteLine("LORICA_NATIVE_SWEEP_FINISHED passed=" + nSuccess + " failed=" + nErrors);
+        if(nErrors > 0 || nSuccess != 64)
+            throw new Exception("Native LORICA sweep failed: passed=" + nSuccess + " failed=" + nErrors);
+    }
+
     public static void Main(string[] args)
     {
         if (args.Length != 1) throw new Exception("Usage: LoricaTreedThirtyYear.exe OUTPUT_DIR");
         OutputRoot = Path.GetFullPath(args[0]);
         Directory.CreateDirectory(OutputRoot);
         TestErosionParameterWiring();
+        if (Environment.GetEnvironmentVariable("GOUNSA_NATIVE_VALIDATION_ONLY") == "1")
+        {
+            TestNativeLandslideThresholdSweep();
+            TestDailyflowGeneratedWaterErosion();
+            File.WriteAllText(Path.Combine(OutputRoot,"LORICA_V14_NATIVE_PHYSICAL_VALIDATION_PASS.txt"),
+                "64 native parameter combinations + native open-boundary runoff test passed" + Environment.NewLine);
+            Console.WriteLine("LORICA_V14_NATIVE_PHYSICAL_VALIDATION_PASS");
+            return;
+        }
         if (Environment.GetEnvironmentVariable("LORICA_TREED_BASELINE_ONLY") == "1")
         {
             TestTreedSameYearRootCohesion(false);
