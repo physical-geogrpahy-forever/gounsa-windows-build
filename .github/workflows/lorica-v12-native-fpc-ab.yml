@@ -1,0 +1,218 @@
+name: LORICA-TREED v1.2 native annual FPC beta0/beta2 A-B
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.2-annual-fpc-ab
+    paths:
+      - '.github/workflows/lorica-v12-native-fpc-ab.yml'
+      - 'lorica_treed/v1.1/ci/LoricaTreedThirtyYear.cs'
+      - 'lorica_treed/v1.2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-coupled:
+    runs-on: windows-latest
+    timeout-minutes: 95
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - beta: '0'
+            name: beta0
+          - beta: '2'
+            name: beta2
+    env:
+      GOUNSA_AB_YEARS: '3'
+      GOUNSA_AB_K: '0.0001'
+      GOUNSA_AB_BETA: ${{ matrix.beta }}
+    steps:
+      - name: Checkout exact sensitivity branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+
+      - name: Cache Julia environment
+        uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v12-fpc-ab-julia-1.11.6
+
+      - name: Extract exact v0.5 LORICA-TREED source and patch v1.1
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+          python lorica_treed/v1.1/apply_v11_formula_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Prepare deterministic TREED driver from original source
+        shell: pwsh
+        run: |
+          $treedModule = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $source = [System.IO.File]::ReadAllText($treedModule)
+          $source = $source.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $source = [System.Text.RegularExpressions.Regex]::Replace($source, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($treedModule, $source, (New-Object System.Text.UTF8Encoding($false)))
+
+          $modelFunctions = Join-Path $PWD 'work/TREED/src/TREED_model_functions.jl'
+          $modelSource = [System.IO.File]::ReadAllText($modelFunctions)
+          $parallelLoop = 'Threads.@threads for i = 1:length(lookup(traits_start.H, X))'
+          if (-not $modelSource.Contains($parallelLoop)) { throw 'TREED ECA optimization loop anchor missing' }
+          $modelSource = $modelSource.Replace($parallelLoop, 'for i = 1:length(lookup(traits_start.H, X))')
+          [System.IO.File]::WriteAllText($modelFunctions, $modelSource, (New-Object System.Text.UTF8Encoding($false)))
+
+          $coupling = Join-Path $PWD 'work/coupling'
+          Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
+          Copy-Item (Join-Path $PWD 'lorica_treed/v1.0/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
+          $cfgSource = Join-Path $coupling 'scenarios/01_original_treed_control.cfg'
+          $cfg = [System.IO.File]::ReadAllText($cfgSource)
+          $cfg = $cfg.Replace('driver_path=treed_lorica_driver.jl', 'driver_path=treed_lorica_driver_seeded_wrapper.jl')
+          if ($cfg -notmatch '(?m)^treed_random_seed=') { $cfg += [Environment]::NewLine + 'treed_random_seed=20261113' + [Environment]::NewLine }
+          [System.IO.File]::WriteAllText((Join-Path $coupling 'TREED_coupling.cfg'), $cfg, (New-Object System.Text.UTF8Encoding($false)))
+
+      - name: Instantiate and load actual TREED Julia model
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Compile original LORICA with audited patches
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe missing' }
+
+      - name: Compile native annual runner
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaTreedThirtyYear.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Generate unchanged TREED root-carbon baseline
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS='1'
+          $env:LORICA_TREED_BASELINE_ONLY='1'
+          $baseline = Join-Path $work 'landslide_baseline'
+          New-Item -ItemType Directory -Force -Path $baseline | Out-Null
+          & .\LoricaTreedThirtyYear.exe $baseline
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rootC = Join-Path $baseline 'treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output/treed_rootC_areanorm_gC_m2.asc'
+          if (-not (Test-Path $rootC)) { throw 'Baseline TREED rootC missing' }
+          Copy-Item $rootC (Join-Path $work 'baseline_rootC.asc') -Force
+
+      - name: Calibrate identical fixed Hales event-scale root cohesion
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
+          python lorica_treed/v0.7/calibrate_event_cohesion.py work/baseline_rootC.asc work/coupling/TREED_coupling.cfg hales2009_wu_mean work/calibration/TREED_coupling_hales2009_wu.cfg work/calibration/hales2009_wu_calibration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
+
+      - name: Run 3 actual native every_timestep coupled years
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS='1'
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+          $out = Join-Path $work 'ab_out'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          & .\LoricaTreedThirtyYear.exe $out
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $marker = Join-Path $out 'thirty_year_normal_timestep/LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS.txt'
+          if (-not (Test-Path $marker)) { throw 'Annual sensitivity marker missing' }
+          Get-Content $marker
+
+      - name: Stage annual states, rasters, driver audit, and calibration
+        if: always()
+        shell: pwsh
+        run: |
+          $src='work/ab_out/thirty_year_normal_timestep'
+          New-Item -ItemType Directory -Force -Path report | Out-Null
+          if (Test-Path $src) {
+            Copy-Item -Path "$src/annual_state.csv","$src/soil_layers.csv","$src/LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS.txt" -Destination report -ErrorAction SilentlyContinue
+            if (Test-Path "$src/TREED_exchange_run_9030/TREED_driver_audit.csv") {
+              Copy-Item "$src/TREED_exchange_run_9030/TREED_driver_audit.csv" report/
+            }
+            if (Test-Path "$src/TREED_exchange_run_9030/TREED_rootcohesion_timeseries.csv") {
+              Copy-Item "$src/TREED_exchange_run_9030/TREED_rootcohesion_timeseries.csv" report/
+            }
+            Get-ChildItem -Path $src -Directory -Filter 'year_*' | ForEach-Object {
+              Copy-Item $_.FullName -Destination report -Recurse
+            }
+          }
+          if (Test-Path work/calibration/hales2009_wu_calibration.json) { Copy-Item work/calibration/hales2009_wu_calibration.json report/ }
+          @("beta=$env:GOUNSA_AB_BETA","K=$env:GOUNSA_AB_K","years=$env:GOUNSA_AB_YEARS","sha=$env:GITHUB_SHA") | Set-Content -Encoding utf8 report/scenario.txt
+
+      - name: Upload actual native run outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-v12-ab-${{ matrix.name }}
+          path: report/**
+          if-no-files-found: error
+
+  compare:
+    needs: native-coupled
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout verification script
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download both native run artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lorica-v12-ab-*
+          path: comparisons
+          merge-multiple: false
+
+      - name: Independently verify FPC response and conservation
+        run: |
+          python lorica_treed/v1.2/verify_annual_fpc_ab.py comparisons verification
+
+      - name: Upload comparison ledger and verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-v12-annual-fpc-comparison
+          path: verification/**
+          if-no-files-found: warn
