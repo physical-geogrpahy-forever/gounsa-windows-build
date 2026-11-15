@@ -1,0 +1,82 @@
+name: LORICA-TREED v1.4 native geomorphic validation 64 cases
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.4-physical-validation
+    paths:
+      - '.github/workflows/lorica-v14-physical-validation.yml'
+      - 'lorica_treed/v1.4/**'
+      - 'lorica_treed/v1.1/ci/LoricaTreedThirtyYear.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-geomorphic-64:
+    runs-on: windows-latest
+    timeout-minutes: 65
+    env:
+      GOUNSA_NATIVE_VALIDATION_ONLY: '1'
+    steps:
+      - name: Checkout isolated v1.4 branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Extract unmodified LORICA source and apply previously verified patches
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          if (-not (Test-Path work/LORICA/LORICA_2026.csproj)) { throw 'LORICA project missing' }
+          python lorica_treed/v1.1/apply_v11_formula_patch.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python lorica_treed/v1.2/instrument_water_export.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python lorica_treed/v1.3/fix_downstream_sediment_accumulation.py work
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+      - name: Compile original patched LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile native v1.4 validation runner
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaTreedThirtyYear.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run 64 fresh native geomorphic sensitivity cases and open-boundary water export
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          New-Item -ItemType Directory -Force -Path ../../../native_v14_results | Out-Null
+          & .\LoricaTreedThirtyYear.exe (Join-Path (Resolve-Path ../../../).Path 'native_v14_results')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Independently audit sensitivity monotonicity and mass conservation
+        shell: pwsh
+        run: |
+          python lorica_treed/v1.4/audit_native_threshold_sweep.py work/native_v14_results/native_landslide_threshold_sweep/native_landslide_threshold_sweep.csv work/native_v14_audit
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload native outputs and checks, even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lorica-v14-native-geomorphic-validation
+          path: |
+            work/native_v14_results/native_landslide_threshold_sweep/native_landslide_threshold_sweep.csv
+            work/native_v14_results/dailyflow_generated_water_erosion/**
+            work/native_v14_results/LORICA_V14_NATIVE_PHYSICAL_VALIDATION_PASS.txt
+            work/native_v14_audit/**
+          if-no-files-found: warn
