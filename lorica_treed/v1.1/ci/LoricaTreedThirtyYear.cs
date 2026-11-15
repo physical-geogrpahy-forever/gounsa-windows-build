@@ -2322,7 +2322,12 @@ public static class LoricaTreedThirtyYear
         if (years < 2 || years > 30 || Double.IsNaN(abBeta) || Double.IsInfinity(abBeta) ||
             abBeta < 0.0 || Double.IsNaN(abK) || Double.IsInfinity(abK) || abK <= 0.0)
             throw new ArgumentException("Invalid GOUNSA_AB_YEARS, GOUNSA_AB_BETA or GOUNSA_AB_K");
-        Console.WriteLine("GOUNSA_AB_PARAMETERS years=" + years + " beta=" + F(abBeta) + " K=" + F(abK));
+        string topology = Environment.GetEnvironmentVariable("GOUNSA_TOPO_MODE") ?? "closed_convergent";
+        if (topology != "closed_convergent" && topology != "open_hillslope")
+            throw new ArgumentException("Unknown GOUNSA_TOPO_MODE: " + topology);
+        bool openHillslope = topology == "open_hillslope";
+        Console.WriteLine("GOUNSA_AB_PARAMETERS years=" + years + " beta=" + F(abBeta) +
+            " K=" + F(abK) + " topology=" + topology);
         const double exchangeToleranceM = 5.1e-7;
         string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
         if (String.IsNullOrWhiteSpace(couplingDir))
@@ -2366,6 +2371,24 @@ public static class LoricaTreedThirtyYear
 
             using (Mother_form f = BuildConvergentCase(root, 1, false))
             {
+                if (openHillslope)
+                {
+                    // Controlled open hillslope: row gradient 4m per 10m cell,
+                    // lateral 2m relief converges toward the center outflow.
+                    // The topography is changed before the first native timestep.
+                    double[,] openDem = Get<double[,]>(f, "dtm");
+                    for (int r = 0; r < nr; r++)
+                    for (int c = 0; c < nc; c++)
+                        openDem[r,c] = 115.0 - 4.0*r + 2.0*Math.Abs(c-2);
+                    List<int> ids = Enumerable.Range(0,nr*nc).ToList();
+                    ids.Sort((a,b) => {
+                        int cmp = openDem[a/nc,a%nc].CompareTo(openDem[b/nc,b%nc]);
+                        return cmp != 0 ? cmp : a.CompareTo(b);
+                    });
+                    Set(f, "row_index", ids.Select(id => id/nc).ToArray());
+                    Set(f, "col_index", ids.Select(id => id%nc).ToArray());
+                    Console.WriteLine("GOUNSA_OPEN_HILLSLOPE_INIT grid=5x5 dx_m=10 outlet_row=4 outlet_col=2");
+                }
                 Set(f, "run_number", runNumber);
                 Set(f, "workdir", root);
                 Set(f, "t_intervene", 0);
@@ -2798,7 +2821,7 @@ public static class LoricaTreedThirtyYear
                 if (!File.Exists(rootCohesionTimeseries) || File.ReadAllLines(rootCohesionTimeseries).Length != years + 1)
                     throw new Exception("TREED root-cohesion time series is not complete for requested years.");
 
-                if (!anyWaterErosion || !anyLandslide || !anyDtmChange || !anySoilDepthChange || !anyPersistentSediment)
+                if (!anyWaterErosion || !anyDtmChange || !anySoilDepthChange || (!openHillslope && (!anyLandslide || !anyPersistentSediment)))
                     throw new Exception("Thirty-year run did not exercise all required geomorphic state pathways.");
                 File.WriteAllText(Path.Combine(root, "annual_state.csv"), annual.ToString());
                 File.WriteAllText(Path.Combine(root, "soil_layers.csv"), soilLayers.ToString());
@@ -2814,7 +2837,8 @@ public static class LoricaTreedThirtyYear
                     "TREED_restart_continuity=PASS" + Environment.NewLine +
                     "DEM_soil_depth_exchange=PASS" + Environment.NewLine +
                     "root_cohesion_and_ET_feedback=PASS" + Environment.NewLine +
-                    "water_erosion_and_landsliding=PASS" + Environment.NewLine +
+                    "water_erosion_and_landsliding=" + (openHillslope ? "landslides_optional" : "PASS") + Environment.NewLine +
+                    "topology=" + topology + Environment.NewLine +
                     "soil_layers_and_residual_sediment=PASS" + Environment.NewLine +
                     "max_mass_closure=" + F(maxObservedMassClosure) + Environment.NewLine +
                     "max_state_exchange_error_m=" + F(maxObservedInputError) + Environment.NewLine +
