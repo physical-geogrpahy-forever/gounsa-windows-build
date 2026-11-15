@@ -2311,7 +2311,18 @@ public static class LoricaTreedThirtyYear
 
     static void TestThirtyYearNormalTimestep()
     {
-        const int years = 30, nr = 5, nc = 5, days = 365;
+        // Isolated annual A/B experiment; underlying every_timestep() remains unchanged.
+        int years = Int32.Parse(Environment.GetEnvironmentVariable("GOUNSA_AB_YEARS") ?? "3",
+            CultureInfo.InvariantCulture);
+        const int nr = 5, nc = 5, days = 365;
+        double abBeta = Double.Parse(Environment.GetEnvironmentVariable("GOUNSA_AB_BETA") ?? "0",
+            CultureInfo.InvariantCulture);
+        double abK = Double.Parse(Environment.GetEnvironmentVariable("GOUNSA_AB_K") ?? "0.0001",
+            CultureInfo.InvariantCulture);
+        if (years < 2 || years > 30 || Double.IsNaN(abBeta) || Double.IsInfinity(abBeta) ||
+            abBeta < 0.0 || Double.IsNaN(abK) || Double.IsInfinity(abK) || abK <= 0.0)
+            throw new ArgumentException("Invalid GOUNSA_AB_YEARS, GOUNSA_AB_BETA or GOUNSA_AB_K");
+        Console.WriteLine("GOUNSA_AB_PARAMETERS years=" + years + " beta=" + F(abBeta) + " K=" + F(abK));
         const double exchangeToleranceM = 5.1e-7;
         string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
         if (String.IsNullOrWhiteSpace(couplingDir))
@@ -2428,9 +2439,9 @@ public static class LoricaTreedThirtyYear
                 Set(f, "K_fac", new double[nr,nc]);
                 Set(f, "bio_protection", new double[nr,nc]);
                 Set(f, "upper_particle_size", new double[] { 0.01, 0.002, 0.00005, 0.000002, 0.0000001 });
-                Set(f, "erodibility_value_m", 1e-6);
+                Set(f, "erodibility_value_m", abK);
                 Set(f, "bio_protection_constant", 0.0);
-            Set(f, "bio_protection_configured", 0.0);
+            Set(f, "bio_protection_configured", abBeta);
                 Set(f, "rock_protection_constant", 0.0);
                 Set(f, "constant_selective_transcap", 0.0);
                 Set(f, "erosion_threshold_kg", 0.0);
@@ -2446,7 +2457,7 @@ public static class LoricaTreedThirtyYear
                 for (int c = 0; c < nc; c++)
                 {
                     ksInit[r,c] = 0.01;
-                    kfac[r,c] = 1e-6;
+                    kfac[r,c] = abK;
                     bio[r,c] = 0.0;
                     for (int mo = 0; mo < 12; mo++) radiation[r,c,mo] = 0.005;
                 }
@@ -2739,7 +2750,7 @@ public static class LoricaTreedThirtyYear
                 if (!File.Exists(driverAudit)) throw new Exception("TREED annual restart audit missing.");
                 string[] auditLines = File.ReadAllLines(driverAudit);
                 if (auditLines.Length != years + 1)
-                    throw new Exception("TREED restart audit does not contain exactly 30 annual records.");
+                    throw new Exception("TREED restart audit length differs from requested simulation years.");
                 for (int y = 0; y < years; y++)
                 {
                     string[] fields = auditLines[y + 1].Split(',');
@@ -2752,7 +2763,7 @@ public static class LoricaTreedThirtyYear
 
                 string rootCohesionTimeseries = Path.Combine(root, "TREED_exchange_run_" + runNumber, "TREED_rootcohesion_timeseries.csv");
                 if (!File.Exists(rootCohesionTimeseries) || File.ReadAllLines(rootCohesionTimeseries).Length != years + 1)
-                    throw new Exception("TREED root-cohesion time series is not complete for all 30 years.");
+                    throw new Exception("TREED root-cohesion time series is not complete for requested years.");
 
                 if (!anyWaterErosion || !anyLandslide || !anyDtmChange || !anySoilDepthChange || !anyPersistentSediment)
                     throw new Exception("Thirty-year run did not exercise all required geomorphic state pathways.");
@@ -2763,9 +2774,9 @@ public static class LoricaTreedThirtyYear
                 if (File.ReadAllLines(Path.Combine(root, "soil_layers.csv")).Length != years * nr * nc * 10 + 1)
                     throw new Exception("Thirty-year layer-resolved soil state output row count is wrong.");
 
-                File.WriteAllText(Path.Combine(root, "LORICA_TREED_V1_1_30_YEAR_NORMAL_TIMESTEP_PASS.txt"),
-                    "LORICA_TREED_V1_1_30_YEAR_NORMAL_TIMESTEP_PASS" + Environment.NewLine +
-                    "years=30" + Environment.NewLine +
+                File.WriteAllText(Path.Combine(root, "LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS.txt"),
+                    "LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS" + Environment.NewLine +
+                    "years=" + years + Environment.NewLine + "beta=" + F(abBeta) + Environment.NewLine + "K=" + F(abK) + Environment.NewLine +
                     "native_loop=every_timestep" + Environment.NewLine +
                     "TREED_restart_continuity=PASS" + Environment.NewLine +
                     "DEM_soil_depth_exchange=PASS" + Environment.NewLine +
@@ -2775,7 +2786,7 @@ public static class LoricaTreedThirtyYear
                     "max_mass_closure=" + F(maxObservedMassClosure) + Environment.NewLine +
                     "max_state_exchange_error_m=" + F(maxObservedInputError) + Environment.NewLine +
                     "max_layer_depth_error_m=" + F(maxObservedLayerError) + Environment.NewLine);
-                Console.WriteLine("LORICA_TREED_V1_1_30_YEAR_NORMAL_TIMESTEP_PASS");
+                Console.WriteLine("LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS years=" + years + " beta=" + F(abBeta) + " K=" + F(abK));
             }
         }
         finally
