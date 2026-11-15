@@ -1,0 +1,54 @@
+name: LORICA TREED v1.5 original source and restart audit
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.5-disturbance-audit
+    paths:
+      - '.github/workflows/lorica-v15-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract bundled original LORICA TREED and select exact source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work report/{TREED,coupling,LORICA}
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          cp work/TREED/src/TREEDnonsteadystep.jl report/TREED/
+          cp work/TREED/src/TREED_model_functions.jl report/TREED/
+          cp work/TREED/src/TREED_physiological_functions.jl report/TREED/
+          cp work/TREED/src/TREED_pars.jl report/TREED/
+          cp work/TREED/src/TREED.jl report/TREED/
+          cp work/coupling/treed_lorica_driver.jl report/coupling/
+          cp work/coupling/scenarios/01_original_treed_control.cfg report/coupling/
+          cp work/LORICA/Functions/treed_coupling.cs report/LORICA/
+          cp work/LORICA/Functions/geomorph.cs report/LORICA/
+          cp lorica_treed/v1.0/treed_lorica_driver_seeded_wrapper.jl report/coupling/
+          python3 - <<'PY'
+          import pathlib,re,json
+          audit={}
+          for f in pathlib.Path("report").rglob("*"):
+              if f.is_file():
+                  s=f.read_text(encoding="utf-8-sig",errors="replace")
+                  hits=[{"line":i+1,"content":x.strip()[:240]}
+                        for i,x in enumerate(s.splitlines())
+                        if re.search(r'traits_restart|traits_end|soildepth|soil_water_coupling|root_allocation_mode|disturb|landslide|no_soil|bare_bedrock|fpc|carbon',x,re.I)]
+                  audit[str(f.relative_to("report"))]={"lines":len(s.splitlines()),"hits":hits[:180]}
+          pathlib.Path("report/source_search_audit.json").write_text(json.dumps(audit,indent=2),encoding="utf-8")
+          print("Audited",len(audit),"files")
+          PY
+      - name: Upload exact archived sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: gounsa-v15-original-source-audit
+          path: report/**
+          if-no-files-found: error
