@@ -1,9 +1,9 @@
-name: LORICA-TREED v1.4 native geomorphic validation 64 cases
+name: LORICA-TREED v1.4b 128 native critical rainfall threshold tests
 
 on:
   push:
     branches:
-      - lorica-treed-v1.4-physical-validation
+      - lorica-treed-v1.4b-threshold-resolution
     paths:
       - '.github/workflows/lorica-v14-physical-validation.yml'
       - 'lorica_treed/v1.4/**'
@@ -57,7 +57,7 @@ jobs:
           $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
           & $csc /nologo /target:exe /out:bin/Release/LoricaTreedThirtyYear.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.1\ci\LoricaTreedThirtyYear.cs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Run 64 fresh native geomorphic sensitivity cases and open-boundary water export
+      - name: Run 128 native threshold and open-boundary flux scenarios
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
