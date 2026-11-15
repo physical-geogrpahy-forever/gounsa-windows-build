@@ -47,6 +47,8 @@ def main(root, out):
             assert nearly(float(x[field]), float(y[field]), atol=0.0, rtol=0.0), (i, field)
         for row in (x, y):
             assert float(row["mass_closure"]) < 1e-6, (i, "mass", row["mass_closure"])
+            assert float(row["explicit_water_export_kg"]) >= 0.0
+            assert abs(float(row["unclassified_transient_kg"])) <= 1e-5
             assert float(row["treed_input_DTM_error_m"]) <= 5.1e-7
             assert float(row["treed_input_soildepth_error_m"]) <= 5.1e-7
             assert float(row["layer_depth_error_m"]) < 1e-5
@@ -60,7 +62,9 @@ def main(root, out):
             water_erosion_reduction_pct=100*(1-erosion_b/erosion_a) if erosion_a > 0 else None,
             soil_depth_beta0_m=x["mean_soil_depth_m"],
             soil_depth_beta2_m=y["mean_soil_depth_m"],
-            max_mass_closure=max(float(x["mass_closure"]), float(y["mass_closure"]))
+            max_mass_closure=max(float(x["mass_closure"]), float(y["mass_closure"])),
+            water_export_beta0_kg=x["explicit_water_export_kg"],
+            water_export_beta2_kg=y["explicit_water_export_kg"]
         ))
     # Treatment must not change the first-year TREED vegetation and hydrology,
     # because the difference is solely in downstream sediment dynamics.
@@ -108,9 +112,12 @@ def main(root, out):
         "total_erosion_beta0_sum_thickness_m":sum(float(x["water_erosion_sum_m"]) for x in A),
         "total_erosion_beta2_sum_thickness_m":sum(float(x["water_erosion_sum_m"]) for x in B),
         "max_mass_closure":max(float(x["mass_closure"]) for x in A+B),
+        "total_water_export_beta0_kg":sum(float(x["explicit_water_export_kg"]) for x in A),
+        "total_water_export_beta2_kg":sum(float(x["explicit_water_export_kg"]) for x in B),
         "caveats":["K=1e-4 selected for sensitivity, not empirical calibration",
                    "Erosion metric sums cellwise thickness: not mass or volume",
                    "Synthetic 5x5 domain and 3-year validation only",
+                   "Conservation includes explicit LORICA daily exported water sediment mass",
                    "Not a 30-year treatment evaluation or field prediction"]
     }
     (out/"annual_fpc_ab_verification.json").write_text(json.dumps(info,indent=2,ensure_ascii=False),encoding="utf-8")
