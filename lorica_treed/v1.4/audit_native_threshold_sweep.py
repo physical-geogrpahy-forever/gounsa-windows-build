@@ -12,7 +12,7 @@ out.mkdir(parents=True,exist_ok=True)
 with source.open(encoding="utf-8-sig",newline="") as f:
     rows=list(csv.DictReader(f))
 alerts=[]
-if len(rows)!=64: alerts.append(f"Expected 64 rows, got {len(rows)}")
+if len(rows)!=128: alerts.append(f"Expected 128 rows, got {len(rows)}")
 if any(r["status"]!="PASS" for r in rows):
     alerts.extend(f"Native failed case: {r}" for r in rows if r["status"]!="PASS")
 for r in rows:
@@ -26,7 +26,7 @@ def locate(s,root,p):
 count_anomalies=[]
 threshold_anomalies=[]
 for s in (10.,20.,30.,40.):
-    for p in (0.,10.,30.,60.):
+    for p in (0.,0.25,0.5,1.,1.5,10.,30.,60.):
         rs=[locate(s,c,p) for c in (0.,2.,5.,8.)]
         if any(r is None or r["status"]!="PASS" for r in rs): continue
         counts=[int(r["initiations"]) for r in rs]
@@ -37,7 +37,7 @@ for s in (10.,20.,30.,40.):
         if any(b+1e-9<a for a,b in zip(adjusted,adjusted[1:])):
             threshold_anomalies.append({"type":"cohesion_lowered_critical_rain","slope":s,"storm":p,"values":values})
     for c in (0.,2.,5.,8.):
-        rs=[locate(s,c,p) for p in (0.,10.,30.,60.)]
+        rs=[locate(s,c,p) for p in (0.,0.25,0.5,1.,1.5,10.,30.,60.)]
         if any(r is None or r["status"]!="PASS" for r in rs): continue
         counts=[int(r["initiations"]) for r in rs]
         if any(b<a for a,b in zip(counts,counts[1:])):
