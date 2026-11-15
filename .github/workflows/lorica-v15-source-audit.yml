@@ -24,6 +24,7 @@ jobs:
           mkdir -p work report/{TREED,coupling,LORICA}
           tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
           cp work/TREED/src/TREEDnonsteadystep.jl report/TREED/
+          cp work/TREED/src/TREEDlocalstep.jl report/TREED/
           cp work/TREED/src/TREED_model_functions.jl report/TREED/
           cp work/TREED/src/TREED_physiological_functions.jl report/TREED/
           cp work/TREED/src/TREED_pars.jl report/TREED/
