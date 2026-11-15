@@ -1,9 +1,9 @@
-name: LORICA-TREED v1.3 sediment routing conservation and FPC A-B
+name: LORICA-TREED v1.3 30-year native FPC beta0 vs beta2
 
 on:
   push:
     branches:
-      - lorica-treed-v1.3-transport-accum
+      - lorica-treed-v1.3-30year-fpc-ab
     paths:
       - '.github/workflows/lorica-v12-native-fpc-ab.yml'
       - 'lorica_treed/v1.1/ci/LoricaTreedThirtyYear.cs'
@@ -17,7 +17,7 @@ permissions:
 jobs:
   native-coupled:
     runs-on: windows-latest
-    timeout-minutes: 95
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +27,7 @@ jobs:
           - beta: '2'
             name: beta2
     env:
-      GOUNSA_AB_YEARS: '3'
+      GOUNSA_AB_YEARS: '30'
       GOUNSA_AB_K: '0.0001'
       GOUNSA_AB_BETA: ${{ matrix.beta }}
     steps:
@@ -146,7 +146,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
 
-      - name: Run 3 actual native every_timestep coupled years
+      - name: Run 30 actual native every_timestep coupled years
         shell: pwsh
         working-directory: work/LORICA/bin/Release
         run: |
@@ -187,7 +187,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lorica-v12-ab-${{ matrix.name }}
+          name: lorica-v13-30year-${{ matrix.name }}
           path: report/**
           if-no-files-found: error
 
@@ -206,7 +206,7 @@ jobs:
       - name: Download both native run artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: lorica-v12-ab-*
+          pattern: lorica-v13-30year-*
           path: comparisons
           merge-multiple: false
 
@@ -218,6 +218,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lorica-v12-annual-fpc-comparison
+          name: lorica-v13-30year-fpc-comparison
           path: verification/**
           if-no-files-found: warn
