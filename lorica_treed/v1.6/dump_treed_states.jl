@@ -18,7 +18,16 @@ fields = collect(fieldnames(TREED.traits))
 years = sort(filter(d -> startswith(d, "year_") && isdir(joinpath(run_root, d)), readdir(run_root)))
 isempty(years) && error("No year_XX folders in $run_root")
 
-esri(A) = permutedims(Array(A))
+function esri(A)
+    M = Array(A)
+    # Trait optima are stored as mean/max/min over Ti => trailing Ti axis of length 1.
+    if ndims(M) == 3
+        size(M, 3) == 1 || error("unexpected 3-D trait raster with Ti length $(size(M, 3))")
+        M = M[:, :, 1]
+    end
+    ndims(M) == 2 || error("unexpected raster rank $(ndims(M))")
+    return permutedims(M)
+end
 fmt(x) = (x === missing || !(x isa Real) || !isfinite(x)) ? "NaN" : string(Float64(x))
 
 open(joinpath(run_root, "treed_restart_traits_by_cell.csv"), "w") do io

@@ -3275,6 +3275,15 @@ public static class LoricaTreedLandslideRecovery
             SetCfgKey(cfgPath, "landslide_event_mode", "explicit_event");
             SetCfgKey(cfgPath, "landslide_event_rainfall_mm", preEventTriggerMm.ToString("R", CultureInfo.InvariantCulture));
             SetCfgKey(cfgPath, "landslide_event_duration_h", "6");
+            // v1.6 EXPERIMENTAL overlay switch (ignored by builds without the module patch).
+            bool moduleOn = condition.StartsWith("C_");
+            SetCfgKey(cfgPath, "gounsa_experimental_landslide_recovery", moduleOn ? "on" : "off");
+            if (moduleOn)
+            {
+                SetCfgKey(cfgPath, "gounsa_rec_tau_cover_yr", EnvOr("GOUNSA_REC_TAU_COVER_YR", "4"));
+                SetCfgKey(cfgPath, "gounsa_rec_dead_root_k_per_yr", EnvOr("GOUNSA_REC_DEAD_ROOT_K", "0.18"));
+                SetCfgKey(cfgPath, "gounsa_rec_root_beta", EnvOr("GOUNSA_REC_ROOT_BETA", "0.976"));
+            }
             File.Copy(cfgPath, Path.Combine(root, "TREED_coupling_initial.cfg"), true);
 
             using (Mother_form f = BuildConvergentCase(root, 1, false))
@@ -3643,7 +3652,8 @@ public static class LoricaTreedLandslideRecovery
                     WriteAscii(Path.Combine(yearOutput, "soil_depth_m.asc"), finalDepth);
                     WriteAscii(Path.Combine(yearOutput, "dtm_m.asc"), finalDtm);
                     foreach (string nm in new string[] { "treed_C_fineroot_gC_individual.asc", "treed_C_coarseroot_gC_individual.asc",
-                        "treed_CA_m2.asc", "treed_r_s_r.asc", "treed_rootcohesion_Hwang2015_kPa.asc", "treed_root_biomass_kgDM_m2.asc" })
+                        "treed_CA_m2.asc", "treed_r_s_r.asc", "treed_rootcohesion_Hwang2015_kPa.asc", "treed_root_biomass_kgDM_m2.asc",
+                        "gounsa_rec_cover_factor.asc", "gounsa_rec_dead_rootC_gC_m2.asc", "gounsa_rec_years_since_scar.asc" })
                         CopyIfExists(Path.Combine(outputDir, nm), Path.Combine(yearOutput, nm));
                     CopyIfExists(Path.Combine(outputDir, "TREED_output_timestep_" + modelYear + ".nc"),
                         Path.Combine(yearOutput, "TREED_output_timestep_" + modelYear + ".nc"));

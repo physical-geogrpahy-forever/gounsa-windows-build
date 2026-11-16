@@ -25,7 +25,8 @@ checks = []
 
 
 def check(name, ok, detail):
-    checks.append({"check": name, "status": "PASS" if ok else "FAIL", "detail": detail})
+    status = "NOT_RUN" if ok is None else ("PASS" if ok else "FAIL")
+    checks.append({"check": name, "status": status, "detail": detail})
 
 
 def read_csv(p):
@@ -101,11 +102,13 @@ if R is not None and (R / "annual_state.csv").exists():
           bool(worst_cell) and max(worst_cell.values()) <= 1e-12,
           {"max_abs_diff_by_raster": worst_cell})
 else:
-    check("R_v15_regression_present", False, "regression run outputs missing")
+    check("R_v15_regression_present", None, "regression run not part of this workflow run")
 
 # ---------------------------------------------------------------- A / B / C
 conds = {}
-for cond in ["A_no_landslide", "B_landslide_original", "C_landslide_recovery_module", "C_null_module_no_landslide"]:
+names = ["A_no_landslide", "B_landslide_original"] + sorted(
+    p.name[len("lorica-v16-"):] for p in COLLECTED.glob("lorica-v16-C_*") if p.is_dir())
+for cond in names:
     d = run_dir(cond)
     if d is not None and (d / "annual_state.csv").exists():
         conds[cond] = {
@@ -265,9 +268,11 @@ if A and B and event_year:
     # TREED restart traits
     ta = Path(A["dir"]) / "treed_restart_traits_by_cell.csv"
     tb = Path(B["dir"]) / "treed_restart_traits_by_cell.csv"
-    if ta.exists() and tb.exists():
-        TA = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in read_csv(ta)}
-        TB = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in read_csv(tb)}
+    TA = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in read_csv(ta)} if ta.exists() else {}
+    TB = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in read_csv(tb)} if tb.exists() else {}
+    if not TA or not TB:
+        check("restart_traits_dumped", None, "treed_restart_traits_by_cell.csv missing or empty")
+    else:
         fields = [k for k in next(iter(TA.values())).keys() if k not in ("year", "row", "col")]
         trait_rows = []
         for h in horizons:
@@ -297,25 +302,42 @@ if A and B and event_year:
           {"A_kg": ea, "B_kg": eb, "B_minus_A_kg": eb - ea})
 
 # ---------------------------------------------------------------- C module
-C = conds.get("C_landslide_recovery_module")
-C0 = conds.get("C_null_module_no_landslide")
-if C0 and A:
-    ia = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in A["cells"]}
-    worst = 0.0
-    for r in C0["cells"]:
-        k = (int(r["year"]), int(r["row"]), int(r["col"]))
-        for key in CELL_KEYS:
-            worst = max(worst, abs(fnum(r[key]) - fnum(ia[k][key])))
-    check("C_module_on_without_landslide_reproduces_A_exactly", worst == 0.0, {"max_abs_cell_difference": worst})
-if C and B and event_year:
-    ib = {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in B["cells"]}
-    worst_pre = 0.0
-    for r in C["cells"]:
-        k = (int(r["year"]), int(r["row"]), int(r["col"]))
-        if k[0] <= event_year:
-            for key in CELL_KEYS:
-                worst_pre = max(worst_pre, abs(fnum(r[key]) - fnum(ib[k][key])))
-    check("C_identical_to_B_through_event_year", worst_pre == 0.0, {"max_abs_cell_difference": worst_pre})
+def cidx(D):
+    return {(int(r["year"]), int(r["row"]), int(r["col"])): r for r in D["cells"]}
+c_rows = []
+for cname, D in conds.items():
+    if not cname.startswith("C_"):
+        continue
+    ctype = D["status"].get("condition", "")
+    ic = cidx(D)
+    if ctype == "C_null_module_no_landslide" and A:
+        ia = cidx(A)
+        worst = max(abs(fnum(r[k]) - fnum(ia[key][k])) for key, r in ic.items() for k in CELL_KEYS)
+        check(cname + "_module_on_without_landslide_reproduces_A_exactly", worst == 0.0,
+              {"max_abs_cell_difference": worst})
+    if ctype == "C_landslide_recovery_module" and B and event_year:
+        ib = cidx(B)
+        worst_pre = max([abs(fnum(r[k]) - fnum(ib[key][k])) for key, r in ic.items() if key[0] <= event_year
+                         for k in CELL_KEYS] or [0.0])
+        check(cname + "_identical_to_B_through_event_year", worst_pre == 0.0, {"max_abs_cell_difference": worst_pre})
+        # undisturbed cells: C differs from B only through landscape feedback, record magnitude
+        maskC = {(key[1], key[2]): int(r["event_mask"]) for key, r in ic.items() if key[0] == event_year}
+        for y in sorted({k[0] for k in ic}):
+            for g, sel in (("scar", lambda m: m in (1, 3)), ("deposit_only", lambda m: m == 2), ("undisturbed", lambda m: m == 0)):
+                cells = [k for k, m in maskC.items() if sel(m)]
+                if not cells:
+                    continue
+                row = {"run": cname, "year": y, "years_since_event": y - event_year, "group": g, "n": len(cells)}
+                for v in ["raw_fpc", "effective_fpc", "raw_rootC_gC_m2", "effective_rootC_gC_m2", "root_cohesion_kPa",
+                          "input_soildepth_m", "water_erosion_m", "end_soildepth_m"]:
+                    row["C_" + v] = mean([fnum(ic[(y, r, c)][v]) for r, c in cells])
+                    row["B_" + v] = mean([fnum(ib[(y, r, c)][v]) for r, c in cells])
+                c_rows.append(row)
+if c_rows:
+    with open(OUT / "C_vs_B_by_group.csv", "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(c_rows[0].keys()))
+        w.writeheader()
+        w.writerows(c_rows)
 
 summary = {"checks": checks,
            "n_pass": sum(c["status"] == "PASS" for c in checks),
