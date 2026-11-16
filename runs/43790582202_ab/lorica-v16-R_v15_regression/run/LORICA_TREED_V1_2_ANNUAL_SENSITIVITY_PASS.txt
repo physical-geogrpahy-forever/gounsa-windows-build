@@ -1,0 +1,14 @@
+LORICA_TREED_V1_2_ANNUAL_SENSITIVITY_PASS
+years=13
+beta=2
+K=0.0001
+native_loop=every_timestep
+TREED_restart_continuity=PASS
+DEM_soil_depth_exchange=PASS
+root_cohesion_and_ET_feedback=PASS
+water_erosion_and_landsliding=landslides_optional
+topology=open_hillslope
+soil_layers_and_residual_sediment=PASS
+max_mass_closure=9.2788991702330811E-16
+max_state_exchange_error_m=4.9957415304557884E-07
+max_layer_depth_error_m=0

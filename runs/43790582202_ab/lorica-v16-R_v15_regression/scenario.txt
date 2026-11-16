@@ -1,0 +1,11 @@
+condition=R_v15_regression
+mode=v15_regression
+sha=cb9c0988eef9996410fd4781314fbe0c71ef4bff
+dem=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+triggers_mm_6h=0.1/60/60
+event_year=4
+years=34
+beta=2
+K=0.0001
