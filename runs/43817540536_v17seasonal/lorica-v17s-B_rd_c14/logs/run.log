@@ -1,0 +1,6 @@
+GOUNSA_LR_PARAMETERS condition=B_landslide_original years=34 event_year=4 daily_storm_mm=60 trigger_mm_6h(pre/event/post)=0.1/60/60 dem=hollow_row1to2:36:42:46 scarp_deg=0 lateral_m=2 beta=2 K=0.0001
+LS_MODE_SELECTED=1
+
+Unhandled Exception: System.Exception: No runoff in year 1
+   at LoricaTreedLandslideRecovery.TestLandslideRecoveryExperiment()
+   at LoricaTreedLandslideRecovery.Main(String[] args)
