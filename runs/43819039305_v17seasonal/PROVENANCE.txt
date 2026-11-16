@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.7 root-depth trait, seasonal stochastic weather
+run_id=43819039305
+run_attempt=1
+source_sha=f7ba8206376bff915325dc185c0be0a4eda3175e
+source_ref=lorica-treed-v1.7-root-depth

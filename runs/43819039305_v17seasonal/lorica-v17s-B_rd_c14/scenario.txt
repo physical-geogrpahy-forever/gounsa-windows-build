@@ -1,0 +1,13 @@
+condition=B_rd_c14
+root_depth_mode=milly_stochastic
+root_depth_cost=14.0
+weather=seasonal_stochastic seed=20261113
+sha=f7ba8206376bff915325dc185c0be0a4eda3175e
+dem=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+triggers_mm_6h=0.1/60/60
+event_year=4
+years=34
+beta=2
+K=0.0001
