@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.6 condition C - explicit experimental scar-recovery overlay
+run_id=43795357866
+run_attempt=1
+source_sha=a4f28a436aba57e092e52bc4d895e73b52beb45c
+source_ref=lorica-treed-v1.6-landslide-recovery

@@ -1,0 +1,15 @@
+condition=C_null_module_no_landslide
+run_name=C_null_module_no_landslide
+tau_cover_yr=4
+dead_root_k=0.32
+root_beta=0.976
+mode=experiment
+sha=a4f28a436aba57e092e52bc4d895e73b52beb45c
+dem=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+triggers_mm_6h=0.1/60/60
+event_year=4
+years=34
+beta=2
+K=0.0001
