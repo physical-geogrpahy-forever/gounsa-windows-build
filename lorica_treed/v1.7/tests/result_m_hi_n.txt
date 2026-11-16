@@ -1,0 +1,9 @@
+mode=milly_stochastic cost=146.1 rain=normal
+soil 0.00 | z_opt mean 0.05 sd 0.00 | z_r yr1 0.46 yr10 0.21 yr30 0.07 | H mean(yr21-30) 1.0
+soil 0.05 | z_opt mean 0.05 sd 0.00 | z_r yr1 0.46 yr10 0.21 yr30 0.07 | H mean(yr21-30) 10.0
+soil 0.10 | z_opt mean 0.10 sd 0.00 | z_r yr1 0.46 yr10 0.24 yr30 0.12 | H mean(yr21-30) 15.4
+soil 0.20 | z_opt mean 0.20 sd 0.00 | z_r yr1 0.47 yr10 0.30 yr30 0.21 | H mean(yr21-30) 17.5
+soil 0.30 | z_opt mean 0.30 sd 0.00 | z_r yr1 0.48 yr10 0.37 yr30 0.31 | H mean(yr21-30) 18.5
+soil 0.60 | z_opt mean 0.33 sd 0.03 | z_r yr1 0.48 yr10 0.39 yr30 0.34 | H mean(yr21-30) 18.1
+soil 1.00 | z_opt mean 0.33 sd 0.03 | z_r yr1 0.48 yr10 0.39 yr30 0.34 | H mean(yr21-30) 18.1
+soil 2.00 | z_opt mean 0.33 sd 0.03 | z_r yr1 0.48 yr10 0.39 yr30 0.34 | H mean(yr21-30) 18.1

@@ -1,0 +1,240 @@
+name: LORICA TREED v1.7 root-depth trait (off-regression + A/B)
+
+# v1.7 experimental root-depth trait module on the unchanged v1.6 A/B design.
+# A_off_regression: module installed, root_depth_mode=off. Must reproduce the
+#   v1.6 A_no_landslide outputs (run 43790582202) byte for byte.
+# A_rd / B_rd: root_depth_mode=milly_stochastic, without / with the landslide.
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.7-root-depth
+    paths:
+      - '.github/workflows/lorica-v17-root-depth.yml'
+
+permissions:
+  contents: read
+
+env:
+  RUN_STAMP: 'rd-1'
+  RD_COST: '146.1'
+  # Design fixed by native probes #43789221109 and #43790023979: hollow scarp
+  # (outer/inner/centre column 36/42/46 deg between rows 1 and 2) gives exactly
+  # 3 native initiations at 0.9-1.1x the v1.5 year-4 root cohesion and 0 at a
+  # 0.1 mm/6 h trigger. Daily rainfall = v1.5 forcing in every year.
+  LR_DEM_FAMILY: 'hollow_row1to2:36:42:46'
+  LR_SCARP_DEG: '0'
+  LR_LATERAL_M: '2'
+  LR_DAILY_STORM_MM: '60'
+  LR_PRE_EVENT_TRIGGER_MM: '0.1'
+  LR_EVENT_TRIGGER_MM: '60'
+  LR_POST_EVENT_TRIGGER_MM: '60'
+  LR_EVENT_YEAR: '4'
+  LR_YEARS: '34'
+  LR_BETA: '2'
+  LR_K: '0.0001'
+  LR_MIN_INIT: '1'
+  LR_MAX_INIT: '6'
+
+jobs:
+  native-coupled:
+    runs-on: windows-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: A_off_regression
+            condition: A_no_landslide
+            rd: 'off'
+          - name: A_rd
+            condition: A_no_landslide
+            rd: 'milly_stochastic'
+          - name: B_rd
+            condition: B_landslide_original
+            rd: 'milly_stochastic'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.6'
+      - uses: julia-actions/cache@v2
+        with:
+          cache-name: lorica-treed-v12-fpc-ab-julia-1.11.6
+
+      - name: Extract exact v0.5 source, v1.1-v1.3 patches, v1.6 hook, v1.7 root-depth module (default off)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work, report/logs | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          foreach ($p in @('lorica_treed/v1.1/apply_v11_formula_patch.py','lorica_treed/v1.2/instrument_water_export.py','lorica_treed/v1.3/fix_downstream_sediment_accumulation.py','lorica_treed/v1.6/instrument_landslide_snapshots.py','lorica_treed/v1.7/apply_root_depth_trait_module.py')) {
+            python $p work 2>&1 | Tee-Object -Append -FilePath report/logs/patch.log
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Prepare deterministic TREED driver (identical to v1.5)
+        shell: pwsh
+        run: |
+          $treedModule = Join-Path $PWD 'work/TREED/src/TREED.jl'
+          $source = [System.IO.File]::ReadAllText($treedModule)
+          $source = $source.Replace('using Rasters, ArchGDAL, NCDatasets', 'using Rasters, NCDatasets')
+          $source = [System.Text.RegularExpressions.Regex]::Replace($source, '(?m)^using Images\r?\n', '')
+          [System.IO.File]::WriteAllText($treedModule, $source, (New-Object System.Text.UTF8Encoding($false)))
+          $modelFunctions = Join-Path $PWD 'work/TREED/src/TREED_model_functions.jl'
+          $modelSource = [System.IO.File]::ReadAllText($modelFunctions)
+          $parallelLoop = 'Threads.@threads for i = 1:length(lookup(traits_start.H, X))'
+          if (-not $modelSource.Contains($parallelLoop)) { throw 'TREED ECA optimization loop anchor missing' }
+          $modelSource = $modelSource.Replace($parallelLoop, 'for i = 1:length(lookup(traits_start.H, X))')
+          [System.IO.File]::WriteAllText($modelFunctions, $modelSource, (New-Object System.Text.UTF8Encoding($false)))
+          $coupling = Join-Path $PWD 'work/coupling'
+          Copy-Item (Join-Path $coupling 'treed_lorica_driver.jl') (Join-Path $coupling 'treed_lorica_driver_core.jl') -Force
+          Copy-Item (Join-Path $PWD 'lorica_treed/v1.0/treed_lorica_driver_seeded_wrapper.jl') (Join-Path $coupling 'treed_lorica_driver_seeded_wrapper.jl') -Force
+          $cfg = [System.IO.File]::ReadAllText((Join-Path $coupling 'scenarios/01_original_treed_control.cfg'))
+          $cfg = $cfg.Replace('driver_path=treed_lorica_driver.jl', 'driver_path=treed_lorica_driver_seeded_wrapper.jl')
+          if ($cfg -notmatch '(?m)^treed_random_seed=') { $cfg += [Environment]::NewLine + 'treed_random_seed=20261113' + [Environment]::NewLine }
+          [System.IO.File]::WriteAllText((Join-Path $coupling 'TREED_coupling.cfg'), $cfg, (New-Object System.Text.UTF8Encoding($false)))
+
+      - name: Instantiate and load actual TREED Julia model
+        shell: pwsh
+        working-directory: work/TREED
+        run: |
+          $env:JULIA_PKG_PRECOMPILE_AUTO='0'
+          $env:JULIA_NUM_THREADS='1'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          julia --project=. -e 'include("src/TREED.jl"); using .TREED; println("TREED_LOAD_OK")'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: microsoft/setup-msbuild@v2
+      - uses: NuGet/setup-nuget@v2
+
+      - name: Compile LORICA and v1.6 runner
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive | Out-Null
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU /v:minimal 2>&1 | Tee-Object -FilePath ../../report/logs/msbuild.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedLandslideRecovery.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.6\ci\LoricaTreedLandslideRecovery.cs 2>&1 | Tee-Object -FilePath ../../report/logs/csc.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: TREED root-carbon baseline (same as v1.5)
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS='1'
+          $env:LORICA_TREED_BASELINE_ONLY='1'
+          $baseline = Join-Path $work 'landslide_baseline'
+          New-Item -ItemType Directory -Force -Path $baseline | Out-Null
+          & .\LoricaTreedLandslideRecovery.exe $baseline 2>&1 | Tee-Object -FilePath ../../../../report/logs/baseline.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rootC = Join-Path $baseline 'treed_same_year_rootcohesion/TREED_exchange_run_9002/0001/output/treed_rootC_areanorm_gC_m2.asc'
+          if (-not (Test-Path $rootC)) { throw 'Baseline TREED rootC missing' }
+          Copy-Item $rootC (Join-Path $work 'baseline_rootC.asc') -Force
+
+      - name: Calibrate identical fixed Hales event-scale root cohesion and enable soil-water coupling
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work/calibration | Out-Null
+          python lorica_treed/v0.7/calibrate_event_cohesion.py work/baseline_rootC.asc work/coupling/TREED_coupling.cfg hales2009_wu_mean work/calibration/TREED_coupling_hales2009_wu.cfg work/calibration/hales2009_wu_calibration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item work/calibration/TREED_coupling_hales2009_wu.cfg work/coupling/TREED_coupling.cfg -Force
+          $p='work/coupling/TREED_coupling.cfg'
+          $cfg=[System.IO.File]::ReadAllText((Resolve-Path $p).Path)
+          if ($cfg -notmatch '(?m)^soil_water_coupling_strength=') { throw 'Missing soil-water coupling setting' }
+          $cfg=[regex]::Replace($cfg,'(?m)^soil_water_coupling_strength=.*$', 'soil_water_coupling_strength=1.0')
+          # Root-depth keys are added only now, so the Hales event-scale cohesion is calibrated on the
+          # root-depth-off baseline for every condition (A_rd and B_rd differ from A_off only by the module).
+          if ('${{ matrix.rd }}' -ne 'off') { $cfg += [Environment]::NewLine + 'root_depth_mode=${{ matrix.rd }}' + [Environment]::NewLine + "root_depth_cost_gC_m2_yr_per_m=$env:RD_COST" + [Environment]::NewLine }
+          [System.IO.File]::WriteAllText((Resolve-Path $p).Path,$cfg,(New-Object System.Text.UTF8Encoding($false)))
+
+      - name: Run native annual coupled model
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $work = (Resolve-Path ../../../).Path
+          $env:LORICA_TREED_COUPLING_DIR = Join-Path $work 'coupling'
+          $env:JULIA_NUM_THREADS='1'
+          Remove-Item Env:LORICA_TREED_BASELINE_ONLY -ErrorAction SilentlyContinue
+          $env:GOUNSA_LR_MODE = 'experiment'
+          if ($false) {
+          } else {
+            $env:GOUNSA_LR_CONDITION='${{ matrix.condition }}'
+            $env:GOUNSA_LR_YEARS=$env:LR_YEARS; $env:GOUNSA_LR_EVENT_YEAR=$env:LR_EVENT_YEAR
+            $env:GOUNSA_LR_DAILY_STORM_MM=$env:LR_DAILY_STORM_MM; $env:GOUNSA_LR_PRE_EVENT_TRIGGER_MM=$env:LR_PRE_EVENT_TRIGGER_MM
+            $env:GOUNSA_LR_EVENT_TRIGGER_MM=$env:LR_EVENT_TRIGGER_MM; $env:GOUNSA_LR_POST_EVENT_TRIGGER_MM=$env:LR_POST_EVENT_TRIGGER_MM
+            $env:GOUNSA_LR_DEM_FAMILY=$env:LR_DEM_FAMILY; $env:GOUNSA_LR_SCARP_DEG=$env:LR_SCARP_DEG
+            $env:GOUNSA_LR_LATERAL_M=$env:LR_LATERAL_M; $env:GOUNSA_LR_BETA=$env:LR_BETA; $env:GOUNSA_LR_K=$env:LR_K
+            $env:GOUNSA_LR_MIN_INITIATIONS=$env:LR_MIN_INIT; $env:GOUNSA_LR_MAX_INITIATIONS=$env:LR_MAX_INIT
+          }
+          $out = Join-Path $work 'lr_out'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          & .\LoricaTreedLandslideRecovery.exe $out 2>&1 | Tee-Object -FilePath ../../../../report/logs/run.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Dump TREED restart traits and NetCDF outputs (read-only)
+        if: always()
+        shell: pwsh
+        run: |
+          $run = 'work/lr_out/landslide_recovery'
+          if (Test-Path $run) {
+            $env:JULIA_NUM_THREADS='1'
+            julia --project=work/TREED lorica_treed/v1.6/dump_treed_states.jl $run work/TREED 2>&1 | Tee-Object -FilePath report/logs/dump.log
+          }
+
+      - name: Stage outputs
+        if: always()
+        shell: pwsh
+        run: |
+          $run = 'work/lr_out/landslide_recovery'
+          New-Item -ItemType Directory -Force -Path report/run | Out-Null
+          if (Test-Path $run) {
+            Get-ChildItem $run | Where-Object { $_.Name -notlike 'TREED_exchange_run_*' } | ForEach-Object { Copy-Item $_.FullName -Destination report/run -Recurse -Force }
+            $ex = Get-ChildItem $run -Directory -Filter 'TREED_exchange_run_*' | Select-Object -First 1
+            if ($ex) { Compress-Archive -Path $ex.FullName -DestinationPath report/TREED_exchange.zip -Force }
+          }
+          if (Test-Path work/calibration/hales2009_wu_calibration.json) { Copy-Item work/calibration/hales2009_wu_calibration.json report/ }
+          Copy-Item work/coupling/TREED_coupling.cfg report/TREED_coupling_template.cfg -Force
+          @("condition=${{ matrix.name }}","root_depth_mode=${{ matrix.rd }}","root_depth_cost=$env:RD_COST","sha=$env:GITHUB_SHA","dem=$env:LR_DEM_FAMILY","scarp_deg=$env:LR_SCARP_DEG","lateral_m=$env:LR_LATERAL_M","triggers_mm_6h=$env:LR_PRE_EVENT_TRIGGER_MM/$env:LR_EVENT_TRIGGER_MM/$env:LR_POST_EVENT_TRIGGER_MM","event_year=$env:LR_EVENT_YEAR","years=$env:LR_YEARS","beta=$env:LR_BETA","K=$env:LR_K") | Set-Content -Encoding utf8 report/scenario.txt
+
+      - name: Surface failing log tail as annotation
+        if: failure()
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem report/logs -Filter *.log) {
+            $tail = (Get-Content $f.FullName -Tail 25) -join '%0A'
+            Write-Output "::error title=$($f.Name)::$tail"
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lorica-v17-${{ matrix.name }}
+          path: report/**
+          if-no-files-found: error
+
+  verify-and-publish:
+    needs: native-coupled
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: lorica-v17-*
+          path: collected
+      - name: Commit outputs to results branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash lorica_treed/v1.6/publish_results.sh collected v17rd
