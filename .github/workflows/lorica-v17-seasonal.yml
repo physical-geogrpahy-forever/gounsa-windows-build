@@ -2,7 +2,7 @@ name: LORICA TREED v1.7 root-depth trait, seasonal stochastic weather
 
 # Same A/B landslide design as v1.6, but with seeded monsoon-shaped daily rain and a
 # seasonal temperature cycle (SYNTHETIC, Korea-like, not field data). The 60 mm storm on
-# day 1 and the annual totals 730/900/600 mm are unchanged. Root depth off vs on, with the
+# day 195 (mid-July) and the annual totals 730/900/600 mm are unchanged. Root depth off vs on, with the
 # Guswa (2008) Table 1 (14.0) and Table 2 (146.1) cost values as a sensitivity pair.
 
 on:
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  RUN_STAMP: 'sw-1'
+  RUN_STAMP: 'sw-2'
   LR_WEATHER: 'seasonal_stochastic'
   LR_WEATHER_SEED: '20261113'
   # Design fixed by native probes #43789221109 and #43790023979: hollow scarp

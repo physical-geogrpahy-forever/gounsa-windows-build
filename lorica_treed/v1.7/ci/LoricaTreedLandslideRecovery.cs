@@ -3451,6 +3451,10 @@ public static class LoricaTreedLandslideRecovery
                         double[] monthShare = { 0.022, 0.032, 0.043, 0.070, 0.080, 0.110, 0.220, 0.190, 0.110, 0.045, 0.040, 0.025 };
                         int[] wetDays = { 5, 5, 7, 8, 9, 10, 15, 14, 9, 6, 7, 5 };
                         int[] mdays = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+                        // The storm moves from 1 January (snow below 0 C in LORICA) to day 195 (mid-July monsoon).
+                        const int stormDay = 195;
+                        precipitation[0] = 0; duration[0] = 24;
+                        precipitation[stormDay] = stormMm; duration[stormDay] = 6;
                         double shareSum = 0.0; foreach (double s in monthShare) shareSum += s;
                         Random rng = new Random(weatherSeed + 7919 * modelYear);
                         int d0 = 0, assigned = 0;
@@ -3464,7 +3468,7 @@ public static class LoricaTreedLandslideRecovery
                         for (int mo = 0; mo < 12; mo++)
                         {
                             List<int> candidates = new List<int>();
-                            for (int d = 0; d < mdays[mo]; d++) if (d0 + d != 0) candidates.Add(d0 + d);
+                            for (int d = 0; d < mdays[mo]; d++) if (d0 + d != stormDay) candidates.Add(d0 + d);
                             int nWet = Math.Min(wetDays[mo], candidates.Count);
                             List<int> wet = new List<int>();
                             for (int k = 0; k < nWet; k++)
@@ -3482,7 +3486,7 @@ public static class LoricaTreedLandslideRecovery
                             for (int k = 0; k < nWet; k++) { precipitation[wet[k]] = amt[k]; duration[wet[k]] = 24; }
                             d0 += mdays[mo];
                         }
-                        for (int day = 1; day < days; day++) if (duration[day] == 0) duration[day] = 24;
+                        for (int day = 0; day < days; day++) if (duration[day] == 0) duration[day] = 24;
                         for (int day = 0; day < days; day++)
                         {
                             int t = (int)Math.Round(annualTemp + 11.0 * Math.Sin(2.0 * Math.PI * (day - 110) / 365.0));
