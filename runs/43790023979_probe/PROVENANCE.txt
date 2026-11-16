@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.6 landslide design probe (native threshold + native slide)
+run_id=43790023979
+run_attempt=1
+source_sha=fc0d6f1374ab17efa75f3fcd322c598c3d0d8f60
+source_ref=lorica-treed-v1.6-landslide-recovery

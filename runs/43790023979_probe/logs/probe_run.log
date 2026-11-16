@@ -1,0 +1,85 @@
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_46_L2_rc1.1 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_42_48_L2_rc1.1 storm=60 init=3 eroded=3 deposit=3 closure=4.6394495851165405E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_43_47_L2_rc1.1 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc0.9 storm=0.1 init=1 eroded=1 deposit=1 closure=1.1598623962791351E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc0.9 storm=60 init=5 eroded=5 deposit=5 closure=4.6394495851165405E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc1.0 storm=0.1 init=1 eroded=1 deposit=1 closure=1.1598623962791351E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_44_50_L2_rc1.1 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=4.6394495851165405E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_46_L2_rc1.1 storm=60 init=1 eroded=1 deposit=1 closure=1.1598623962791351E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=2.3197247925582703E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_34_38_48_L2_rc1.1 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc0.9 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc0.9 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc1.0 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc1.0 storm=60 init=3 eroded=3 deposit=3 closure=3.4795871888374049E-16
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc1.1 storm=0.1 init=0 eroded=0 deposit=0 closure=0
+LS_MODE_SELECTED=1
+GOUNSA_PROBE dem=hollow_row1to2_36_40_46_L2_rc1.1 storm=60 init=1 eroded=1 deposit=1 closure=1.1598623962791351E-16
+GOUNSA_PROBE_FINISHED runs=42 failures=0
