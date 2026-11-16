@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.7 root-depth trait (off-regression + A/B)
+run_id=43806452022
+run_attempt=1
+source_sha=42b56212fae52261b4be29a2b2bfe7381fa80f25
+source_ref=lorica-treed-v1.7-root-depth

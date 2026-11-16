@@ -1,0 +1,20 @@
+condition=B_landslide_original
+years=34
+event_year=4
+daily_storm_mm=60
+trigger_mm_6h_pre_event=0.1
+trigger_mm_6h_event=60
+trigger_mm_6h_post_event=60
+dem_family=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+beta=2
+K=0.0001
+event_year_initiations=0
+initiations_other_years=3
+max_mass_closure=1.6238073547907891E-15
+max_slide_stage_closure=0
+max_state_exchange_error_m=4.9980749572409167E-07
+max_layer_depth_error_m=0
+failures=event_year_initiations=0 outside [1,6]
+status=FAIL
