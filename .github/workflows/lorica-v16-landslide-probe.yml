@@ -1,0 +1,110 @@
+name: LORICA TREED v1.6 landslide design probe (native threshold + native slide)
+
+# Short LORICA-only run: evaluates candidate open-scarp synthetic DEMs with the
+# unchanged calculate_critical_rain()/calculate_slide_new() of the audited
+# v1.1-v1.3 LORICA build plus the read-only v1.6 snapshot hook. Root cohesion
+# is the actual year-4 map of the verified v1.5 30-year run (#43725363487).
+
+on:
+  push:
+    branches:
+      - lorica-treed-v1.6-landslide-recovery
+    paths:
+      - '.github/workflows/lorica-v16-landslide-probe.yml'
+
+permissions:
+  contents: read
+
+env:
+  PROBE_STAMP: 'probe-1'
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract exact v0.5 source and apply audited v1.1-v1.3 patches + v1.6 read-only hook
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path work, report/logs | Out-Null
+          tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
+          foreach ($p in @('lorica_treed/v1.1/apply_v11_formula_patch.py','lorica_treed/v1.2/instrument_water_export.py','lorica_treed/v1.3/fix_downstream_sediment_accumulation.py','lorica_treed/v1.6/instrument_landslide_snapshots.py')) {
+            python $p work 2>&1 | Tee-Object -Append -FilePath report/logs/patch.log
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - uses: microsoft/setup-msbuild@v2
+      - uses: NuGet/setup-nuget@v2
+
+      - name: Compile LORICA
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          nuget install MathNet.Numerics -Version 4.15.0 -OutputDirectory packages -NonInteractive | Out-Null
+          msbuild LORICA_2026.csproj /m /p:Configuration=Release /p:Platform=AnyCPU /v:minimal 2>&1 | Tee-Object -FilePath ../../report/logs/msbuild.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path bin/Release/LORICA.exe)) { throw 'LORICA.exe missing' }
+
+      - name: Compile v1.6 runner
+        shell: pwsh
+        working-directory: work/LORICA
+        run: |
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+          & $csc /nologo /target:exe /out:bin/Release/LoricaTreedLandslideRecovery.exe /reference:bin/Release/LORICA.exe /reference:System.dll /reference:System.Core.dll /reference:System.Windows.Forms.dll ..\..\lorica_treed\v1.6\ci\LoricaTreedLandslideRecovery.cs 2>&1 | Tee-Object -FilePath ../../report/logs/csc.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run native probe
+        shell: pwsh
+        working-directory: work/LORICA/bin/Release
+        run: |
+          $env:GOUNSA_LR_MODE = 'probe'
+          $env:GOUNSA_PROBE_ROOT_COHESION_ASC = (Resolve-Path ../../../../lorica_treed/v1.6/probe_inputs/v15_open30_beta0_year04_root_cohesion_kPa.asc).Path
+          $out = (Resolve-Path ../../../).Path + '\probe_out'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          & .\LoricaTreedLandslideRecovery.exe $out 2>&1 | Tee-Object -FilePath ../../../../report/logs/probe_run.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Stage probe tables
+        if: always()
+        shell: pwsh
+        run: |
+          $src = 'work/probe_out/landslide_design_probe'
+          if (Test-Path $src) { Copy-Item "$src/*.csv","$src/*.txt" report/ -ErrorAction SilentlyContinue }
+          "sha=$env:GITHUB_SHA" | Set-Content -Encoding utf8 report/scenario.txt
+
+      - name: Surface failing log tail as annotation
+        if: failure()
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem report/logs -Filter *.log) {
+            $tail = (Get-Content $f.FullName -Tail 25) -join '%0A'
+            Write-Output "::error title=$($f.Name)::$tail"
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lorica-v16-landslide-probe
+          path: report/**
+
+  publish:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: lorica-v16-landslide-probe
+          path: collected
+      - name: Commit outputs to results branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash lorica_treed/v1.6/publish_results.sh collected probe
