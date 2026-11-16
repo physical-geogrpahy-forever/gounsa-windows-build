@@ -2992,6 +2992,30 @@ public static class LoricaTreedLandslideRecovery
         const int nr = 5, nc = 5;
         double g = 10.0 * Math.Tan(scarpDeg * Math.PI / 180.0);
         double[] rowDrop = new double[] { 4.0, 4.0, 4.0, 4.0 }; // drop from row k to k+1
+        if (family.StartsWith("hollow_row1to2:"))
+        {
+            // hollow_row1to2:OUTER:INNER:CENTER  -> per-column scarp angle (deg)
+            // between rows 1 and 2 for columns {0,4}, {1,3}, {2}.
+            string[] p = family.Split(':');
+            if (p.Length != 4) throw new ArgumentException("hollow_row1to2 needs OUTER:INNER:CENTER angles");
+            double[] colDeg = new double[] {
+                Double.Parse(p[1], CultureInfo.InvariantCulture), Double.Parse(p[2], CultureInfo.InvariantCulture),
+                Double.Parse(p[3], CultureInfo.InvariantCulture), Double.Parse(p[2], CultureInfo.InvariantCulture),
+                Double.Parse(p[1], CultureInfo.InvariantCulture) };
+            double[,] zh = new double[nr, nc];
+            for (int c = 0; c < nc; c++)
+            {
+                double gc = 10.0 * Math.Tan(colDeg[c] * Math.PI / 180.0);
+                double[] drops = new double[] { 4.0, gc, 4.0, 4.0 };
+                for (int r = 0; r < nr; r++)
+                {
+                    double zr = 115.0;
+                    for (int k = 0; k < r; k++) zr -= drops[k];
+                    zh[r, c] = zr + lateralM * Math.Abs(c - 2);
+                }
+            }
+            return zh;
+        }
         if (family == "scarp_row1to2") rowDrop[1] = g;
         else if (family == "scarp_row0to2") { rowDrop[0] = g; rowDrop[1] = g; }
         else if (family == "v15_open_hillslope") { }
@@ -3038,10 +3062,21 @@ public static class LoricaTreedLandslideRecovery
             throw new FileNotFoundException("GOUNSA_PROBE_ROOT_COHESION_ASC missing", rootMapPath);
         double[,] rootMap = ReadAsciiGrid(rootMapPath);
 
+        string probeSet = EnvOr("GOUNSA_PROBE_SET", "1");
         string[] families = new string[] { "v15_open_hillslope", "scarp_row1to2", "scarp_row0to2" };
         double[] scarps = new double[] { 36, 38, 40, 42, 44, 46, 48, 50, 55, 60 };
         double[] laterals = new double[] { 2.0, 4.0 };
         double[] storms = new double[] { 60, 90, 120, 150, 200, 300 };
+        double[] rootScales = new double[] { 1.0 };
+        if (probeSet == "2")
+        {
+            families = new string[] { "hollow_row1to2:36:42:46", "hollow_row1to2:36:42:48", "hollow_row1to2:36:43:47",
+                "hollow_row1to2:36:44:50", "hollow_row1to2:34:38:46", "hollow_row1to2:34:38:48", "hollow_row1to2:36:40:46" };
+            scarps = new double[] { 0 };
+            laterals = new double[] { 2.0 };
+            storms = new double[] { 0.1, 60 };
+            rootScales = new double[] { 0.9, 1.0, 1.1 };
+        }
 
         StringBuilder summary = new StringBuilder();
         summary.AppendLine("dem_id,family,scarp_deg,lateral_m,storm_mm_6h,intensity_m_d,n_unconditional_failure,n_finite_threshold,n_always_stable,min_finite_crrain_m_d,n_initiation_predicted,initiations,continuations,deposition_cells,eroded_cells,deposit_cells,soilfree_cells_after,erosion_sum_m,deposition_sum_m,max_erosion_m,max_deposition_m,residual_transport_kg,mass_closure,status");
@@ -3052,14 +3087,17 @@ public static class LoricaTreedLandslideRecovery
         foreach (string family in families)
         foreach (double scarp in scarps)
         foreach (double lateral in laterals)
+        foreach (double rootScale in rootScales)
         {
             if (family == "v15_open_hillslope" && (scarp != scarps[0] || lateral != 2.0)) continue;
             string demId = family + "_s" + ((int)scarp).ToString(CultureInfo.InvariantCulture) +
                            "_L" + ((int)lateral).ToString(CultureInfo.InvariantCulture);
             if (family == "v15_open_hillslope") demId = "v15_open_hillslope";
+            if (family.StartsWith("hollow_")) demId = family.Replace(':', '_') + "_L" + ((int)lateral).ToString(CultureInfo.InvariantCulture);
+            if (probeSet == "2") demId += "_rc" + rootScale.ToString("0.0#", CultureInfo.InvariantCulture);
             foreach (double storm in storms)
             {
-                string dir = Path.Combine(root, demId + "_p" + ((int)storm).ToString(CultureInfo.InvariantCulture));
+                string dir = Path.Combine(root, "probe_" + nRuns.ToString(CultureInfo.InvariantCulture));
                 Directory.CreateDirectory(dir);
                 nRuns++;
                 try
@@ -3069,7 +3107,7 @@ public static class LoricaTreedLandslideRecovery
                         double[,] dem = BuildDesignDem(family, scarp, lateral);
                         ApplyDem(f, dem);
                         double[,] rc = Get<double[,]>(f, "root_cohesion_kPa_new");
-                        for (int r = 0; r < 5; r++) for (int c = 0; c < 5; c++) rc[r, c] = rootMap[r, c];
+                        for (int r = 0; r < 5; r++) for (int c = 0; c < 5; c++) rc[r, c] = rootScale * rootMap[r, c];
 
                         Dictionary<string, string> cfg = new Dictionary<string, string>();
                         cfg["landslide_event_mode"] = "explicit_event";
@@ -3116,7 +3154,7 @@ public static class LoricaTreedLandslideRecovery
                             maxSed = Math.Max(maxSed, sed[r, c]);
                             cells.AppendLine(String.Join(",", new string[] {
                                 demId, F(storm), r.ToString(CultureInfo.InvariantCulture), c.ToString(CultureInfo.InvariantCulture),
-                                F(dem[r, c]), F(rootMap[r, c]), F(cr[r, c]), F(sl[r, c] * 180.0 / Math.PI), F(cf[r, c]),
+                                F(dem[r, c]), F(rootScale * rootMap[r, c]), F(cr[r, c]), F(sl[r, c] * 180.0 / Math.PI), F(cf[r, c]),
                                 F(ca[r, c]), F(tr[r, c]), F(sb[r, c]), F(pf[r, c] * 180.0 / Math.PI),
                                 F(ero[r, c]), F(sed[r, c]), F(depth[r, c]) }));
                         }
@@ -3193,8 +3231,14 @@ public static class LoricaTreedLandslideRecovery
         else throw new ArgumentException("Unknown GOUNSA_LR_CONDITION " + condition);
         int years = EnvInt("GOUNSA_LR_YEARS", 34);
         int eventYear = EnvInt("GOUNSA_LR_EVENT_YEAR", 4);
-        int eventMm = EnvInt("GOUNSA_LR_EVENT_MM", 150);
-        int backgroundMm = EnvInt("GOUNSA_LR_BACKGROUND_EVENT_MM", 60);
+        // Daily rainfall is identical every year and in every condition (v1.5:
+        // one 60 mm / 6 h day + uniform background). Only the intensity given
+        // to LORICA's native landslide trigger changes: below every critical
+        // rainfall before the event year, the storm intensity from then on.
+        int dailyStormMm = EnvInt("GOUNSA_LR_DAILY_STORM_MM", 60);
+        double preEventTriggerMm = EnvDouble("GOUNSA_LR_PRE_EVENT_TRIGGER_MM", 0.1);
+        double eventTriggerMm = EnvDouble("GOUNSA_LR_EVENT_TRIGGER_MM", 60.0);
+        double postEventTriggerMm = EnvDouble("GOUNSA_LR_POST_EVENT_TRIGGER_MM", 60.0);
         string family = EnvOr("GOUNSA_LR_DEM_FAMILY", "scarp_row1to2");
         double scarpDeg = EnvDouble("GOUNSA_LR_SCARP_DEG", 45.0);
         double lateral = EnvDouble("GOUNSA_LR_LATERAL_M", 2.0);
@@ -3203,11 +3247,12 @@ public static class LoricaTreedLandslideRecovery
         int minInit = EnvInt("GOUNSA_LR_MIN_INITIATIONS", 1);
         int maxInit = EnvInt("GOUNSA_LR_MAX_INITIATIONS", 6);
         const int nr = 5, nc = 5, days = 365;
-        if (years < 2 || years > 40 || eventYear < 1 || eventYear > years || eventMm <= 0 || backgroundMm <= 0 ||
-            eventMm > 600 || abBeta < 0.0 || abK <= 0.0)
+        if (years < 2 || years > 40 || eventYear < 1 || eventYear > years || dailyStormMm <= 0 ||
+            preEventTriggerMm <= 0.0 || eventTriggerMm <= 0.0 || postEventTriggerMm <= 0.0 || abBeta < 0.0 || abK <= 0.0)
             throw new ArgumentException("Invalid landslide experiment parameters");
         Console.WriteLine("GOUNSA_LR_PARAMETERS condition=" + condition + " years=" + years + " event_year=" + eventYear +
-            " event_mm_6h=" + eventMm + " background_mm_6h=" + backgroundMm + " dem=" + family +
+            " daily_storm_mm=" + dailyStormMm + " trigger_mm_6h(pre/event/post)=" + F(preEventTriggerMm) + "/" +
+            F(eventTriggerMm) + "/" + F(postEventTriggerMm) + " dem=" + family +
             " scarp_deg=" + F(scarpDeg) + " lateral_m=" + F(lateral) + " beta=" + F(abBeta) + " K=" + F(abK));
         const double exchangeToleranceM = 5.1e-7;
         string couplingDir = Environment.GetEnvironmentVariable("LORICA_TREED_COUPLING_DIR");
@@ -3228,7 +3273,7 @@ public static class LoricaTreedLandslideRecovery
             SetCfgKey(cfgPath, "treed_bare_bedrock_policy", "zero_coupling");
             SetCfgKey(cfgPath, "treed_ks_refresh_mode", "annual");
             SetCfgKey(cfgPath, "landslide_event_mode", "explicit_event");
-            SetCfgKey(cfgPath, "landslide_event_rainfall_mm", backgroundMm.ToString(CultureInfo.InvariantCulture));
+            SetCfgKey(cfgPath, "landslide_event_rainfall_mm", preEventTriggerMm.ToString("R", CultureInfo.InvariantCulture));
             SetCfgKey(cfgPath, "landslide_event_duration_h", "6");
             File.Copy(cfgPath, Path.Combine(root, "TREED_coupling_initial.cfg"), true);
 
@@ -3333,7 +3378,7 @@ public static class LoricaTreedLandslideRecovery
                     for (int mo = 0; mo < 12; mo++) radiation[r, c, mo] = 0.005;
                 }
 
-                string annualHeader = "condition,year,years_since_event,storm_mm_6h,annual_precip_mm,mean_temperature_C,rootC_mean_gC_m2,root_cohesion_mean_kPa,FPC_raw_mean,FPC_effective_mean,LAI_mean,NPP_mean,PAW_input_mean_mm,ET_mean_m,runoff_sum_m,water_erosion_sum_m,water_deposition_sum_m,landslide_initiations,landslide_continuations,landslide_deposition_cells,landslide_erosion_sum_m,landslide_deposition_sum_m,slide_eroded_cells,slide_deposit_cells,soilfree_cells_end,persistent_before_kg,persistent_after_kg,soil_mass_kg,mass_closure,slide_stage_mass_closure,mean_soil_depth_m,mean_DTM_m,max_DTM_change_m,max_soil_depth_change_m,treed_input_DTM_error_m,treed_input_soildepth_error_m,layer_depth_error_m,explicit_water_export_kg,captures_this_year,traits_restart_sha256,traits_restart_bytes";
+                string annualHeader = "condition,year,years_since_event,landslide_trigger_mm_6h,annual_precip_mm,mean_temperature_C,rootC_mean_gC_m2,root_cohesion_mean_kPa,FPC_raw_mean,FPC_effective_mean,LAI_mean,NPP_mean,PAW_input_mean_mm,ET_mean_m,runoff_sum_m,water_erosion_sum_m,water_deposition_sum_m,landslide_initiations,landslide_continuations,landslide_deposition_cells,landslide_erosion_sum_m,landslide_deposition_sum_m,slide_eroded_cells,slide_deposit_cells,soilfree_cells_end,persistent_before_kg,persistent_after_kg,soil_mass_kg,mass_closure,slide_stage_mass_closure,mean_soil_depth_m,mean_DTM_m,max_DTM_change_m,max_soil_depth_change_m,treed_input_DTM_error_m,treed_input_soildepth_error_m,layer_depth_error_m,explicit_water_export_kg,captures_this_year,traits_restart_sha256,traits_restart_bytes";
                 StringBuilder annual = new StringBuilder();
                 annual.AppendLine(annualHeader);
                 StringBuilder cellSeries = new StringBuilder();
@@ -3357,8 +3402,9 @@ public static class LoricaTreedLandslideRecovery
                     int modelYear = year + 1;
                     int annualRain = new int[] { 730, 900, 600 }[year % 3];
                     int annualTemp = new int[] { 10, 11, 12 }[year % 3];
-                    int stormMm = (modelYear == eventYear) ? eventMm : backgroundMm;
-                    SetCfgKey(cfgPath, "landslide_event_rainfall_mm", stormMm.ToString(CultureInfo.InvariantCulture));
+                    int stormMm = dailyStormMm;
+                    double triggerMm = modelYear < eventYear ? preEventTriggerMm : (modelYear == eventYear ? eventTriggerMm : postEventTriggerMm);
+                    SetCfgKey(cfgPath, "landslide_event_rainfall_mm", triggerMm.ToString("R", CultureInfo.InvariantCulture));
                     int[] precipitation = new int[days];
                     int[] duration = new int[days];
                     int[] tmin = new int[days];
@@ -3640,7 +3686,7 @@ public static class LoricaTreedLandslideRecovery
 
                     annual.AppendLine(String.Join(",", new string[] {
                         condition, modelYear.ToString(CultureInfo.InvariantCulture), yse.ToString(CultureInfo.InvariantCulture),
-                        stormMm.ToString(CultureInfo.InvariantCulture), annualRain.ToString(CultureInfo.InvariantCulture),
+                        F(triggerMm), annualRain.ToString(CultureInfo.InvariantCulture),
                         annualTemp.ToString(CultureInfo.InvariantCulture), F(rootCMean), F(rootCohMean), F(fpcMean), F(effFpcMean),
                         F(laiMean), F(nppMean), F(pawMean), F(etMean), F(runoffSum), F(SumAbs(waterErosionGrid)), F(SumAbs(waterDepositionGrid)),
                         initiations.ToString(CultureInfo.InvariantCulture), continuations.ToString(CultureInfo.InvariantCulture),
@@ -3655,7 +3701,7 @@ public static class LoricaTreedLandslideRecovery
                     File.WriteAllText(Path.Combine(root, "annual_state.csv"), annual.ToString());
                     File.WriteAllText(Path.Combine(root, "cell_timeseries.csv"), cellSeries.ToString());
                     File.WriteAllText(Path.Combine(root, "slide_stage_ledger.csv"), slideLedger.ToString());
-                    Console.WriteLine("GOUNSA_LR_YEAR=" + modelYear + " condition=" + condition + " storm=" + stormMm +
+                    Console.WriteLine("GOUNSA_LR_YEAR=" + modelYear + " condition=" + condition + " trigger_mm=" + F(triggerMm) +
                         " initiations=" + initiations + " slide_eroded=" + slideEroded + " slide_deposit=" + slideDeposit +
                         " FPC_raw=" + F(fpcMean) + " FPC_eff=" + F(effFpcMean) + " rootCoh=" + F(rootCohMean) +
                         " mass_closure=" + F(massClosure) + " slide_closure=" + F(slideClosure));
@@ -3681,7 +3727,8 @@ public static class LoricaTreedLandslideRecovery
                 File.WriteAllText(Path.Combine(root, "run_status.txt"),
                     "condition=" + condition + Environment.NewLine +
                     "years=" + years + Environment.NewLine + "event_year=" + eventYear + Environment.NewLine +
-                    "event_mm_6h=" + eventMm + Environment.NewLine + "background_mm_6h=" + backgroundMm + Environment.NewLine +
+                    "daily_storm_mm=" + dailyStormMm + Environment.NewLine + "trigger_mm_6h_pre_event=" + F(preEventTriggerMm) + Environment.NewLine +
+                    "trigger_mm_6h_event=" + F(eventTriggerMm) + Environment.NewLine + "trigger_mm_6h_post_event=" + F(postEventTriggerMm) + Environment.NewLine +
                     "dem_family=" + family + Environment.NewLine + "scarp_deg=" + F(scarpDeg) + Environment.NewLine +
                     "lateral_m=" + F(lateral) + Environment.NewLine + "beta=" + F(abBeta) + Environment.NewLine + "K=" + F(abK) + Environment.NewLine +
                     "event_year_initiations=" + eventYearInitiations + Environment.NewLine +

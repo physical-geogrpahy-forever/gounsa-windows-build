@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  PROBE_STAMP: 'probe-1'
+  PROBE_STAMP: 'probe-2-hollow'
 
 jobs:
   probe:
@@ -63,6 +63,7 @@ jobs:
         working-directory: work/LORICA/bin/Release
         run: |
           $env:GOUNSA_LR_MODE = 'probe'
+          $env:GOUNSA_PROBE_SET = '2'
           $env:GOUNSA_PROBE_ROOT_COHESION_ASC = (Resolve-Path ../../../../lorica_treed/v1.6/probe_inputs/v15_open30_beta0_year04_root_cohesion_kPa.asc).Path
           $out = (Resolve-Path ../../../).Path + '\probe_out'
           New-Item -ItemType Directory -Force -Path $out | Out-Null
