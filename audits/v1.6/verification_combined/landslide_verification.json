@@ -1,0 +1,435 @@
+{
+  "checks": [
+    {
+      "check": "R_v15_regression_annual_state_years_1_13_reproduced",
+      "status": "PASS",
+      "detail": {
+        "years_compared": 13,
+        "bitwise_identical_rows": 13,
+        "max_abs_diff_any_column": 0.0,
+        "max_abs_diff_by_column": {}
+      }
+    },
+    {
+      "check": "R_v15_regression_cell_rasters_years_1_13_reproduced",
+      "status": "PASS",
+      "detail": {
+        "max_abs_diff_by_raster": {
+          "TREED_FPC": 0.0,
+          "TREED_LAI": 0.0,
+          "TREED_rootC_gC_m2": 0.0,
+          "soil_depth_m": 0.0,
+          "dtm_m": 0.0,
+          "root_cohesion_kPa": 0.0,
+          "water_erosion_m": 0.0
+        }
+      }
+    },
+    {
+      "check": "A_no_landslide_mass_closure_le_1e-6",
+      "status": "PASS",
+      "detail": {
+        "max_annual_export_adjusted_closure": 1.7397935944187026e-15,
+        "max_slide_stage_closure": 0.0,
+        "years": 34
+      }
+    },
+    {
+      "check": "A_no_landslide_treed_exchange_le_5.1e-7_m",
+      "status": "PASS",
+      "detail": {
+        "max_exchange_error_m": 4.995486762027213e-07
+      }
+    },
+    {
+      "check": "A_no_landslide_layer_depth_consistency_le_1e-5_m",
+      "status": "PASS",
+      "detail": {
+        "max_layer_depth_error_m": 0.0
+      }
+    },
+    {
+      "check": "A_no_landslide_native_run_status",
+      "status": "PASS",
+      "detail": {
+        "condition": "A_no_landslide",
+        "years": "34",
+        "event_year": "4",
+        "daily_storm_mm": "60",
+        "trigger_mm_6h_pre_event": "0.1",
+        "trigger_mm_6h_event": "60",
+        "trigger_mm_6h_post_event": "60",
+        "dem_family": "hollow_row1to2:36:42:46",
+        "scarp_deg": "0",
+        "lateral_m": "2",
+        "beta": "2",
+        "K": "0.0001",
+        "event_year_initiations": "0",
+        "initiations_other_years": "0",
+        "max_mass_closure": "1.7397935944187026E-15",
+        "max_slide_stage_closure": "0",
+        "max_state_exchange_error_m": "4.9954867620272125E-07",
+        "max_layer_depth_error_m": "0",
+        "failures": "",
+        "status": "PASS"
+      }
+    },
+    {
+      "check": "B_landslide_original_mass_closure_le_1e-6",
+      "status": "PASS",
+      "detail": {
+        "max_annual_export_adjusted_closure": 1.7397935944187026e-15,
+        "max_slide_stage_closure": 0.0,
+        "years": 34
+      }
+    },
+    {
+      "check": "B_landslide_original_treed_exchange_le_5.1e-7_m",
+      "status": "PASS",
+      "detail": {
+        "max_exchange_error_m": 4.989363917573542e-07
+      }
+    },
+    {
+      "check": "B_landslide_original_layer_depth_consistency_le_1e-5_m",
+      "status": "PASS",
+      "detail": {
+        "max_layer_depth_error_m": 0.0
+      }
+    },
+    {
+      "check": "B_landslide_original_native_run_status",
+      "status": "PASS",
+      "detail": {
+        "condition": "B_landslide_original",
+        "years": "34",
+        "event_year": "4",
+        "daily_storm_mm": "60",
+        "trigger_mm_6h_pre_event": "0.1",
+        "trigger_mm_6h_event": "60",
+        "trigger_mm_6h_post_event": "60",
+        "dem_family": "hollow_row1to2:36:42:46",
+        "scarp_deg": "0",
+        "lateral_m": "2",
+        "beta": "2",
+        "K": "0.0001",
+        "event_year_initiations": "3",
+        "initiations_other_years": "0",
+        "max_mass_closure": "1.7397935944187026E-15",
+        "max_slide_stage_closure": "0",
+        "max_state_exchange_error_m": "4.9893639175735416E-07",
+        "max_layer_depth_error_m": "0",
+        "failures": "",
+        "status": "PASS"
+      }
+    },
+    {
+      "check": "C_null_module_no_landslide_mass_closure_le_1e-6",
+      "status": "PASS",
+      "detail": {
+        "max_annual_export_adjusted_closure": 1.7397935944187026e-15,
+        "max_slide_stage_closure": 0.0,
+        "years": 34
+      }
+    },
+    {
+      "check": "C_null_module_no_landslide_treed_exchange_le_5.1e-7_m",
+      "status": "PASS",
+      "detail": {
+        "max_exchange_error_m": 4.995486762027213e-07
+      }
+    },
+    {
+      "check": "C_null_module_no_landslide_layer_depth_consistency_le_1e-5_m",
+      "status": "PASS",
+      "detail": {
+        "max_layer_depth_error_m": 0.0
+      }
+    },
+    {
+      "check": "C_null_module_no_landslide_native_run_status",
+      "status": "PASS",
+      "detail": {
+        "condition": "C_null_module_no_landslide",
+        "years": "34",
+        "event_year": "4",
+        "daily_storm_mm": "60",
+        "trigger_mm_6h_pre_event": "0.1",
+        "trigger_mm_6h_event": "60",
+        "trigger_mm_6h_post_event": "60",
+        "dem_family": "hollow_row1to2:36:42:46",
+        "scarp_deg": "0",
+        "lateral_m": "2",
+        "beta": "2",
+        "K": "0.0001",
+        "event_year_initiations": "0",
+        "initiations_other_years": "0",
+        "max_mass_closure": "1.7397935944187026E-15",
+        "max_slide_stage_closure": "0",
+        "max_state_exchange_error_m": "4.9954867620272125E-07",
+        "max_layer_depth_error_m": "0",
+        "failures": "",
+        "status": "PASS"
+      }
+    },
+    {
+      "check": "C_rec_tau4_k032_mass_closure_le_1e-6",
+      "status": "PASS",
+      "detail": {
+        "max_annual_export_adjusted_closure": 1.7397935944187026e-15,
+        "max_slide_stage_closure": 0.0,
+        "years": 34
+      }
+    },
+    {
+      "check": "C_rec_tau4_k032_treed_exchange_le_5.1e-7_m",
+      "status": "PASS",
+      "detail": {
+        "max_exchange_error_m": 4.998182807636198e-07
+      }
+    },
+    {
+      "check": "C_rec_tau4_k032_layer_depth_consistency_le_1e-5_m",
+      "status": "PASS",
+      "detail": {
+        "max_layer_depth_error_m": 0.0
+      }
+    },
+    {
+      "check": "C_rec_tau4_k032_native_run_status",
+      "status": "PASS",
+      "detail": {
+        "condition": "C_landslide_recovery_module",
+        "years": "34",
+        "event_year": "4",
+        "daily_storm_mm": "60",
+        "trigger_mm_6h_pre_event": "0.1",
+        "trigger_mm_6h_event": "60",
+        "trigger_mm_6h_post_event": "60",
+        "dem_family": "hollow_row1to2:36:42:46",
+        "scarp_deg": "0",
+        "lateral_m": "2",
+        "beta": "2",
+        "K": "0.0001",
+        "event_year_initiations": "3",
+        "initiations_other_years": "0",
+        "max_mass_closure": "1.7397935944187026E-15",
+        "max_slide_stage_closure": "0",
+        "max_state_exchange_error_m": "4.9981828076361978E-07",
+        "max_layer_depth_error_m": "0",
+        "failures": "",
+        "status": "PASS"
+      }
+    },
+    {
+      "check": "C_rec_tau8_k018_mass_closure_le_1e-6",
+      "status": "PASS",
+      "detail": {
+        "max_annual_export_adjusted_closure": 1.7397935944187026e-15,
+        "max_slide_stage_closure": 0.0,
+        "years": 34
+      }
+    },
+    {
+      "check": "C_rec_tau8_k018_treed_exchange_le_5.1e-7_m",
+      "status": "PASS",
+      "detail": {
+        "max_exchange_error_m": 4.994829652105182e-07
+      }
+    },
+    {
+      "check": "C_rec_tau8_k018_layer_depth_consistency_le_1e-5_m",
+      "status": "PASS",
+      "detail": {
+        "max_layer_depth_error_m": 0.0
+      }
+    },
+    {
+      "check": "C_rec_tau8_k018_native_run_status",
+      "status": "PASS",
+      "detail": {
+        "condition": "C_landslide_recovery_module",
+        "years": "34",
+        "event_year": "4",
+        "daily_storm_mm": "60",
+        "trigger_mm_6h_pre_event": "0.1",
+        "trigger_mm_6h_event": "60",
+        "trigger_mm_6h_post_event": "60",
+        "dem_family": "hollow_row1to2:36:42:46",
+        "scarp_deg": "0",
+        "lateral_m": "2",
+        "beta": "2",
+        "K": "0.0001",
+        "event_year_initiations": "3",
+        "initiations_other_years": "0",
+        "max_mass_closure": "1.7397935944187026E-15",
+        "max_slide_stage_closure": "0",
+        "max_state_exchange_error_m": "4.9948296521051816E-07",
+        "max_layer_depth_error_m": "0",
+        "failures": "",
+        "status": "PASS"
+      }
+    },
+    {
+      "check": "A_has_no_landslide",
+      "status": "PASS",
+      "detail": {
+        "total_initiations": 0
+      }
+    },
+    {
+      "check": "B_event_year_actual_native_initiation_1_to_6_cells",
+      "status": "PASS",
+      "detail": {
+        "event_year": 4,
+        "initiations": 3,
+        "eroded_cells": 3,
+        "deposit_cells": 3,
+        "erosion_sum_m": 2.4617864849543944,
+        "deposition_sum_m": 2.6956009101247522,
+        "persistent_after_kg": 0.0,
+        "initiations_other_years": 0
+      }
+    },
+    {
+      "check": "A_B_identical_before_event_year_(tol_1e-9)",
+      "status": "PASS",
+      "detail": {
+        "max_abs_cell_difference": 0.0
+      }
+    },
+    {
+      "check": "event_year_TREED_and_water_erosion_identical_A_B_(TREED_precedes_slide,tol_1e-9)",
+      "status": "PASS",
+      "detail": {
+        "max_abs_cell_difference": 0.0
+      }
+    },
+    {
+      "check": "B_pre_slide_soil_equals_A_end_of_event_year",
+      "status": "PASS",
+      "detail": {
+        "max_abs_diff_m": 0.0
+      }
+    },
+    {
+      "check": "traits_restart_identical_through_event_year",
+      "status": "PASS",
+      "detail": {
+        "identical_through_year": 5,
+        "first_differing_year": 6
+      }
+    },
+    {
+      "check": "year_after_event_TREED_receives_post_slide_soil_state",
+      "status": "PASS",
+      "detail": {
+        "event_year": 4,
+        "disturbed_cells": [
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            3,
+            1
+          ],
+          [
+            2,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            3,
+            2
+          ]
+        ],
+        "year_after": 5,
+        "max_abs_BminusA_input_soildepth_disturbed": 1.665333,
+        "max_abs_BminusA_input_paw_disturbed": 234.58892600000001,
+        "max_abs_BminusA_raw_fpc_disturbed": 0.0,
+        "max_abs_BminusA_raw_fpc_undisturbed": 0.0,
+        "max_abs_BminusA_effective_fpc_disturbed": 0.628581,
+        "max_abs_BminusA_raw_rootC_disturbed": 0.0,
+        "max_abs_BminusA_root_cohesion_disturbed": 3.835893979724684,
+        "soilfree_cells_entering_year_after": [
+          [
+            1,
+            2
+          ]
+        ]
+      }
+    },
+    {
+      "check": "restart_contains_only_trait_fields_no_disturbance_state",
+      "status": "PASS",
+      "detail": {
+        "fields": [
+          "H",
+          "a_ll",
+          "C_leaf",
+          "seasonality",
+          "r_s_r",
+          "Tave_optim",
+          "Tmax_optim",
+          "Tmin_optim",
+          "Pave_optim"
+        ]
+      }
+    },
+    {
+      "check": "post_event_outlet_water_sediment_export_recorded",
+      "status": "PASS",
+      "detail": {
+        "A_kg": 334.147919761996,
+        "B_kg": 333.5818198933977,
+        "B_minus_A_kg": -0.5660998685982577
+      }
+    },
+    {
+      "check": "C_null_module_no_landslide_module_on_without_landslide_reproduces_A_exactly",
+      "status": "PASS",
+      "detail": {
+        "max_abs_cell_difference": 0.0
+      }
+    },
+    {
+      "check": "C_rec_tau4_k032_identical_to_B_through_event_year",
+      "status": "PASS",
+      "detail": {
+        "max_abs_cell_difference": 0.0
+      }
+    },
+    {
+      "check": "C_rec_tau8_k018_identical_to_B_through_event_year",
+      "status": "PASS",
+      "detail": {
+        "max_abs_cell_difference": 0.0
+      }
+    }
+  ],
+  "n_pass": 34,
+  "n_fail": 0,
+  "conditions_found": [
+    "A_no_landslide",
+    "B_landslide_original",
+    "C_null_module_no_landslide",
+    "C_rec_tau4_k032",
+    "C_rec_tau8_k018",
+    "R_v15_regression"
+  ],
+  "note": "Synthetic 5x5 open-scarp hillslope; not a Gounsa field validation."
+}
