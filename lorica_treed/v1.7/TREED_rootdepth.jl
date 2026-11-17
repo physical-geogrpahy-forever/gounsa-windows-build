@@ -44,7 +44,11 @@ rootdepth_on(par) = rootdepth_mode(par) != "off"
 function rootdepth_cell(i, j)
     st = ROOTDEPTH[]
     st === nothing && return nothing
-    return (z_r = st[:z_r][i, j], alpha_mm = st[:alpha_mm], lambda_per_day = st[:lambda_per_day])
+    # paw_cum: cumulative plant-available water [mm] at depths 0, step, 2*step ... (layered
+    # profile exported by LORICA), or nothing for the uniform-PAW assumption.
+    pc = st[:paw_prof] === nothing ? nothing : Vector{Float64}(st[:paw_prof][i, j, :])
+    return (z_r = st[:z_r][i, j], alpha_mm = st[:alpha_mm], lambda_per_day = st[:lambda_per_day],
+            paw_cum = pc, paw_step_m = st[:paw_step])
 end
 
 # Trial value during optimisation, otherwise the cell's current trait.
@@ -58,8 +62,22 @@ function rootdepth_zeff(z_r, env)
     return max(0.0, min(Float64(z_r), zs))
 end
 
-# Plant-accessible storage [mm]; PAW assumed uniform over the soil column.
+# Cumulative profile PAW at depth z [mm]; linear between nodes, constant below the last node.
+function rootdepth_profile_storage_mm(cum, step, z)
+    (z <= 0.0 || length(cum) < 2 || !(step > 0.0)) && return 0.0
+    x = z / step
+    k = floor(Int, x)
+    k >= length(cum) - 1 && return max(0.0, Float64(cum[end]))
+    f = x - k
+    return max(0.0, Float64(cum[k + 1]) + f * (Float64(cum[k + 2]) - Float64(cum[k + 1])))
+end
+
+# Plant-accessible storage [mm]. With a layered profile (root_depth_paw_profile=layered) the
+# storage is the profile integral down to z_eff; otherwise PAW is assumed uniform over the column.
 function rootdepth_storage_mm(z_r, env)
+    if hasproperty(env, :rd) && env.rd !== nothing && hasproperty(env.rd, :paw_cum) && env.rd.paw_cum !== nothing
+        return rootdepth_profile_storage_mm(env.rd.paw_cum, env.rd.paw_step_m, rootdepth_zeff(z_r, env))
+    end
     zs = (hasproperty(env, :soildepth_m) && isfinite(env.soildepth_m)) ? max(0.0, Float64(env.soildepth_m)) : 0.0
     paw = (hasproperty(env, :paw_mm) && isfinite(env.paw_mm)) ? max(0.0, Float64(env.paw_mm)) : 0.0
     zs <= 0.0 && return 0.0
@@ -155,7 +173,8 @@ function rootdepth_grid_opt(env, par, a_ll, C_leaf, H)
     return best_z
 end
 
-function rootdepth_begin!(par, climate, traitdir; alpha_mm = nothing, lambda_per_day = nothing)
+function rootdepth_begin!(par, climate, traitdir; alpha_mm = nothing, lambda_per_day = nothing,
+                          paw_profile = nothing, paw_profile_step_m = NaN)
     if !rootdepth_on(par)
         ROOTDEPTH[] = nothing
         return nothing
@@ -177,7 +196,13 @@ function rootdepth_begin!(par, climate, traitdir; alpha_mm = nothing, lambda_per
     else
         z = fill(Float64(par.root_depth_initial_m), nx, ny)
     end
+    if paw_profile !== nothing
+        size(paw_profile)[1:2] == (nx, ny) || error("paw_profile grid mismatch")
+        paw_profile_step_m > 0.0 || error("paw_profile_step_m must be positive")
+    end
     ROOTDEPTH[] = Dict{Symbol,Any}(
+        :paw_prof => paw_profile,
+        :paw_step => Float64(paw_profile_step_m),
         :z_r => z,
         :z_start => copy(z),
         :z_opt => fill(NaN, nx, ny),
