@@ -3275,7 +3275,17 @@ public static class LoricaTreedLandslideRecovery
         try
         {
             // Same overrides as the verified v1.5 30-year run.
-            SetCfgKey(cfgPath, "hwang_root_cohesion_multiplier", "0.4473684210526316");
+            // v1.7 stage 4: with root_reinforcement_mode=basal_profile the 3.4/7.6 factor is replaced by an
+            // explicit k'' (root_k_double_prime) in the C# conversion, so the legacy multiplier must be 1.
+            bool basalRootMode = false;
+            foreach (string cfgLine0 in originalCfg.Split('\n'))
+            {
+                string cl = cfgLine0.Trim();
+                if (cl.StartsWith("#")) continue;
+                int eq0 = cl.IndexOf('=');
+                if (eq0 > 0 && cl.Substring(0, eq0).Trim() == "root_reinforcement_mode" && cl.Substring(eq0 + 1).Trim() == "basal_profile") basalRootMode = true;
+            }
+            SetCfgKey(cfgPath, "hwang_root_cohesion_multiplier", basalRootMode ? "1.0" : "0.4473684210526316");
             SetCfgKey(cfgPath, "treed_bare_bedrock_policy", "zero_coupling");
             SetCfgKey(cfgPath, "treed_ks_refresh_mode", "annual");
             SetCfgKey(cfgPath, "landslide_event_mode", "explicit_event");
