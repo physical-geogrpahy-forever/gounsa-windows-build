@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 env:
-  RUN_STAMP: 's4-2'
+  RUN_STAMP: 's4-3'
   LR_WEATHER: 'seasonal_stochastic'
   LR_WEATHER_SEED: '20261113'
   # Design fixed by native probes #43789221109 and #43790023979: hollow scarp

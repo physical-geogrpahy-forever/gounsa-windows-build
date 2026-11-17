@@ -43,6 +43,35 @@ public static class LoricaTreedLandslideRecovery
         return fallback;
     }
 
+    static string ReadCfgText(string cfgPath, string key, string fallback)
+    {
+        foreach (string raw in File.ReadAllLines(cfgPath))
+        {
+            string line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith("#")) continue;
+            int equals = line.IndexOf('=');
+            if (equals <= 0) continue;
+            if (line.Substring(0, equals).Trim() != key) continue;
+            return line.Substring(equals + 1).Trim();
+        }
+        return fallback;
+    }
+
+    // v1.7 stage 4: independent implementation of the basal_profile cohesion used to check treed_coupling.cs.
+    static double ExpectedBasalCohesionKpa(double rootC, double soilDepth, double d95, double kPrime, double kDoublePrime,
+                                           string truncation, double trMPa, double fCarbon, double rhoRoot)
+    {
+        if (rootC <= 0.0 || soilDepth <= 1e-6 || d95 <= 1e-6) return 0.0;
+        double lnb = Math.Log(0.05) / (100.0 * d95);
+        double zEnd = truncation == "soil_bottom" ? soilDepth : Math.Min(d95, soilDepth);
+        if (soilDepth > zEnd + 1e-12) return 0.0;
+        double yEnd = 1.0 - Math.Exp(100.0 * zEnd * lnb);
+        if (yEnd <= 1e-12) return 0.0;
+        double f = -100.0 * lnb * Math.Exp(100.0 * soilDepth * lnb) / yEnd;
+        double v = rootC / (1000.0 * fCarbon) / rhoRoot;
+        return Math.Max(0.0, kDoublePrime * kPrime * (trMPa * 1000.0) * v * f);
+    }
+
     static T Get<T>(object o, string name)
     {
         return (T)Field(o, name).GetValue(o);
@@ -3582,6 +3611,14 @@ public static class LoricaTreedLandslideRecovery
                     double Kh = ReadCfgDouble(cfgPath, "hwang_K_m_inv", 1.2);
                     double multiplier = ReadCfgDouble(cfgPath, "hwang_root_cohesion_multiplier", 1.0);
                     double reduction = ReadCfgDouble(cfgPath, "hwang_root_cohesion_reduction_factor", 1.0);
+                    // v1.7 stage 4: basal_profile cohesion is checked with its own formula. The soil depth is read from
+                    // the 6-decimal exchange file, so the tolerance is relaxed from 1e-6 to 1e-4 kPa in that mode only.
+                    bool basalMode = ReadCfgText(cfgPath, "root_reinforcement_mode", "hwang_mean") == "basal_profile";
+                    double kPrimeChk = ReadCfgDouble(cfgPath, "root_k_prime", 1.2);
+                    double kDoublePrimeChk = ReadCfgDouble(cfgPath, "root_k_double_prime", Double.NaN);
+                    string truncChk = ReadCfgText(cfgPath, "root_profile_truncation", "module");
+                    double[,] zrChk = basalMode ? ReadAsciiGrid(Path.Combine(outputDir, "treed_root_depth_m.asc")) : null;
+                    double rootFormulaTol = basalMode ? 1e-4 : 1e-6;
 
                     double maxDtmInputError = 0.0, maxDepthInputError = 0.0, maxLayerDepthError = 0.0;
                     double maxRootFormulaError = 0.0, maxEtFactorError = 0.0, maxDtmChange = 0.0, maxDepthChange = 0.0;
@@ -3595,8 +3632,11 @@ public static class LoricaTreedLandslideRecovery
                         maxDepthInputError = Math.Max(maxDepthInputError, Math.Abs(inputDepth[r, c] - preDepth[r, c]));
                         maxDtmChange = Math.Max(maxDtmChange, Math.Abs(finalDtm[r, c] - preDtm[r, c]));
                         maxDepthChange = Math.Max(maxDepthChange, Math.Abs(finalDepth[r, c] - preDepth[r, c]));
-                        double expectedRootCohesion = reduction * multiplier * Math.Max(0.0,
-                            Kh * (Tr * 1e6) * ((Math.Max(0.0, effectiveRootC[r, c]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
+                        double expectedRootCohesion = basalMode
+                            ? reduction * ExpectedBasalCohesionKpa(effectiveRootC[r, c], inputDepth[r, c], Math.Max(0.0, zrChk[r, c]),
+                                  kPrimeChk, kDoublePrimeChk, truncChk, Tr, fCarbon, rhoRoot)
+                            : reduction * multiplier * Math.Max(0.0,
+                                  Kh * (Tr * 1e6) * ((Math.Max(0.0, effectiveRootC[r, c]) / (1000.0 * fCarbon)) / rhoRoot) / 1000.0);
                         double expectedEt = 1.0 + Math.Max(0.0, Math.Min(1.0, effectiveFpc[r, c])) * (0.85 - 1.0);
                         maxRootFormulaError = Math.Max(maxRootFormulaError, Math.Abs(rootCohesion[r, c] - expectedRootCohesion));
                         maxEtFactorError = Math.Max(maxEtFactorError, Math.Abs(etFactor[r, c] - expectedEt));
@@ -3639,7 +3679,7 @@ public static class LoricaTreedLandslideRecovery
 
                     if (maxDtmInputError > exchangeToleranceM || maxDepthInputError > exchangeToleranceM)
                         throw new Exception("TREED did not receive the current LORICA DEM/soil-depth state in year " + modelYear);
-                    if (maxRootFormulaError > 1e-6 || maxEtFactorError > 1e-6)
+                    if (maxRootFormulaError > rootFormulaTol || maxEtFactorError > 1e-6)
                         throw new Exception("TREED root-cohesion/FPC-to-ET transfer failed in year " + modelYear);
                     if (maxLayerDepthError > 1e-5)
                         throw new Exception("Soil-layer thickness does not reproduce soil depth in year " + modelYear);
