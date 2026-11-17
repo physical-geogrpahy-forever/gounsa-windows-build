@@ -1,0 +1,3 @@
+A_off_reg: 578 files compared, 578 identical, 0 differ, 0 only in new, 0 only in old
+B_off_reg: 578 files compared, 578 identical, 0 differ, 0 only in new, 0 only in old
+regression_exit=0
