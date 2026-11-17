@@ -1,0 +1,14 @@
+condition=B_bp447_mod
+root_depth_mode=milly_stochastic
+root_depth_cost=14.0
+root_reinforcement_mode=basal_profile k_double_prime=0.4473684210526316 truncation=module
+weather=seasonal_stochastic seed=20261113
+sha=f53b0aad9d16f8bbf0296493a483bb8ab12998d4
+dem=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+triggers_mm_6h=0.1/60/60
+event_year=4
+years=34
+beta=2
+K=0.0001

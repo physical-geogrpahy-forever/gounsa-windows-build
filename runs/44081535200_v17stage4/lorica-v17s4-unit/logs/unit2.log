@@ -1,0 +1,12 @@
+Test Summary:  | Pass  Total  Time
+window and phi |    9      9  0.1s
+Test Summary:         | Pass  Total  Time
+off mode does nothing |    3      3  0.2s
+Test Summary:            | Pass  Total  Time
+mask, ageing and restart |    8      8  4.0s
+Test Summary:                                        | Pass  Total  Time
+development factor scales outputs only where phi < 1 |    9      9  0.8s
+productive trait set for the synthetic climate: H=18.50 a_ll=0.5 C_leaf=300
+Test Summary:                                                           | Pass  Total   Time
+recolonisation only from occupied mature neighbours in the local window |    9      9  20.4s
+STAGE2_UNIT_TESTS_DONE

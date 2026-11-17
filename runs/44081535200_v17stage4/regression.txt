@@ -1,0 +1,8 @@
+A_hm_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+B_hm_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+A_bp447_mod: modes ['basal_profile\r'], 34 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp447_mod: modes ['basal_profile\r'], 34 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp447_sb: modes ['basal_profile\r'], 34 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp100_mod: modes ['basal_profile\r'], 34 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp033_mod: modes ['basal_profile\r'], 34 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+checks_exit=0

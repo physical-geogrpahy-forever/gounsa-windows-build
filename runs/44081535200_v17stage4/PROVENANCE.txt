@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.7 stage 4, root reinforcement at the slip plane
+run_id=44081535200
+run_attempt=1
+source_sha=f53b0aad9d16f8bbf0296493a483bb8ab12998d4
+source_ref=lorica-treed-v1.7-root-depth
