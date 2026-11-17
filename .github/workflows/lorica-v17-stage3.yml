@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 env:
-  RUN_STAMP: 's3-1'
+  RUN_STAMP: 's3-2'
   LR_WEATHER: 'seasonal_stochastic'
   LR_WEATHER_SEED: '20261113'
   # Design fixed by native probes #43789221109 and #43790023979: hollow scarp
@@ -325,13 +325,16 @@ jobs:
           for c in A_rd_c14 B_rd_c14; do
             git show origin/res:runs/43819039305_v17seasonal/lorica-v17s-$c/TREED_exchange.zip > old/$c.zip
           done
+          python -m pip install --quiet numpy
           rc=0
-          python lorica_treed/v1.7/tests/compare_regression.py collected/lorica-v17s3-A_rdU_c14/TREED_exchange.zip old/A_rd_c14.zip A_rdU_c14 | tee collected/regression.txt || rc=1
-          python lorica_treed/v1.7/tests/compare_regression.py collected/lorica-v17s3-B_rdU_c14/TREED_exchange.zip old/B_rd_c14.zip B_rdU_c14 | tee -a collected/regression.txt || rc=1
+          python lorica_treed/v1.7/tests/compare_regression.py collected/lorica-v17s3-A_rdU_c14/TREED_exchange.zip old/A_rd_c14.zip A_rdU_c14 > collected/regression.txt 2>&1 || rc=1
+          python lorica_treed/v1.7/tests/compare_regression.py collected/lorica-v17s3-B_rdU_c14/TREED_exchange.zip old/B_rd_c14.zip B_rdU_c14 >> collected/regression.txt 2>&1 || rc=1
           for c in A_rdL_c14 B_rdL_c14 B_rdL_c146; do
-            python lorica_treed/v1.7/tests/check_paw_profile.py collected/lorica-v17s3-$c/TREED_exchange.zip $c | tee -a collected/regression.txt || rc=1
+            python lorica_treed/v1.7/tests/check_paw_profile.py collected/lorica-v17s3-$c/TREED_exchange.zip $c >> collected/regression.txt 2>&1 || rc=1
           done
-          echo "checks_exit=$rc" | tee -a collected/regression.txt
+          echo "checks_exit=$rc" >> collected/regression.txt
+          cat collected/regression.txt
+          if [ "$rc" -ne 0 ]; then echo 'regression or profile check failed'; exit 1; fi
       - name: Commit outputs to results branch
         if: always()
         env:

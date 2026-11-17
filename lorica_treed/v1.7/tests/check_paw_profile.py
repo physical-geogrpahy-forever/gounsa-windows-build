@@ -2,7 +2,7 @@
 """Consistency of the exported layered PAW profile against LORICA's own totals.
 usage: check_paw_profile.py <TREED_exchange.zip> <label>
 For every year: node 0 is 0, the profile never decreases, and for cells whose soil is
-no deeper than the last node the final value equals paw_mm.asc (treed_paw_mm).
+no deeper than the last node the final value equals paw_mm.asc (treed_paw_mm) within the 6-decimal rounding of that file.
 Prints the mean ratio profile(min(0.5 m, soil)) / uniform storage at 0.5 m.
 Exit 1 on a violation.
 """
@@ -38,16 +38,20 @@ for y in years:
     for ln in lines[1:]:
         f = ln.split(","); r, c = int(f[0]), int(f[1]); v = np.array([float(x) for x in f[2:]])
         if v[0] != 0.0 or (np.diff(v) < -1e-9).any():
-            bad += 1; print("  year", y, "cell", r, c, "profile not starting at 0 or decreasing")
+            bad += 1
+            if bad <= 10:
+                print("  year", y, "cell", r, c, "profile not starting at 0 or decreasing")
         if sd[r, c] <= K * step and paw[r, c] > 0:
-            d = abs(v[-1] - paw[r, c]) / paw[r, c]; worst = max(worst, d)
-            if d > 1e-9:
-                bad += 1; print("  year", y, "cell", r, c, "end value", v[-1], "paw_mm", paw[r, c])
+            d = abs(v[-1] - paw[r, c]); worst = max(worst, d)
+            if d > 5.1e-7:  # paw_mm.asc is written with 6 decimals, so half a unit is 5e-7 mm
+                bad += 1
+                if bad <= 10:
+                    print("  year", y, "cell", r, c, "end value", v[-1], "paw_mm", paw[r, c])
         if sd[r, c] > 0 and paw[r, c] > 0:
             zz = min(0.5, sd[r, c]); k = int(zz / step); fr = zz / step - k
             lay = v[k] + (fr * (v[min(k + 1, K)] - v[k]) if k < K else 0.0)
             ratios.append(lay / (paw[r, c] * zz / sd[r, c]))
-print("%s: %d years, max relative end-value deviation %.2e, violations %d, layered/uniform storage at <=0.5 m: mean %.3f [%.3f, %.3f]" % (
+print("%s: %d years, max absolute end-value deviation %.2e mm, violations %d, layered/uniform storage at <=0.5 m: mean %.3f [%.3f, %.3f]" % (
     label, len(years), worst, bad, np.mean(ratios) if ratios else float("nan"),
     min(ratios) if ratios else float("nan"), max(ratios) if ratios else float("nan")))
 sys.exit(1 if bad or not years else 0)
