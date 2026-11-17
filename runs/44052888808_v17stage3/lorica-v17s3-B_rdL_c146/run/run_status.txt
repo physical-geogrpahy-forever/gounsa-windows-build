@@ -1,0 +1,21 @@
+condition=B_landslide_original
+years=34
+event_year=4
+weather=seasonal_stochastic seed=20261113
+daily_storm_mm=60
+trigger_mm_6h_pre_event=0.1
+trigger_mm_6h_event=60
+trigger_mm_6h_post_event=60
+dem_family=hollow_row1to2:36:42:46
+scarp_deg=0
+lateral_m=2
+beta=2
+K=0.0001
+event_year_initiations=1
+initiations_other_years=2
+max_mass_closure=1.159862396279135E-15
+max_slide_stage_closure=1.1598729363266888E-16
+max_state_exchange_error_m=4.9978981886411589E-07
+max_layer_depth_error_m=0
+failures=
+status=PASS

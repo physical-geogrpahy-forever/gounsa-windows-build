@@ -1,0 +1,3 @@
+A_rdU_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+B_rdU_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+checks_exit=0

@@ -1,0 +1,5 @@
+workflow=LORICA TREED v1.7 stage 3, layered plant-available-water profile
+run_id=44052888808
+run_attempt=1
+source_sha=6ce80d5269445941d94721849ddd107675a3bbe6
+source_ref=lorica-treed-v1.7-root-depth
