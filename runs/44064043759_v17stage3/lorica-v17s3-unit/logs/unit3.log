@@ -1,0 +1,7 @@
+Test Summary:         | Pass  Total  Time
+profile interpolation |    6      6  0.1s
+Test Summary:                         | Pass  Total  Time
+storage: uniform fallback and layered |   13     13  0.2s
+Test Summary:                           | Pass  Total  Time
+state: profile handed to the cell tuple |    4      4  0.6s
+STAGE3_UNIT_TESTS_DONE

@@ -1,0 +1,6 @@
+A_rdU_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+B_rdU_c14: 714 files compared, 714 identical, 0 differ, 0 only in new, 0 only in old
+A_rdL_c14: 34 years, max absolute end-value deviation 4.99e-07 mm, violations 0, layered/uniform storage at <=0.5 m: mean 0.958 [0.958, 0.958]
+B_rdL_c14: 34 years, max absolute end-value deviation 4.99e-07 mm, violations 0, layered/uniform storage at <=0.5 m: mean 0.960 [0.958, 0.992]
+B_rdL_c146: 34 years, max absolute end-value deviation 4.99e-07 mm, violations 0, layered/uniform storage at <=0.5 m: mean 0.962 [0.958, 0.995]
+checks_exit=0

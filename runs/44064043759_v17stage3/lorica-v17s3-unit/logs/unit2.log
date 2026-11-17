@@ -1,0 +1,21 @@
+Precompiling InverseFunctionsTestExt...
+   1004.8 ms  ✓ InverseFunctions → InverseFunctionsTestExt
+  1 dependency successfully precompiled in 1 seconds. 7 already precompiled.
+Precompiling TestExt...
+    812.1 ms  ✓ Accessors → TestExt
+  1 dependency successfully precompiled in 1 seconds. 19 already precompiled.
+Precompiling DistributionsTestExt...
+   1420.5 ms  ✓ Distributions → DistributionsTestExt
+  1 dependency successfully precompiled in 2 seconds. 49 already precompiled.
+Test Summary:  | Pass  Total  Time
+window and phi |    9      9  0.1s
+Test Summary:         | Pass  Total  Time
+off mode does nothing |    3      3  0.2s
+Test Summary:            | Pass  Total  Time
+mask, ageing and restart |    8      8  4.0s
+Test Summary:                                        | Pass  Total  Time
+development factor scales outputs only where phi < 1 |    9      9  0.9s
+productive trait set for the synthetic climate: H=18.50 a_ll=0.5 C_leaf=300
+Test Summary:                                                           | Pass  Total   Time
+recolonisation only from occupied mature neighbours in the local window |    9      9  21.5s
+STAGE2_UNIT_TESTS_DONE
