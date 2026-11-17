@@ -82,7 +82,7 @@ def main():
     worst = 0.0; n_cells = 0; zero_density = 0; mode_seen = set()
     for y in years:
         pre = [n for n in names if "/%s/output/treed_rootcohesion_parameters.txt" % y in n][0].split("/%s/" % y)[0]
-        par = dict(l.split("=", 1) for l in z.read("%s/%s/output/treed_rootcohesion_parameters.txt" % (pre, y)).decode().split("\n") if "=" in l)
+        par = dict((k.strip(), v.strip()) for k, v in (l.split("=", 1) for l in z.read("%s/%s/output/treed_rootcohesion_parameters.txt" % (pre, y)).decode().split("\n") if "=" in l))
         mode = par.get("root_reinforcement_mode", "hwang_mean")
         mode_seen.add(mode)
         if mode != "basal_profile":
@@ -116,7 +116,7 @@ def main():
                         print("  year", y, "cell", r, c, "density recomputed", f, "written", dens[r, c])
     print("%s: modes %s, %d years, %d cell-years rebuilt, max abs deviation %.2e kPa, cell-years with no root at the slip plane %d, violations %d" % (
         label, sorted(mode_seen), len(years), n_cells, worst, zero_density, bad))
-    sys.exit(1 if bad or not years else 0)
+    sys.exit(1 if bad or not years or n_cells == 0 else 0)
 
 
 main()
