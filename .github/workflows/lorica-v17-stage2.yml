@@ -62,6 +62,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path work, report/logs | Out-Null
           tar -xf lorica_treed/v0.5/LORICA_TREED_v0.5_source.tar.xz -C work
           foreach ($p in @('lorica_treed/v1.1/apply_v11_formula_patch.py','lorica_treed/v1.2/instrument_water_export.py','lorica_treed/v1.3/fix_downstream_sediment_accumulation.py','lorica_treed/v1.6/instrument_landslide_snapshots.py','lorica_treed/v1.7/apply_root_depth_trait_module.py','lorica_treed/v1.7/apply_stage2_mortality_dispersal.py')) {
+            python $p work 2>&1 | Tee-Object -Append -FilePath report/logs/patch.log
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       - name: Prepare deterministic TREED driver (identical to v1.5)
         shell: pwsh
@@ -302,7 +305,7 @@ jobs:
 
   verify-and-publish:
     needs: native-coupled
-    if: always()
+    if: always() && needs.native-coupled.result != 'skipped'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -318,7 +321,7 @@ jobs:
       - name: Regression, mortality off versus the v1.7 seasonal run (byte level)
         run: |
           git fetch -q --depth 1 origin +refs/heads/lorica-treed-v1.6-landslide-recovery-results:refs/remotes/origin/res
-          mkdir -p old
+          mkdir -p old collected
           for c in A_off B_off; do
             git show origin/res:runs/43819039305_v17seasonal/lorica-v17s-$c/TREED_exchange.zip > old/$c.zip
           done
