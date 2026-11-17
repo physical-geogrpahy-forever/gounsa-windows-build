@@ -9,7 +9,8 @@
 > 4. 창은 반지름 `round(dispersal_m / cellsize)`의 **정사각형**이다. 10 m 격자에서 10 m이면 대각선 이웃(약 14 m)도 포함한다.
 > 5. 새로 정착한 셀의 형질은 TREED 규칙(형질별로 그 셀의 최적값에 가장 가까운 이웃 값)으로 고르고, 평형 높이는 `find_H_new`와 같은 시험(순탄소이득 > −80)으로 다시 구한다. 높이가 0이면 비워 두고 다음 해에 다시 시도한다.
 > 6. 마스크는 LORICA 산사태 단계에서 셀마다 침식량(`ero_slid_m`의 음수 값)을 읽기만 해서 모은 합계다. 산사태 알고리즘은 바꾸지 않았다. 문턱은 `landslide_mortality_min_erosion_m`(기본 0, 내부 하한 1e-9 m)다.
-> 7. 침식된 해에 TREED가 바로 그 해 마스크를 보는 것이 아니라, LORICA 연 순서(식생 단계 다음 같은 해 산사태) 때문에 **다음 해 시작**에 본다.
+> 7. LORICA의 연 순서가 식생 단계(TREED) 다음에 같은 해 산사태이므로, TREED는 산사태가 난 해의 마스크를 **다음 해 시작**에 받는다.
+
 근거는 번들 `TREED_model_functions.jl`(고운사 수정본), `TREEDlocalstep.jl`, `treed_lorica_driver.jl`을 직접 읽은 결과다. 행 번호는 `/home/claude/w17/work` 기준이다.
 
 ## 1. 지금 코드가 하는 일
@@ -50,7 +51,7 @@ LORICA가 산사태 단계 직후 `landslide_disturbed_mask.asc`를 쓴다. 침�
 - 창은 영역 가장자리에서 잘라 쓴다(`CircularArray`의 이어붙임을 쓰지 않는다).
 - 이웃이 점유 셀이고 H > 0이어야 후보가 된다. 후보가 없으면 그 셀은 비어 있는 채로 남는다.
 - 형질 선택 규칙은 TREED 원래대로 둔다(형질별로 최적값에 가장 가까운 이웃). 뿌리 깊이 `z_r`도 같은 규칙에 넣는다.
-- `dispersal_km = 0`이면 지금처럼 자기 셀만 본다. 다만 점유되지 않은 셀은 자기 셀이 후보가 아니므로 영구히 비어 있게 된다. 이것이 분산 제한의 가장 단순한 극한이다.
+- `dispersal_m = 0`이면 재정착이 일어나지 않아 죽은 셀은 영구히 빈다. 이것이 분산 제한의 가장 단순한 극한이다.
 
 ### 2.4 정착 후 높이
 
@@ -65,7 +66,7 @@ LORICA가 산사태 단계 직후 `landslide_disturbed_mask.asc`를 쓴다. 침�
 
 - 새 설정 키: `mortality_mode`(off | landslide_scar), `dispersal_m`(0이면 재정착 없음, 기본 10), `growth_cap_m_yr`(0이면 발달 지연 없음, 기본 0.3), `seed_source_min_phi`(기본 1.0), `landslide_mortality_min_erosion_m`(기본 0). 기존 `dispersal_km`은 그대로 0만 허용한다. `mortality_deposition`과 `residual_fraction`은 구현하지 않았다.
 - LORICA `treed_coupling.cs`: `landslide_disturbed_mask.asc` 출력, 다음 해 입력으로 전달.
-- 드라이버: 점유 파일 읽기와 쓰기, 분산 창 호출, 출력의 FPC, LAI, rootC에 점유 마스크 적용.
+- 드라이버는 마스크를 읽어 `TREEDlocalstep`에 넘기고 단계 2 상태(점유, 발달 비율, 나이)를 `treed_stage2_*.asc`로 쓴다. 점유 파일 읽기와 쓰기, 재정착, 출력 스케일은 `TREEDlocalstep` 안에서 `TREED_stage2.jl`의 함수가 한다.
 - 패치 방식은 v1.7 뿌리 깊이와 같다. `apply_*.py`에 표식과 앵커 개수 검사를 두고, 기본값에서 v1.6 A/B, v1.7 off와 바이트 동일해야 한다.
 
 ## 3. 검증 계획
@@ -77,6 +78,10 @@ LORICA가 산사태 단계 직후 `landslide_disturbed_mask.asc`를 쓴다. 침�
 5. **넓은 흉터**: 5×5 이상 흉터를 인공으로 만들어 가장자리에서 안쪽으로 재정착이 진행되는지(10 m 창에서 연 1셀씩)
 6. **질량 수지와 전달 오차**: 기존 제약(질량 폐합 1e-6, 교환 오차 5.1e-7 m) 그대로
 7. **v1.6 C 모듈과 비교**: 같은 시나리오에서 C(τ = 4, 8년)의 유효 FPC 곡선과 방법 1의 곡선을 나란히 둔다. 어느 쪽이 맞다고 하지 않고 차이를 보고한다
+
+## 3.1 검증 결과 (2026-11-17)
+
+`RESULTS_STAGE2.md`에 있다. 1번(회귀), 2번(창 단위 시험), 3번(사망 단독), 4번(g = 0과 발달 비율), 6번(질량 폐합)은 했다. 5번(넓은 흉터)은 단위 시험만 했고 결합 실행에서는 못 했다. 7번(C 모듈 비교)은 하지 않았다. 6번의 교환 오차는 다시 재지 않았다.
 
 ## 4. 알려진 한계
 
