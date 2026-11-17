@@ -1,0 +1,38 @@
+A_hm_c14: 549 files compared, 549 identical, 0 differ, 0 only in new, 165 only in old
+  ONLY_OLD 0027/output/treed_CA_m2.asc
+  ONLY_OLD 0027/output/treed_C_coarseroot_gC_individual.asc
+  ONLY_OLD 0027/output/treed_C_fineroot_gC_individual.asc
+  ONLY_OLD 0027/output/treed_effective_fpc.asc
+  ONLY_OLD 0027/output/treed_effective_rootC_gC_m2.asc
+  ONLY_OLD 0027/output/treed_fpc.asc
+  ONLY_OLD 0027/output/treed_lai.asc
+  ONLY_OLD 0027/output/treed_npp.asc
+  ONLY_OLD 0027/output/treed_r_s_r.asc
+  ONLY_OLD 0027/output/treed_rootC_areanorm_gC_m2.asc
+  ONLY_OLD 0027/output/treed_rootC_gC_m2.asc
+  ONLY_OLD 0027/output/treed_root_biomass_kgDM_m2.asc
+  ONLY_OLD 0027/output/treed_root_depth_effective_m.asc
+  ONLY_OLD 0027/output/treed_root_depth_m.asc
+  ONLY_OLD 0027/output/treed_root_depth_optimum_m.asc
+B_hm_c14: 478 files compared, 478 identical, 0 differ, 0 only in new, 236 only in old
+  ONLY_OLD 0023/output/treed_effective_fpc.asc
+  ONLY_OLD 0023/output/treed_effective_rootC_gC_m2.asc
+  ONLY_OLD 0023/output/treed_root_biomass_kgDM_m2.asc
+  ONLY_OLD 0023/output/treed_rootcohesion_Hwang2015_kPa.asc
+  ONLY_OLD 0023/output/treed_rootcohesion_Hwang2015_raw_kPa.asc
+  ONLY_OLD 0024/input/dtm.asc
+  ONLY_OLD 0024/input/paw_mm.asc
+  ONLY_OLD 0024/input/soildepth.asc
+  ONLY_OLD 0024/output/treed_CA_m2.asc
+  ONLY_OLD 0024/output/treed_C_coarseroot_gC_individual.asc
+  ONLY_OLD 0024/output/treed_C_fineroot_gC_individual.asc
+  ONLY_OLD 0024/output/treed_effective_fpc.asc
+  ONLY_OLD 0024/output/treed_effective_rootC_gC_m2.asc
+  ONLY_OLD 0024/output/treed_fpc.asc
+  ONLY_OLD 0024/output/treed_lai.asc
+A_bp447_mod: modes ['basal_profile\r'], 1 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp447_mod: modes ['basal_profile\r'], 1 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp447_sb: modes ['basal_profile\r'], 1 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp100_mod: modes ['basal_profile\r'], 1 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+B_bp033_mod: modes ['basal_profile\r'], 1 years, 0 cell-years rebuilt, max abs deviation 0.00e+00 kPa, cell-years with no root at the slip plane 0, violations 0
+checks_exit=1

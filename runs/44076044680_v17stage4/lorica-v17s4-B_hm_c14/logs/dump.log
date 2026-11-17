@@ -1,0 +1,2 @@
+TREED_RESTART_TRAITS_DUMPED years=22 fields=H|a_ll|C_leaf|seasonality|r_s_r|Tave_optim|Tmax_optim|Tmin_optim|Pave_optim
+TREED_OUTPUT_DUMPED layers=AET|CA|C_coarseroot|C_fineroot|C_heartwood|C_leaf|C_sapwood|FPC|GPP|H|LAI|NPP|Net_C_gain|R_maintenance|SLA|Tave_optim|Tmax_optim|Tmin_optim|a_ll|r_s_r|seasonality|topography

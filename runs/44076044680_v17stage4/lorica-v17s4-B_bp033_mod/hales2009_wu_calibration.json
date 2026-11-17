@@ -1,0 +1,16 @@
+{
+  "mode": "baseline_target_cohesion_to_fixed_event_Tr",
+  "profile": "hales2009_wu_mean",
+  "target_mean_root_cohesion_kPa": 7.6,
+  "baseline_cells": 25,
+  "baseline_mean_rootC_gC_m2": 1181.4030419921876,
+  "baseline_mean_root_biomass_kgDM_m2": 2.513623493600399,
+  "hwang_root_carbon_fraction": 0.47,
+  "hwang_root_density_kg_m3": 435.3,
+  "hwang_K_m_inv": 1.2,
+  "effective_event_Tr_MPa": 1.0967831924784974,
+  "reconstructed_mean_root_cohesion_kPa": 7.6,
+  "baseline_rootC_sha256": "7c69e323337009fe53b247496ad679e3926a4c9ec8571df9fff463a19fdba17e",
+  "template_cfg_sha256": "ce99ccc97d4f0724d3079b71d5343856eeb15016bbf665ab83e7893ac2f3916f",
+  "warning": "Tr_eff is an inverse-calibration parameter, not a measured tensile strength."
+}
