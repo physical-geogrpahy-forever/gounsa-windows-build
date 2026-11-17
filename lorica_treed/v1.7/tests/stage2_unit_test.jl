@@ -2,7 +2,7 @@
 # SYNTHETIC climate (Korea-like monsoon shape), not Gounsa field data.
 # usage: julia --project=<TREED dir> stage2_unit_test.jl <TREED dir>
 using Test, Statistics, Printf, JLD2, Rasters
-treed = ARGS[1]
+treed = abspath(ARGS[1])
 include(joinpath(treed, "src", "TREED.jl"))
 using .TREED
 const T2 = TREED
