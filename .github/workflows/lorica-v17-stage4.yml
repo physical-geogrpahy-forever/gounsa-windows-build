@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 env:
-  RUN_STAMP: 's4-1'
+  RUN_STAMP: 's4-2'
   LR_WEATHER: 'seasonal_stochastic'
   LR_WEATHER_SEED: '20261113'
   # Design fixed by native probes #43789221109 and #43790023979: hollow scarp
@@ -113,6 +113,7 @@ jobs:
           julia --project=work/TREED lorica_treed/v1.7/tests/stage3_unit_test.jl work/TREED 2>&1 | Tee-Object -FilePath report/logs/unit3.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Select-String -Path report/logs/unit3.log -Pattern 'STAGE3_UNIT_TESTS_DONE' -Quiet)) { throw 'stage-3 unit test did not finish' }
+          python -m pip install --quiet numpy
           python -I lorica_treed/v1.7/tests/check_basal_cohesion.py 2>&1 | Tee-Object -FilePath report/logs/unit4.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
